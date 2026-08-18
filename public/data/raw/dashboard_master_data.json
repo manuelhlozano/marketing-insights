@@ -1,0 +1,208 @@
+{
+  "empresa": {
+    "id": 1,
+    "nombre": "Cine Múltiplex Villacentro",
+    "slug": "cine-multiplex-villacentro",
+    "sector": "Entretenimiento & Salas de Cine",
+    "ciudad": "Villavicencio, Meta",
+    "pais": "Colombia",
+    "token_publico": "mkt_live_cmv_78a9c0f",
+    "logo_badge": "🎬🍿 CMV"
+  },
+  "periodo": {
+    "mes": "Julio",
+    "anio": 2026,
+    "label": "Julio 2026",
+    "inicio": "2026-07-01",
+    "fin": "2026-07-31",
+    "titulo_informe": "Toma de Control y Explosión de Crecimiento",
+    "agencia": "Cibergenios Agencia Digital SAS",
+    "fases_timeline": [
+      { "periodo": "24-30 Jun", "fase": "Empalme parcial", "color": "#94A3B8", "descripcion": "Evaluación diagnóstica y auditoría de cuentas." },
+      { "periodo": "1-14 Jul", "fase": "Diseño parcial", "color": "#F59E0B", "descripcion": "Mantenimiento operativo y preparación de estrategia de choque." },
+      { "periodo": "15-31 Jul", "fase": "Control Total Cibergenios", "color": "#0284C7", "descripcion": "Toma de control 100%, cambio de formato hacia video UGC/Reels y rescate de algoritmos." }
+    ]
+  },
+  "kpis_principales": {
+    "visualizaciones_meta": { "valor": 144000, "label": "Visualizaciones Meta", "variacion": "-20.8%", "icono": "eye", "desglose": { "instagram": 107196, "facebook": 36783 } },
+    "espectadores_unicos": { "valor": 30838, "label": "Espectadores Únicos", "variacion": "+15.3%", "icono": "users", "status": "positivo" },
+    "visualizaciones_tiktok": { "valor": 93100, "label": "Visualizaciones TikTok (7 Días)", "variacion": "Explosión Vertical", "icono": "music", "status": "positivo" },
+    "tiktok_compartidos": { "valor": 963, "label": "Veces Compartido TikTok (ROI Viral)", "icono": "share-2", "status": "positivo" },
+    "comunidad_total": { "valor": 54170, "label": "Comunidad Total", "variacion": "+289 neto (+15.6%)", "icono": "user-check", "desglose": { "facebook": 50125, "instagram": 4045 } },
+    "entregables_creados": { "valor": 117, "label": "Entregables Creados", "variacion": "Superando Cuota", "icono": "layers", "status": "positivo" },
+    "email_buzones": { "valor": 55422, "label": "Buzones Alcanzados (Brevo)", "apertura": "18.0% (9.976 aperturas)", "clics": 249, "icono": "mail" },
+    "email_b2b_apertura": { "valor": "30.84%", "label": "Open Rate Empresas (B2B)", "enviados": 415, "prospectos": 25, "icono": "briefcase", "status": "positivo" },
+    "tiempo_respuesta_ig": { "valor": "40 min", "label": "Tiempo Respuesta Mensajes IG", "indice": "76.2%", "icono": "message-circle", "status": "positivo" },
+    "pauta_costo_resultado": { "valor": "$112.82 COP", "label": "Costo por Resultado Pauta", "gasto_total": "$50.016 COP", "resultados": 449, "icono": "dollar-sign", "status": "positivo" }
+  },
+  "resumen_ejecutivo": "El aprendizaje más grande que nos dejan los datos de julio es que el formato dictamina el éxito. La decisión estratégica de migrar el esfuerzo hacia la producción de videos UGC y Reels permitió frenar en solo 15 días la caída de la comunidad y reactivar la conversión directa a taquilla. Logramos más de 144.000 visualizaciones en Meta y rescatamos a TikTok del estancamiento de las primeras 3 semanas a más de 93.000 vistas en 7 días con 963 compartidos orgánicos.",
+  "demografia_meta": {
+    "facebook": {
+      "total_seguidores": 50125,
+      "genero": { "mujeres": 57.6, "hombres": 42.4 },
+      "edades": [
+        { "rango": "18-24", "mujeres": 3.3, "hombres": 2.6 },
+        { "rango": "25-34", "mujeres": 26.2, "hombres": 19.6 },
+        { "rango": "35-44", "mujeres": 18.8, "hombres": 13.9 },
+        { "rango": "45-54", "mujeres": 6.9, "hombres": 4.8 },
+        { "rango": "55-64", "mujeres": 1.8, "hombres": 1.2 },
+        { "rango": "65+", "mujeres": 0.6, "hombres": 0.5 }
+      ],
+      "ciudades": [
+        { "ciudad": "Villavicencio, Meta", "porcentaje": 47.4 },
+        { "ciudad": "Bogotá", "porcentaje": 6.2 },
+        { "ciudad": "Acacías, Meta", "porcentaje": 2.3 },
+        { "ciudad": "Granada, Meta", "porcentaje": 0.9 },
+        { "ciudad": "Medellín", "porcentaje": 0.8 },
+        { "ciudad": "Restrepo, Meta", "porcentaje": 0.8 },
+        { "ciudad": "San José, CA (EE.UU.)", "porcentaje": 0.8 },
+        { "ciudad": "Lima, Perú", "porcentaje": 0.6 },
+        { "ciudad": "Puerto Gaitán, Meta", "porcentaje": 0.6 },
+        { "ciudad": "Yopal, Casanare", "porcentaje": 0.6 }
+      ],
+      "paises": [
+        { "pais": "Colombia", "porcentaje": 73.4 },
+        { "pais": "México", "porcentaje": 5.1 },
+        { "pais": "Estados Unidos", "porcentaje": 4.5 },
+        { "pais": "Venezuela", "porcentaje": 3.0 },
+        { "pais": "Argentina", "porcentaje": 2.4 },
+        { "pais": "España", "porcentaje": 1.9 }
+      ]
+    },
+    "instagram": {
+      "total_seguidores": 4045,
+      "genero": { "mujeres": 58.4, "hombres": 41.6 },
+      "edades": [
+        { "rango": "18-24", "mujeres": 9.5, "hombres": 8.5 },
+        { "rango": "25-34", "mujeres": 24.0, "hombres": 15.5 },
+        { "rango": "35-44", "mujeres": 16.2, "hombres": 11.8 },
+        { "rango": "45-54", "mujeres": 6.8, "hombres": 4.6 },
+        { "rango": "55-64", "mujeres": 1.5, "hombres": 1.0 },
+        { "rango": "65+", "mujeres": 0.7, "hombres": 0.4 }
+      ],
+      "ciudades": [
+        { "ciudad": "Villavicencio, Meta", "porcentaje": 58.3 },
+        { "ciudad": "Bogotá", "porcentaje": 3.2 },
+        { "ciudad": "Apiay, Meta", "porcentaje": 1.8 },
+        { "ciudad": "Santiago de Chile", "porcentaje": 1.4 },
+        { "ciudad": "Acacías, Meta", "porcentaje": 1.2 },
+        { "ciudad": "Restrepo, Meta", "porcentaje": 0.8 }
+      ]
+    }
+  },
+  "comparativa_formatos": {
+    "publicado": [
+      { "formato": "Reels", "cantidad": 28, "vistas": 49018, "interacciones": 283 },
+      { "formato": "Historias", "cantidad": 27, "vistas": 20544, "interacciones": 83 },
+      { "formato": "Fotos", "cantidad": 10, "vistas": 11849, "interacciones": 30 },
+      { "formato": "Otros / Multimedia", "cantidad": 2, "vistas": 6968, "interacciones": 2 }
+    ],
+    "insight": "Los Reels multiplicaron por 5 el impacto visual y las interacciones respecto a las fotos estáticas tradicionales. El contenido estático ya no domina la atención en Villavicencio."
+  },
+  "showcase_ugc": [
+    {
+      "titulo": "Spiderman / Farock Rodríguez",
+      "tipo": "Reel Colaborativo",
+      "vistas": "47.5K+",
+      "likes": 905,
+      "compartidos": 67,
+      "comentarios": 47,
+      "impacto": "Colaboración con talento local y tendencia global de estreno. Gran tracción en público joven."
+    },
+    {
+      "titulo": "Moana / Farock Rodríguez (Maui)",
+      "tipo": "Reel Humor & Disfraces",
+      "vistas": "42.1K+",
+      "likes": 348,
+      "compartidos": 14,
+      "comentarios": 17,
+      "impacto": "Humor in situ en las salas de cine, promoviendo el estreno familiar de Moana."
+    },
+    {
+      "titulo": "Outfit Spiderman / Farock",
+      "tipo": "Reel Viral",
+      "vistas": "39.5K+",
+      "likes": 1013,
+      "compartidos": 100,
+      "comentarios": 16,
+      "impacto": "Mayor cantidad de compartidos en Instagram (100 shares), disparando el boca a boca."
+    },
+    {
+      "titulo": "Humor Trabajador Spiderman Limpiando",
+      "tipo": "Reel Nativo",
+      "vistas": "23.1K+",
+      "likes": 479,
+      "compartidos": 55,
+      "comentarios": 31,
+      "impacto": "De la pantalla del celular a la taquilla: Spiderman despachando combos y barriendo salas."
+    }
+  ],
+  "pauta_digital": {
+    "inversion_total_cop": 50016,
+    "alcance_total": 15141,
+    "impresiones_totales": 20381,
+    "clics_totales": 958,
+    "acciones_alto_valor": 449,
+    "costo_promedio_resultado": 112.82,
+    "campanas": [
+      {
+        "nombre": "Tráfico Promo Tricolor (20 de Julio)",
+        "gasto_cop": 24960,
+        "alcance": 8445,
+        "impresiones": 10435,
+        "clics": 569,
+        "resultados": 199,
+        "tipo_resultado": "Visitas a la página web",
+        "cpr": 125.43
+      },
+      {
+        "nombre": "Combos Tráfico IG (Minions & Toy Story)",
+        "gasto_cop": 25056,
+        "alcance": 6696,
+        "impresiones": 9946,
+        "clics": 389,
+        "resultados": 250,
+        "tipo_resultado": "Visitas al Perfil de Instagram",
+        "cpr": 100.22
+      }
+    ]
+  },
+  "email_marketing": {
+    "b2c_masivo": {
+      "base_enviada": 56960,
+      "entregados": 55422,
+      "tasa_entrega": "97.3%",
+      "open_rate": "18.0%",
+      "lecturas_efectivas": 9976,
+      "clics_web": 249,
+      "impacto": "Activación directa de base fidelizada con promociones estelares de Spider-Man."
+    },
+    "b2b_corporativo": {
+      "base_empresas": 443,
+      "entregados": 415,
+      "tasa_entrega": "93.68%",
+      "open_rate": "30.84%",
+      "empresas_abrieron": 128,
+      "clics_cotizacion": 25,
+      "prospectos_calificados": 25,
+      "impacto": "Generación de 25 cotizaciones altamente calificadas para alquiler de salas y eventos corporativos."
+    }
+  },
+  "atencion_mensajeria": {
+    "facebook": { "indice_respuesta": "25.0%", "tiempo_promedio": "5 h 9 min", "contactos_totales": 9, "conversaciones": 10 },
+    "instagram": { "indice_respuesta": "76.2%", "tiempo_promedio": "40 min 35 s", "contactos_totales": 27, "conversaciones": 38, "nuevos_organicos": 22, "nuevos_pagados": 2 }
+  },
+  "series_temporales_julio": {
+    "dias": ["1 jul", "6 jul", "11 jul", "16 jul", "21 jul", "26 jul", "31 jul"],
+    "meta_visualizaciones": [2500, 3200, 2800, 4100, 16500, 1900, 18200],
+    "tiktok_visualizaciones": [4800, 3200, 2600, 1800, 2100, 4500, 6300],
+    "espectadores_unicos": [800, 1200, 1500, 1200, 9500, 1100, 3800],
+    "interacciones": [420, 340, 50, 45, 180, 40, 440],
+    "clics_enlace_ig": [0, 0, 0, 0, 120, 0, 5]
+  },
+  "compromisos_agosto_2026": [
+    { "titulo": "Garantía de Escalamiento", "desc": "Objetivo mínimo de +10% de crecimiento sostenido en métricas operando el mes completo." },
+    { "titulo": "Consolidación del Formato Rey", "desc": "Cuota de 4 videos de alto impacto fijos semanales (Reels / TikToks UGC)." },
+    { "titulo": "Resolución Técnica de Infraestructura", "desc": "Optimización de servidores de envío de correos masivos para elevar el Open Rate B2C y B2B." }
+  ]
+}
