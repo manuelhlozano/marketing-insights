@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketing Insights | Panel de Administración Maestro</title>
   
@@ -10,13 +11,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="../css/executive-dashboard.css">
+  <link rel="stylesheet" href="/css/executive-dashboard.css">
 
   <!-- AUTH GUARD: debe ejecutarse antes que cualquier contenido -->
   <script>
     (function() {
       if (localStorage.getItem('mkt_admin_logged') !== 'true') {
-        window.location.replace('../login.html');
+        window.location.replace('/login');
       }
     })();
   </script>
@@ -28,7 +29,7 @@
     <!-- Header Admin con Logo de Cibergenios -->
     <header class="header-nav">
       <div class="brand-badge">
-        <img src="../assets/images/logo_cibergenios.png" alt="Cibergenios" class="brand-agency-logo">
+        <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" class="brand-agency-logo">
         <div class="brand-info">
           <h1>Panel de Control & Administración Maestro</h1>
           <p>Gestión de Empresas, Logos Duales, Dashboards, Toggles de Indicadores e Impersonación</p>
@@ -106,7 +107,7 @@
               <label class="form-label">☀️ Logo para Tema Claro (Fondo Blanco)</label>
               <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                 <div style="background: #FFFFFF; border: 1px solid #CBD5E1; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; min-width: 140px; height: 50px;">
-                  <img id="previewLogoLight" src="../assets/images/logo_multiplex_light.png" alt="Logo Claro" style="max-height: 38px; max-width: 130px; object-fit: contain;">
+                  <img id="previewLogoLight" src="/assets/images/logo_multiplex_light.png" alt="Logo Claro" style="max-height: 38px; max-width: 130px; object-fit: contain;">
                 </div>
                 <div style="flex: 1;">
                   <input type="file" id="fileLogoLight" class="form-input" accept="image/*" onchange="handleLogoUpload(event, 'previewLogoLight', 'logo_light_data')" style="padding: 6px; font-size: 12px;">
@@ -120,7 +121,7 @@
               <label class="form-label">🌙 Logo para Tema Oscuro (Fondo Negro/Azul)</label>
               <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                 <div style="background: #0A0E1A; border: 1px solid #1E293B; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; min-width: 140px; height: 50px;">
-                  <img id="previewLogoDark" src="../assets/images/logo_multiplex_dark.png" alt="Logo Oscuro" style="max-height: 38px; max-width: 130px; object-fit: contain;">
+                  <img id="previewLogoDark" src="/assets/images/logo_multiplex_dark.png" alt="Logo Oscuro" style="max-height: 38px; max-width: 130px; object-fit: contain;">
                 </div>
                 <div style="flex: 1;">
                   <input type="file" id="fileLogoDark" class="form-input" accept="image/*" onchange="handleLogoUpload(event, 'previewLogoDark', 'logo_dark_data')" style="padding: 6px; font-size: 12px;">
@@ -171,7 +172,7 @@
                 <tr>
                   <td>
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                      <img id="tableLogoPreview" src="../assets/images/logo_multiplex_light.png" alt="Cine Multiplex" style="max-height: 28px; max-width: 90px; object-fit: contain;">
+                      <img id="tableLogoPreview" src="/assets/images/logo_multiplex_light.png" alt="Cine Multiplex" style="max-height: 28px; max-width: 90px; object-fit: contain;">
                       <strong>Cine Múltiplex Villacentro</strong>
                     </div>
                     <small style="color: var(--text-muted);">Villavicencio, Meta • Entretenimiento</small>
@@ -197,11 +198,11 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
               <div style="text-align: center; background: #FFFFFF; padding: 12px; border-radius: 6px; border: 1px solid #CBD5E1;">
                 <div style="font-size: 11px; color: #475569; font-weight: 700; margin-bottom: 6px;">Logo Modo Claro (Activo)</div>
-                <img id="cardLogoLightPreview" src="../assets/images/logo_multiplex_light.png" alt="Logo Claro" style="max-height: 44px; max-width: 160px; object-fit: contain;">
+                <img id="cardLogoLightPreview" src="/assets/images/logo_multiplex_light.png" alt="Logo Claro" style="max-height: 44px; max-width: 160px; object-fit: contain;">
               </div>
               <div style="text-align: center; background: #0A0E1A; padding: 12px; border-radius: 6px; border: 1px solid #1E293B;">
                 <div style="font-size: 11px; color: #94A3B8; font-weight: 700; margin-bottom: 6px;">Logo Modo Oscuro (Activo)</div>
-                <img id="cardLogoDarkPreview" src="../assets/images/logo_multiplex_dark.png" alt="Logo Oscuro" style="max-height: 44px; max-width: 160px; object-fit: contain;">
+                <img id="cardLogoDarkPreview" src="/assets/images/logo_multiplex_dark.png" alt="Logo Oscuro" style="max-height: 44px; max-width: 160px; object-fit: contain;">
               </div>
             </div>
           </div>
@@ -418,7 +419,7 @@
     <!-- Footer -->
     <footer class="dashboard-footer">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="../assets/images/logo_cibergenios.png" alt="Cibergenios" style="max-height: 24px;">
+        <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" style="max-height: 24px;">
         <span>Marketing Insights Platform • Cibergenios Agencia Digital SAS</span>
       </div>
       <div>Autenticado como: <strong>webmaster@cibergenios.com</strong> (Superadmin)</div>
