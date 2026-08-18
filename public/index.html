@@ -99,13 +99,37 @@
 
       <!-- Timeline de Transición Operativa -->
       <div class="timeline-bar-wrapper">
-        <div class="timeline-bar-title">
-          <span><i data-lucide="rocket" style="width: 16px; height: 16px;"></i> Transición Acelerada y Cobertura Total</span>
-          <span style="color: var(--text-dim); font-size: 12px; font-weight: 700;">Hito Clave: 15 de Julio (Control 100%)</span>
+        <div class="timeline-bar-header">
+          <div class="timeline-bar-title">
+            <i data-lucide="rocket" style="width: 18px; height: 18px;"></i>
+            <span>Transición Acelerada & Toma de Control Operativo</span>
+          </div>
+          <div class="timeline-key-milestone">
+            <i data-lucide="star" style="width: 14px; height: 14px; color: #EA580C;"></i>
+            <span>Hito Clave: 15 de Julio (Control 100% Cibergenios)</span>
+          </div>
         </div>
-        <div class="timeline-track" id="timelineContainer"></div>
+
+        <!-- Barra visual de progresión cronológica -->
+        <div class="timeline-progress-bar">
+          <div class="timeline-prog-seg seg-empalme" style="flex: 1.5;" title="24-30 Jun: Empalme parcial">
+            <span>24 - 30 Jun (Empalme)</span>
+          </div>
+          <div class="timeline-prog-seg seg-diseno" style="flex: 2.2;" title="1-14 Jul: Diseño & estrategia">
+            <span>1 - 14 Jul (Estrategia)</span>
+          </div>
+          <div class="timeline-prog-seg seg-control" style="flex: 3.5;" title="15-31 Jul: Control total Cibergenios">
+            <span>⭐ 15 - 31 Jul (Control Total 100%)</span>
+          </div>
+        </div>
+
+        <!-- Fases Detalladas de la Transición -->
+        <div class="timeline-steps-grid" id="timelineContainer">
+          <!-- Renderizado dinámico desde hitos_timeline en MySQL -->
+        </div>
       </div>
     </section>
+
 
     <!-- KPI MASTER CARDS: Resumen de Alto Impacto -->
     <div class="kpi-grid">

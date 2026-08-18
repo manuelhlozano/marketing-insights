@@ -146,17 +146,27 @@
   function renderTimeline(hitos) {
     const container = document.getElementById('timelineContainer');
     if (!container || !hitos.length) return;
-    container.innerHTML = hitos.map((h, i) => `
-      <div class="timeline-phase ${i === hitos.length - 1 ? 'phase-active' : ''}">
-        <div class="phase-dot"></div>
-        <div class="phase-content">
-          <div class="phase-label">${h.periodo}</div>
-          <div class="phase-title">${h.fase}</div>
-          ${h.descripcion ? `<div class="phase-desc">${h.descripcion}</div>` : ''}
-          ${h.hito_clave  ? `<div class="phase-badge"><i data-lucide="star" style="width:12px;height:12px;display:inline"></i> Hito Clave: ${h.hito_clave}</div>` : ''}
-        </div>
-      </div>`).join('');
+
+    const icons = ['git-commit', 'pen-tool', 'check-circle-2'];
+
+    container.innerHTML = hitos.map((h, i) => {
+      const isFinal = i === hitos.length - 1;
+      const cardClass = isFinal ? 'step-card-active' : 'step-card';
+      const icon = icons[i] || 'calendar';
+
+      return `
+        <div class="${cardClass}">
+          <div class="step-card-top">
+            <span class="step-period-badge">${h.periodo}</span>
+            <div class="step-icon-box"><i data-lucide="${icon}" style="width: 15px; height: 15px;"></i></div>
+          </div>
+          <h4 class="step-card-title">${h.fase}</h4>
+          ${h.descripcion ? `<p class="step-card-desc">${h.descripcion}</p>` : ''}
+          ${h.hito_clave ? `<div class="step-card-highlight"><i data-lucide="star" style="width: 12px; height: 12px; display: inline;"></i> ${h.hito_clave}</div>` : ''}
+        </div>`;
+    }).join('');
   }
+
 
   // ─── GOOGLE ───────────────────────────────────────────────────────────────────
   function renderGoogle(g) {
