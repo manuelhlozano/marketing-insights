@@ -329,8 +329,13 @@
       if (!el) return;
       const activoEnBd    = activos.includes(codigo);
       const activoEnAdmin = overrides[codigo] !== false;
-      if (!activoEnBd || !activoEnAdmin) el.style.display = 'none';
+      if (!activoEnBd || !activoEnAdmin) {
+        el.style.display = 'none';
+      } else {
+        el.style.display = '';
+      }
     });
+
   }
 
   // ─── Arrancar al cargar el DOM ────────────────────────────────────────────────

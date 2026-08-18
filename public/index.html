@@ -55,12 +55,8 @@
     <!-- Header & Navigation con Soporte de Logos Duales (Claro / Oscuro) -->
     <header class="header-nav">
       <div class="brand-badge">
-        <img id="brandLogoLight" src="assets/images/logo_multiplex_light.png" alt="Cine Múltiplex Villacentro" class="brand-logo-img logo-light">
-        <img id="brandLogoDark" src="assets/images/logo_multiplex_dark.png" alt="Cine Múltiplex Villacentro" class="brand-logo-img logo-dark">
-        <div class="brand-info">
-          <h1 id="brandCompanyName" style="display: none;">Cine Múltiplex Villacentro</h1>
-          <p id="brandReportSub"><span id="dashTitulo">Cargando...</span> • Por Cibergenios Agencia Digital SAS</p>
-        </div>
+        <img id="brandLogoLight" src="/assets/images/logo_multiplex_light.png" alt="Cine Múltiplex Villacentro" class="brand-logo-img logo-light">
+        <img id="brandLogoDark" src="/assets/images/logo_multiplex_dark.png" alt="Cine Múltiplex Villacentro" class="brand-logo-img logo-dark">
       </div>
 
       <div class="header-actions">
@@ -83,13 +79,23 @@
       </div>
     </header>
 
+    <!-- Título Principal del Informe (Debajo del Header y encima de las tarjetas) -->
+    <div class="report-header-title-bar" style="margin: 22px 0 16px 0; padding-bottom: 12px; border-bottom: 1px solid var(--border-card);">
+      <h3 style="font-family: var(--font-heading); font-size: 19px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0;">
+        <i data-lucide="file-text" style="color: var(--primary-blue); width: 20px; height: 20px;"></i>
+        <span id="dashTitulo">Informe Ejecutivo de Gestión Mensual | Julio 2026</span>
+        <span style="font-size: 13.5px; font-weight: 500; color: var(--text-muted);">• Por Cibergenios Agencia Digital SAS</span>
+      </h3>
+    </div>
+
     <!-- HERO SECTION: Transición Acelerada (Slide 1 & 2) -->
-    <section class="hero-banner" id="sectionTimeline" style="display:none">
+    <section class="hero-banner" id="sectionTimeline">
       <div class="hero-meta" id="dashPeriodo">Julio 2026</div>
       <h2 class="hero-title" id="dashLema">Toma de Control y Explosión de Crecimiento</h2>
       <p class="hero-subtitle">
         <span id="dashDescripcion">Auditoría inmediata, reestructuración estratégica hacia formatos de video corto (Reels / TikToks UGC) y reactivación integral de la conversión en taquilla y confitería para Cine Múltiplex Villacentro.</span>
       </p>
+
 
       <!-- Timeline de Transición Operativa -->
       <div class="timeline-bar-wrapper">
