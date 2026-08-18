@@ -7,8 +7,27 @@ let entregablesData = [];
 let currentPage = 1;
 const itemsPerPage = 15;
 
+window.initEntregablesFromApi = function(list) {
+  if (Array.isArray(list) && list.length > 0) {
+    entregablesData = list.map(item => ({
+      id: item.numero_item || item.id,
+      nombre: item.nombre,
+      formato: item.formato,
+      categoria: item.categoria,
+      fecha: item.fecha_creacion || ''
+    }));
+    setupFilterListeners();
+    renderEntregablesTable();
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-  loadEntregablesData();
+  // Solo cargar fallback CSV si no ha sido inicializado por la API
+  setTimeout(() => {
+    if (entregablesData.length === 0) {
+      loadEntregablesData();
+    }
+  }, 500);
 });
 
 async function loadEntregablesData() {
