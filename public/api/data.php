@@ -127,6 +127,7 @@ if ($action === 'dashboard') {
     $pauta       = $fnMetricas('pauta');
     $email_b2c   = $fnMetricas('email_b2c');
     $email_b2b   = $fnMetricas('email_b2b');
+    $seo         = $fnMetricas('seo');
     $entregablesSummary = $fnMetricas('entregables');
 
     // 7. Series de tiempo
@@ -238,6 +239,7 @@ if ($action === 'dashboard') {
         'campanas_pauta'  => $campanas,
         'email_b2c'       => $email_b2c,
         'email_b2b'       => $email_b2b,
+        'seo'             => $seo,
         'entregables_summary' => $entregablesSummary,
         'series_meta'     => $seriesMeta,
         'series_tiktok'   => $seriesTiktok,

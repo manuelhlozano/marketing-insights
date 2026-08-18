@@ -375,6 +375,17 @@
 
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
               <div>
+                <strong style="font-size: 13px;">🌐 Auditoría Técnica SEO & Rendimiento</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">Score 86/100, velocidad 0.47s y seguridad HTTPS</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="toggleSeo" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
                 <strong style="font-size: 13px;">📁 Catálogo de 117 Entregables</strong>
                 <p style="font-size: 11.5px; color: var(--text-muted);">Tabla interactiva de piezas y formatos</p>
               </div>
@@ -383,6 +394,7 @@
                 <span class="slider-toggle"></span>
               </label>
             </div>
+
 
           </div>
         </div>
@@ -568,8 +580,10 @@
         ugc: document.getElementById('toggleUgc').checked,
         pauta: document.getElementById('togglePauta').checked,
         email: document.getElementById('toggleEmail').checked,
+        seo: document.getElementById('toggleSeo').checked,
         entregables: document.getElementById('toggleEntregables').checked
       };
+
 
       localStorage.setItem('mkt_dashboard_toggles', JSON.stringify(settings));
       alert('¡Configuración de visibilidad e indicadores guardada! Los dashboards reflejarán estos cambios.');

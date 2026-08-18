@@ -83,9 +83,11 @@
     renderUgc(data.ugc || []);
     renderPauta(data.pauta || {}, data.campanas_pauta || []);
     renderEmail(data.email_b2c || {}, data.email_b2b || {});
+    renderSeo(data.seo || {});
     renderEntregables(data.entregables || [], data.entregables_summary || {});
     renderResumen(data.dashboard || {});
     applyModulosToggle(data.modulos_activos || []);
+
 
     // Inicializar gráficos con datos reales de la API
     if (typeof window.renderChartsFromData === 'function') {
@@ -299,6 +301,21 @@
     set('emailB2bRespuesta',  fmtPct(val(b2b, 'tasa_respuesta')));
   }
 
+  // ─── AUDITORÍA TÉCNICA SEO ──────────────────────────────────────────────────
+  function renderSeo(seo) {
+    if (!seo) return;
+    const score = val(seo, 'score_global');
+    if (score) set('seoScoreNum', score);
+    const loadTime = val(seo, 'tiempo_carga');
+    if (loadTime) set('seoLoadTime', loadTime + 's');
+    const pageSize = val(seo, 'tamano_pagina');
+    if (pageSize) set('seoPageSize', pageSize + ' kB');
+    const reqs = val(seo, 'recursos_total');
+    if (reqs) set('seoRequests', fmt(reqs));
+    const dom = val(seo, 'nodos_dom');
+    if (dom) set('seoDomNodes', fmt(dom));
+  }
+
   // ─── ENTREGABLES ──────────────────────────────────────────────────────────────
   function renderEntregables(list, summary) {
     set('entregablesTotal', fmt(val(summary, 'total')));
@@ -331,8 +348,10 @@
       ugc:         'sectionUgc',
       pauta:       'sectionPauta',
       email:       'sectionEmail',
+      seo:         'sectionSeo',
       entregables: 'sectionEntregables',
     };
+
 
     Object.entries(sectionMap).forEach(([codigo, sectionId]) => {
       const el = document.getElementById(sectionId);
