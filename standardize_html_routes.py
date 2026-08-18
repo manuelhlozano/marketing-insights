@@ -1,4 +1,15 @@
-<!DOCTYPE html>
+"""
+Normaliza y sincroniza todos los archivos HTML (login.html, login/index.html, admin.html, admin/index.html, index.html)
+con rutas absolutas, base href, favicon y redirecciones consistentes.
+"""
+
+import os
+
+# 1. Favicon tag
+FAVICON_TAG = '<link rel="icon" type="image/png" href="/assets/images/logo_cibergenios.png">'
+
+# ─── 1. LOGIN HTML (login.html y login/index.html) ───────────────────────────
+LOGIN_HTML = """<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -91,3 +102,51 @@
   </script>
 </body>
 </html>
+"""
+
+with open('public/login.html', 'w', encoding='utf-8') as f:
+    f.write(LOGIN_HTML)
+
+os.makedirs('public/login', exist_ok=True)
+with open('public/login/index.html', 'w', encoding='utf-8') as f:
+    f.write(LOGIN_HTML)
+
+print("[OK] login.html y login/index.html actualizados.")
+
+# ─── 2. ADMIN HTML (admin/index.html y admin.html) ───────────────────────────
+with open('public/admin/index.html', 'r', encoding='utf-8') as f:
+    admin_content = f.read()
+
+# Fix favicon in admin
+if 'favicon' not in admin_content:
+    admin_content = admin_content.replace('<title>', FAVICON_TAG + '\n  <title>')
+
+# Fix relative links in admin
+admin_content = admin_content.replace('href="../css/', 'href="/css/')
+admin_content = admin_content.replace('src="../assets/', 'src="/assets/')
+admin_content = admin_content.replace("window.location.href = '../login.html'", "window.location.href = '/login'")
+admin_content = admin_content.replace("window.location.replace('../login.html')", "window.location.replace('/login')")
+admin_content = admin_content.replace("const targetUrl = `../index.html?", "const targetUrl = `/index.html?")
+
+with open('public/admin/index.html', 'w', encoding='utf-8') as f:
+    f.write(admin_content)
+
+with open('public/admin.html', 'w', encoding='utf-8') as f:
+    f.write(admin_content)
+
+print("[OK] admin/index.html y admin.html sincronizados.")
+
+# ─── 3. INDEX HTML (favicon + token redirect) ─────────────────────────────────
+with open('public/index.html', 'r', encoding='utf-8') as f:
+    index_content = f.read()
+
+if 'favicon' not in index_content:
+    index_content = index_content.replace('<title>', FAVICON_TAG + '\n  <title>')
+
+# Asegurar que redirección del token gate apunte a /login
+index_content = index_content.replace("window.location.replace('login.html')", "window.location.replace('/login')")
+
+with open('public/index.html', 'w', encoding='utf-8') as f:
+    f.write(index_content)
+
+print("[OK] index.html actualizado con favicon y ruta limpia de login.")

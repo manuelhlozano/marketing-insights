@@ -2,15 +2,17 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketing Insights | Iniciar Sesión</title>
+  <link rel="icon" type="image/png" href="/assets/images/logo_cibergenios.png">
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="css/executive-dashboard.css">
+  <link rel="stylesheet" href="/css/executive-dashboard.css">
 </head>
 <body class="light-mode" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background-color: var(--bg-main);">
 
@@ -20,7 +22,7 @@
     <div class="content-card" style="padding: 40px 36px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08); border-radius: var(--radius-lg);">
       
       <div style="text-align: center; margin-bottom: 28px;">
-        <img src="assets/images/logo_cibergenios.png" alt="Cibergenios" style="max-height: 48px; margin: 0 auto 16px; display: block;">
+        <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" style="max-height: 48px; margin: 0 auto 16px; display: block;">
         <h2 style="font-family: var(--font-heading); font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
           Marketing Insights
         </h2>
@@ -37,12 +39,12 @@
         
         <div class="form-group">
           <label class="form-label">Correo Electrónico</label>
-          <input type="email" id="loginEmail" class="form-input" required placeholder="correo@empresa.com" autocomplete="username">
+          <input type="email" id="loginEmail" class="form-input" required placeholder="correo@empresa.com" autocomplete="off">
         </div>
 
         <div class="form-group">
           <label class="form-label">Contraseña</label>
-          <input type="password" id="loginPassword" class="form-input" required placeholder="••••••••••••" autocomplete="current-password">
+          <input type="password" id="loginPassword" class="form-input" required placeholder="••••••••••••" autocomplete="new-password">
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 12.5px;">
@@ -62,15 +64,15 @@
     </div>
 
     <div style="text-align: center; margin-top: 20px;">
-      <a href="index.html" style="font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
-        <span>← Volver al Dashboard de Cliente</span>
+      <a href="/cine-multiplex-villacentro/julio-2026?token=mkt_live_cmv_78a9c0f" style="font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+        <span>← Ver Dashboard de Ejemplo (Cine Múltiplex)</span>
       </a>
     </div>
 
   </div>
 
   <script>
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 
     function handleLogin(e) {
       e.preventDefault();
@@ -81,7 +83,7 @@
       if (email === 'webmaster@cibergenios.com' && pass === 'Dieg0$m1') {
         localStorage.setItem('mkt_admin_logged', 'true');
         localStorage.setItem('mkt_admin_user', 'webmaster@cibergenios.com');
-        window.location.href = 'admin/index.html';
+        window.location.href = '/admin';
       } else {
         document.getElementById('errorMsg').style.display = 'block';
       }

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/images/logo_cibergenios.png">
   <title>Marketing Insights | Cine Múltiplex Villacentro (Julio 2026)</title>
   
   <!-- Google Fonts: Outfit (Titulares & KPIs) & Inter (Cuerpo & Tablas) -->
@@ -30,7 +31,7 @@
 
       if (!isAdminLogged && (!token || !VALID_TOKENS.includes(token))) {
         // Sin token válido y sin sesión admin → redirigir al login
-        window.location.replace('login.html');
+        window.location.replace('/login');
       } else {
         // Acceso autorizado → mostrar el body
         document.addEventListener('DOMContentLoaded', function() {

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/images/logo_cibergenios.png">
   <title>Marketing Insights | Panel de Administración Maestro</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -549,7 +550,7 @@
     }
 
     function impersonateClient(empresaSlug, dashboardSlug) {
-      const targetUrl = `../index.html?empresa=${encodeURIComponent(empresaSlug)}&dashboard=${encodeURIComponent(dashboardSlug)}&token=mkt_live_cmv_78a9c0f`;
+      const targetUrl = `/index.html?empresa=${encodeURIComponent(empresaSlug)}&dashboard=${encodeURIComponent(dashboardSlug)}&token=mkt_live_cmv_78a9c0f`;
       window.open(targetUrl, '_blank');
     }
 
@@ -581,7 +582,7 @@
 
     function logoutAdmin() {
       localStorage.removeItem('mkt_admin_logged');
-      window.location.href = '../login.html';
+      window.location.href = '/login';
     }
 
     // Inicializar lista

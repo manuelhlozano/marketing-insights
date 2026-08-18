@@ -54,4 +54,6 @@ try:
     print("\nDespliegue completado con exito en insights.cibergenios.com!")
 
 except Exception as e:
+    import traceback
     print(f"Error en despliegue: {e}")
+    traceback.print_exc()
