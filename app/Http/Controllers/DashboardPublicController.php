@@ -17,12 +17,29 @@ class DashboardPublicController extends Controller
     }
 
     /**
-     * Muestra el selector de clientes / dashboards o acceso mediante token
+     * Selector global de empresas y dashboards
      */
     public function selector()
     {
-        $empresas = Empresa::where('activo', true)->with('dashboards')->get();
+        $empresas = Empresa::where('activo', true)->with('dashboardsActivos')->get();
         return view('public.selector', compact('empresas'));
+    }
+
+    /**
+     * Selector de dashboards de una empresa específica por slug
+     */
+    public function selectorPorEmpresa(string $empresaSlug)
+    {
+        $empresa = Empresa::where('slug', $empresaSlug)->where('activo', true)->firstOrFail();
+        $dashboards = $empresa->dashboardsActivos;
+
+        // Si solo tiene un dashboard activo, redirigir directamente
+        if ($dashboards->count() === 1) {
+            $dash = $dashboards->first();
+            return redirect("/{$empresa->slug}/{$dash->slug}?token={$dash->public_token}");
+        }
+
+        return view('public.selector', compact('empresa', 'dashboards'));
     }
 
     /**
@@ -53,27 +70,5 @@ class DashboardPublicController extends Controller
         }
 
         return view('public.dashboard', $datos);
-    }
-
-    /**
-     * Endpoint API para consultar datos del dashboard por token
-     */
-    public function apiDatosPorToken(Request $request, string $token)
-    {
-        $dashboard = Dashboard::where('public_token', $token)->first();
-
-        if (!$dashboard) {
-            $empresa = Empresa::where('token_acceso_maestro', $token)->first();
-            if ($empresa) {
-                $dashboard = $empresa->dashboards()->latest()->first();
-            }
-        }
-
-        if (!$dashboard) {
-            return response()->json(['error' => 'Token inválido o dashboard no encontrado'], 404);
-        }
-
-        $datos = $this->metricsService->compilarDatosDashboard($dashboard);
-        return response()->json($datos);
     }
 }

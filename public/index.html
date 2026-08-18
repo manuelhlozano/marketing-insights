@@ -8,37 +8,41 @@
   <!-- Google Fonts: Outfit (Titulares & KPIs) & Inter (Cuerpo & Tablas) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   
   <!-- Lucide Icons & Chart.js -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Executive Theme CSS -->
+  <!-- Executive High-Contrast Theme CSS -->
   <link rel="stylesheet" href="css/executive-dashboard.css">
 </head>
-<body>
+<body class="light-mode">
 
   <div class="dashboard-container">
 
-    <!-- Header & Navigation -->
+    <!-- Header & Navigation con Soporte de Logos Duales (Claro / Oscuro) -->
     <header class="header-nav">
       <div class="brand-badge">
-        <div class="brand-icon">🎬</div>
+        <div class="brand-icon-box">🎬</div>
         <div class="brand-info">
-          <h1>Cine Múltiplex Villacentro</h1>
-          <p>Informe Ejecutivo de Gestión Mensual | <strong>Julio 2026</strong> • Por Cibergenios Agencia Digital SAS</p>
+          <h1 id="brandCompanyName">Cine Múltiplex Villacentro</h1>
+          <p id="brandReportSub">Informe Ejecutivo de Gestión Mensual | <strong>Julio 2026</strong> • Por Cibergenios Agencia Digital SAS</p>
         </div>
       </div>
 
       <div class="header-actions">
         <div class="token-pill">
           <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
-          <span>Token: mkt_live_cmv_78a9c0f</span>
+          <span id="labelToken">Token: mkt_live_cmv_78a9c0f</span>
         </div>
+        <a href="admin.html" class="btn-action btn-admin" title="Ir al Panel de Administración">
+          <i data-lucide="settings" style="width: 15px; height: 15px;"></i>
+          <span>Administración</span>
+        </a>
         <button class="btn-action" onclick="toggleTheme()">
           <i data-lucide="sun-moon" style="width: 15px; height: 15px;"></i>
-          <span>Tema</span>
+          <span id="themeBtnText">Modo Oscuro</span>
         </button>
         <button class="btn-action btn-primary" onclick="window.print()">
           <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
@@ -47,8 +51,8 @@
       </div>
     </header>
 
-    <!-- HERO SECTION: Slide 1 & 2 Identity -->
-    <section class="hero-banner">
+    <!-- HERO SECTION: Transición Acelerada (Slide 1 & 2) -->
+    <section class="hero-banner" id="sectionTimeline">
       <div class="hero-meta">Informe de Gestión Mensual | Julio 2026</div>
       <h2 class="hero-title">Toma de Control y Explosión de Crecimiento</h2>
       <p class="hero-subtitle">
@@ -59,11 +63,11 @@
       <div class="timeline-bar-wrapper">
         <div class="timeline-bar-title">
           <span><i data-lucide="rocket" style="width: 16px; height: 16px;"></i> Transición Acelerada y Cobertura Total</span>
-          <span style="color: var(--text-muted); font-size: 12px;">Hito Clave: 15 de Julio (Control 100%)</span>
+          <span style="color: var(--text-dim); font-size: 12px; font-weight: 700;">Hito Clave: 15 de Julio (Control 100%)</span>
         </div>
         <div class="timeline-track">
           <div class="timeline-segment segment-empalme" title="24-30 Jun (Empalme parcial)">24-30 Jun (Empalme)</div>
-          <div class="timeline-segment segment-diseno" title="1-14 Jul (Diseño parcial)">1-14 Jul (Diseño parcial)</div>
+          <div class="timeline-segment segment-diseno" title="1-14 Jul (Diseño parcial)">1-14 Jul (Diseño)</div>
           <div class="timeline-segment segment-control" title="15-31 Jul (Control total Cibergenios)">
             15-31 Jul (Control Total Cibergenios)
           </div>
@@ -74,10 +78,10 @@
     <!-- KPI MASTER CARDS: Resumen de Alto Impacto -->
     <div class="kpi-grid">
       
-      <div class="kpi-card highlight-cyan">
+      <div class="kpi-card highlight-blue">
         <div class="kpi-header">
           <span class="kpi-label">Visualizaciones Meta</span>
-          <div class="kpi-icon-box"><i data-lucide="eye" style="color: var(--primary-cyan); width: 20px; height: 20px;"></i></div>
+          <div class="kpi-icon-box"><i data-lucide="eye" style="color: var(--channel-facebook); width: 18px; height: 18px;"></i></div>
         </div>
         <div class="kpi-value-row">
           <span class="kpi-number">144.000</span>
@@ -89,7 +93,7 @@
       <div class="kpi-card highlight-purple">
         <div class="kpi-header">
           <span class="kpi-label">Vistas TikTok (7 Días)</span>
-          <div class="kpi-icon-box"><i data-lucide="music" style="color: var(--accent-purple); width: 20px; height: 20px;"></i></div>
+          <div class="kpi-icon-box"><i data-lucide="music" style="color: var(--channel-instagram); width: 18px; height: 18px;"></i></div>
         </div>
         <div class="kpi-value-row">
           <span class="kpi-number">93.100</span>
@@ -101,7 +105,7 @@
       <div class="kpi-card highlight-orange">
         <div class="kpi-header">
           <span class="kpi-label">Comunidad Total</span>
-          <div class="kpi-icon-box"><i data-lucide="users" style="color: var(--accent-orange); width: 20px; height: 20px;"></i></div>
+          <div class="kpi-icon-box"><i data-lucide="users" style="color: var(--channel-google); width: 18px; height: 18px;"></i></div>
         </div>
         <div class="kpi-value-row">
           <span class="kpi-number">54.170</span>
@@ -113,7 +117,7 @@
       <div class="kpi-card highlight-green">
         <div class="kpi-header">
           <span class="kpi-label">Entregables Creados</span>
-          <div class="kpi-icon-box"><i data-lucide="layers" style="color: var(--success-green); width: 20px; height: 20px;"></i></div>
+          <div class="kpi-icon-box"><i data-lucide="layers" style="color: var(--success-green-text); width: 18px; height: 18px;"></i></div>
         </div>
         <div class="kpi-value-row">
           <span class="kpi-number">117</span>
@@ -124,9 +128,324 @@
 
     </div>
 
+    <!-- ====================================================================
+         SECCIÓN CORPORATIVA: RESUMEN MENSUAL Y RENDIMIENTO DE REDES (SLIDE 26)
+         ==================================================================== -->
+    <div class="content-card" style="margin-bottom: 32px;">
+      <div class="channel-header-pill pill-consolidated">
+        <i data-lucide="network" style="width: 20px; height: 20px;"></i>
+        <span>Resumen Mensual: Rendimiento de Canales & Redes</span>
+      </div>
+
+      <div class="table-responsive" style="margin-bottom: 20px;">
+        <table class="corporate-table">
+          <thead>
+            <tr>
+              <th>Canal</th>
+              <th>Seguidores</th>
+              <th>Variación</th>
+              <th>Alcance</th>
+              <th>Variación</th>
+              <th>Engagement</th>
+              <th>Variación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Instagram</strong></td>
+              <td>4.045</td>
+              <td><span class="var-positive">+383</span></td>
+              <td>160.162</td>
+              <td><span class="var-positive">+107.196</span></td>
+              <td>12.4%</td>
+              <td><span class="var-negative">-0.20%</span></td>
+            </tr>
+            <tr>
+              <td><strong>Facebook</strong></td>
+              <td>50.125</td>
+              <td><span class="var-positive">+112</span></td>
+              <td>125.171</td>
+              <td><span class="var-positive">+65.732</span></td>
+              <td>1.42%</td>
+              <td><span class="var-positive">+0.60%</span></td>
+            </tr>
+            <tr>
+              <td><strong>TikTok</strong></td>
+              <td>2.825</td>
+              <td><span class="var-positive">+92</span></td>
+              <td>93.100</td>
+              <td><span class="var-positive">+91.000</span></td>
+              <td>101%</td>
+              <td><span class="var-positive">+25.27%</span></td>
+            </tr>
+            <tr>
+              <td><strong>Email Brevo (B2C/B2B)</strong></td>
+              <td>55.837</td>
+              <td><span class="var-positive">+415</span></td>
+              <td>55.422</td>
+              <td><span class="var-positive">+9.976</span></td>
+              <td>18.0%</td>
+              <td><span class="var-positive">+4.2%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Lo más destacado y Aprendizajes (Pills Estructuradas) -->
+      <div class="insights-row-grid">
+        <div class="insight-pill-group">
+          <strong style="font-size: 13px; text-transform: uppercase; color: var(--primary-blue);">⭐ Lo más destacado:</strong>
+          <div class="insight-pill-item pill-border-blue">
+            <span>🎬 Se realizaron coberturas in situ (Lunes, Jueves + Estrenos) para sorteos, premieres y cartelera.</span>
+          </div>
+          <div class="insight-pill-item pill-border-blue">
+            <span>🎟️ Creación de contenidos de alto impacto promocional (50% Martes/Miércoles y Combos Confitería).</span>
+          </div>
+          <div class="insight-pill-item pill-border-blue">
+            <span>📅 Planeación de estrenos estelares (Spider-Man Brand New Day, Moana, Minions, The Odyssey).</span>
+          </div>
+        </div>
+
+        <div class="insight-pill-group">
+          <strong style="font-size: 13px; text-transform: uppercase; color: var(--channel-google);">💡 Aprendizajes Estratégicos:</strong>
+          <div class="insight-pill-item pill-border-orange">
+            <span>🔥 Los videos UGC y dinámicas con creadores (Farock) dominan la interacción y rescatan el algoritmo.</span>
+          </div>
+          <div class="insight-pill-item pill-border-orange">
+            <span>⚡ Meta y TikTok premian el formato de video corto nativo, multiplicando x5 las impresiones vs fotos.</span>
+          </div>
+          <div class="insight-pill-item pill-border-orange">
+            <span>💼 La prospección corporativa por email (B2B) alcanzó 30.84% de apertura y 25 cotizaciones de eventos.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         SECCIÓN: INSTAGRAM REPORT (TABLA MULTIMES & META DE CRECIMIENTO)
+         ==================================================================== -->
+    <div class="content-card" style="margin-bottom: 32px;">
+      <div class="channel-header-pill pill-instagram">
+        <i data-lucide="instagram" style="width: 20px; height: 20px;"></i>
+        <span>Instagram: Reporte de Gestión Multimes</span>
+      </div>
+
+      <div class="report-narrative">
+        Durante el periodo auditado, la cuenta presentó un desempeño positivo en visualizaciones e interacción, alcanzando <strong>107.196 visualizaciones</strong> y una reducción controlada de unfollows. La producción de Reels impulsó <strong>205 clics directos al enlace web (+3.300%)</strong> y se logró un tiempo de respuesta de solo <strong>40 minutos</strong> en el canal de mensajes.
+      </div>
+
+      <div class="comparison-table-wrapper">
+        <div class="table-responsive">
+          <table class="corporate-table">
+            <thead>
+              <tr>
+                <th>Métricas</th>
+                <th>Mayo</th>
+                <th>Junio</th>
+                <th>Julio (Cibergenios)</th>
+                <th>Variación Neta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Seguidores Totales</td>
+                <td>2.493</td>
+                <td>2.874</td>
+                <td>4.045</td>
+                <td><span class="var-positive">+1.171</span></td>
+              </tr>
+              <tr>
+                <td>Cuentas Alcanzadas</td>
+                <td>157.693</td>
+                <td>194.488</td>
+                <td>160.162</td>
+                <td><span class="var-positive">+107.196</span></td>
+              </tr>
+              <tr>
+                <td>Interacciones Totales</td>
+                <td>24.303</td>
+                <td>28.412</td>
+                <td>19.902</td>
+                <td><span class="var-positive">+2.800</span></td>
+              </tr>
+              <tr>
+                <td>Visualizaciones Totales</td>
+                <td>285.127</td>
+                <td>357.943</td>
+                <td>373.135</td>
+                <td><span class="var-positive">+15.192</span></td>
+              </tr>
+              <tr>
+                <td>Clics en el Enlace Web</td>
+                <td>8</td>
+                <td>12</td>
+                <td>205</td>
+                <td><span class="var-positive">+193 (+3.300%)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Anillo de Meta Instagram -->
+        <div class="goal-widget">
+          <div class="goal-title">Objetivo de Crecimiento</div>
+          <div class="goal-subtitle">Llegar a 15.000 seguidores</div>
+          <div class="goal-ring-box">
+            <canvas id="ringInstagramGoal"></canvas>
+            <div class="goal-percentage">27%</div>
+          </div>
+          <p style="font-size: 11.5px; color: var(--text-dim);">Meta promedio: <strong>262 seguidores netos/mes</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         SECCIÓN: FACEBOOK REPORT (TABLA MULTIMES & META DE CRECIMIENTO)
+         ==================================================================== -->
+    <div class="content-card" style="margin-bottom: 32px;">
+      <div class="channel-header-pill pill-facebook">
+        <i data-lucide="facebook" style="width: 20px; height: 20px;"></i>
+        <span>Facebook: Reporte de Gestión Multimes</span>
+      </div>
+
+      <div class="report-narrative">
+        La cuenta de Facebook consolidó una comunidad sólida de <strong>50.125 seguidores</strong>, con un alcance concentrado en Villavicencio del 47.4% y <strong>3.000 visitas al perfil de página</strong>. La tasa de retención se estabilizó tras la entrada de Cibergenios el 15 de julio.
+      </div>
+
+      <div class="comparison-table-wrapper">
+        <div class="table-responsive">
+          <table class="corporate-table">
+            <thead>
+              <tr>
+                <th>Métricas</th>
+                <th>Mayo</th>
+                <th>Junio</th>
+                <th>Julio (Cibergenios)</th>
+                <th>Variación Neta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Seguidores Totales</td>
+                <td>50.364</td>
+                <td>50.382</td>
+                <td>50.125</td>
+                <td><span class="var-positive">+112 ganados</span></td>
+              </tr>
+              <tr>
+                <td>Cuentas Alcanzadas</td>
+                <td>61.687</td>
+                <td>59.439</td>
+                <td>125.171</td>
+                <td><span class="var-positive">+65.732</span></td>
+              </tr>
+              <tr>
+                <td>Interacciones Totales</td>
+                <td>329</td>
+                <td>489</td>
+                <td>1.783</td>
+                <td><span class="var-positive">+1.294</span></td>
+              </tr>
+              <tr>
+                <td>Visitas a la Página</td>
+                <td>1.572</td>
+                <td>2.136</td>
+                <td>3.000</td>
+                <td><span class="var-positive">+864</span></td>
+              </tr>
+              <tr>
+                <td>Visualizaciones Totales</td>
+                <td>153.523</td>
+                <td>141.098</td>
+                <td>288.728</td>
+                <td><span class="var-positive">+147.630</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Anillo de Meta Facebook -->
+        <div class="goal-widget">
+          <div class="goal-title">Objetivo de Crecimiento</div>
+          <div class="goal-subtitle">Comunidad de 55.000 seguidores</div>
+          <div class="goal-ring-box">
+            <canvas id="ringFacebookGoal"></canvas>
+            <div class="goal-percentage">92%</div>
+          </div>
+          <p style="font-size: 11.5px; color: var(--text-dim);">Meta promedio: <strong>337 seguidores netos/mes</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         SECCIÓN: GOOGLE MI NEGOCIO & BÚSQUEDAS LOCALES
+         ==================================================================== -->
+    <div class="content-card" style="margin-bottom: 32px;" id="sectionGoogle">
+      <div class="channel-header-pill pill-google">
+        <i data-lucide="search" style="width: 20px; height: 20px;"></i>
+        <span>Google Mi Negocio: Búsquedas & Reseñas Locales</span>
+      </div>
+
+      <div class="comparison-table-wrapper">
+        <div class="table-responsive">
+          <table class="corporate-table">
+            <thead>
+              <tr>
+                <th>Métricas</th>
+                <th>Mayo</th>
+                <th>Junio</th>
+                <th>Julio</th>
+                <th>Variación Neta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Opiniones & Calificaciones</td>
+                <td>3.122</td>
+                <td>3.124</td>
+                <td>3.126</td>
+                <td><span class="var-positive">+2</span></td>
+              </tr>
+              <tr>
+                <td>Búsquedas en Google</td>
+                <td>2.094</td>
+                <td>2.810</td>
+                <td>3.995</td>
+                <td><span class="var-positive">+1.185</span></td>
+              </tr>
+              <tr>
+                <td>Visualizaciones de Ficha</td>
+                <td>3.593</td>
+                <td>4.714</td>
+                <td>6.748</td>
+                <td><span class="var-positive">+2.034</span></td>
+              </tr>
+              <tr>
+                <td>Interacciones (Llamadas/Ruta)</td>
+                <td>191</td>
+                <td>164</td>
+                <td>394</td>
+                <td><span class="var-positive">+230</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="goal-widget">
+          <div class="goal-title">Objetivo de Crecimiento</div>
+          <div class="goal-subtitle">Llegar a 3.500 opiniones en un año</div>
+          <div class="goal-ring-box">
+            <canvas id="ringGoogleGoal"></canvas>
+            <div class="goal-percentage">88%</div>
+          </div>
+          <p style="font-size: 11.5px; color: var(--text-dim);">Meta promedio mensual: <strong>33 opiniones</strong></p>
+        </div>
+      </div>
+    </div>
+
     <!-- SECCIÓN: ANÁLISIS DE EVOLUCIÓN TEMPORAL (META & TIKTOK) -->
     <div class="section-title-wrapper">
-      <h3 class="section-title"><i data-lucide="trending-up" style="color: var(--primary-blue-light);"></i> Evolución de Tracción y Rescate de Algoritmos</h3>
+      <h3 class="section-title"><i data-lucide="trending-up" style="color: var(--primary-blue);"></i> Evolución de Tracción y Rescate de Algoritmos</h3>
       <span class="section-badge">Comparativa Julio 2026</span>
     </div>
 
@@ -134,10 +453,10 @@
       <!-- Gráfico Meta -->
       <div class="content-card">
         <div class="card-header-inner">
-          <span class="card-title-inner"><i data-lucide="activity" style="color: var(--primary-cyan);"></i> Visualizaciones Meta (Facebook + Instagram)</span>
+          <span class="card-title-inner"><i data-lucide="activity" style="color: var(--channel-facebook);"></i> Visualizaciones Meta (Facebook + Instagram)</span>
           <span class="kpi-badge badge-info">30.838 Espectadores (+15.3%)</span>
         </div>
-        <div style="height: 280px;">
+        <div style="height: 260px;">
           <canvas id="chartMetaGrowth"></canvas>
         </div>
         <div class="insight-callout">
@@ -148,10 +467,10 @@
       <!-- Gráfico TikTok -->
       <div class="content-card">
         <div class="card-header-inner">
-          <span class="card-title-inner"><i data-lucide="zap" style="color: var(--accent-purple);"></i> Resurrección del Algoritmo TikTok</span>
+          <span class="card-title-inner"><i data-lucide="zap" style="color: var(--channel-instagram);"></i> Resurrección del Algoritmo TikTok</span>
           <span class="kpi-badge badge-positive">963 Compartidos</span>
         </div>
-        <div style="height: 280px;">
+        <div style="height: 260px;">
           <canvas id="chartTikTokGrowth"></canvas>
         </div>
         <div class="insight-callout">
@@ -162,7 +481,7 @@
 
     <!-- SECCIÓN: SHOWCASE UGC & CREADORES (Slide 7) -->
     <div class="section-title-wrapper">
-      <h3 class="section-title"><i data-lucide="sparkles" style="color: var(--accent-orange);"></i> El Entretenimiento Atrae Clientes (Showcase UGC)</h3>
+      <h3 class="section-title"><i data-lucide="sparkles" style="color: var(--channel-google);"></i> El Entretenimiento Atrae Clientes (Showcase UGC)</h3>
       <span class="section-badge">+110.000 impactos con 3 piezas clave</span>
     </div>
 
@@ -244,11 +563,11 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: FORMATOS & RETENCIÓN DE VIDEO (Slide 3 & 5) -->
+    <!-- SECCIÓN: FORMATOS & RETENCIÓN DE VIDEO -->
     <div class="grid-2-col">
       <div class="content-card">
         <div class="card-header-inner">
-          <span class="card-title-inner"><i data-lucide="pie-chart" style="color: var(--accent-orange);"></i> Mix de Producción (27 Videos MP4)</span>
+          <span class="card-title-inner"><i data-lucide="pie-chart" style="color: var(--channel-google);"></i> Mix de Producción (27 Videos MP4)</span>
           <span class="kpi-badge badge-positive">Orientado a Taquilla</span>
         </div>
         <div style="height: 240px;">
@@ -261,7 +580,7 @@
 
       <div class="content-card">
         <div class="card-header-inner">
-          <span class="card-title-inner"><i data-lucide="timer" style="color: var(--success-green);"></i> Curva de Retención: Video UGC vs Estático</span>
+          <span class="card-title-inner"><i data-lucide="timer" style="color: var(--success-green-text);"></i> Curva de Retención: Video UGC vs Estático</span>
           <span class="kpi-badge badge-positive">5x Más Impacto</span>
         </div>
         <div style="height: 240px;">
@@ -273,19 +592,19 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: AUDIENCIA & DEMOGRAFÍA (Facebook & Instagram) -->
+    <!-- SECCIÓN: AUDIENCIA & DEMOGRAFÍA -->
     <div class="section-title-wrapper">
-      <h3 class="section-title"><i data-lucide="pie-chart" style="color: var(--primary-cyan);"></i> Radiografía de Audiencia (Comunidad 54.170)</h3>
+      <h3 class="section-title"><i data-lucide="pie-chart" style="color: var(--primary-blue);"></i> Radiografía de Audiencia (Comunidad 54.170)</h3>
       <span class="section-badge">Facebook 50.125 | Instagram 4.045</span>
     </div>
 
     <div class="grid-2-col">
       <div class="content-card">
         <div class="card-header-inner">
-          <span class="card-title-inner"><i data-lucide="users" style="color: var(--primary-blue-light);"></i> Distribución por Edad y Sexo</span>
+          <span class="card-title-inner"><i data-lucide="users" style="color: var(--primary-blue);"></i> Distribución por Edad y Sexo</span>
           <span class="kpi-badge badge-info">Mujeres 57.6% | Hombres 42.4%</span>
         </div>
-        <div style="height: 260px;">
+        <div style="height: 250px;">
           <canvas id="chartDemographics"></canvas>
         </div>
         <p class="kpi-subtext" style="margin-top: 12px;">
@@ -295,10 +614,10 @@
 
       <div class="content-card">
         <div class="card-header-inner">
-          <span class="card-title-inner"><i data-lucide="map-pin" style="color: var(--accent-orange);"></i> Top Ciudades & Cobertura Geográfica</span>
+          <span class="card-title-inner"><i data-lucide="map-pin" style="color: var(--channel-google);"></i> Top Ciudades & Cobertura Geográfica</span>
           <span class="kpi-badge badge-positive">47.4% Villavicencio</span>
         </div>
-        <div style="height: 260px;">
+        <div style="height: 250px;">
           <canvas id="chartCities"></canvas>
         </div>
         <p class="kpi-subtext" style="margin-top: 12px;">
@@ -307,9 +626,9 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: PAUTA DIGITAL & EMAIL MARKETING B2C / B2B (Slide 8) -->
+    <!-- SECCIÓN: PAUTA DIGITAL & EMAIL MARKETING B2C / B2B -->
     <div class="section-title-wrapper">
-      <h3 class="section-title"><i data-lucide="target" style="color: var(--success-green);"></i> Fidelización, Pauta Digital & Email Marketing</h3>
+      <h3 class="section-title"><i data-lucide="target" style="color: var(--success-green-text);"></i> Fidelización, Pauta Digital & Email Marketing</h3>
       <span class="section-badge">Brevo + Meta Ads</span>
     </div>
 
@@ -317,23 +636,23 @@
       <!-- Email Marketing Brevo -->
       <div class="content-card">
         <div class="card-header-inner">
-          <span class="card-title-inner"><i data-lucide="mail" style="color: var(--primary-cyan);"></i> Email Marketing en Brevo (B2C & B2B)</span>
+          <span class="card-title-inner"><i data-lucide="mail" style="color: var(--channel-brevo);"></i> Email Marketing en Brevo (B2C & B2B)</span>
           <span class="kpi-badge badge-positive">55.422 Entregados</span>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-          <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 11px; font-weight: 700; color: var(--accent-orange); text-transform: uppercase;">Campaña B2C Masiva</div>
-            <div style="font-size: 26px; font-weight: 800; font-family: var(--font-heading); color: #FFFFFF;">18.0%</div>
+          <div style="background: var(--bg-card-alt); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--channel-google); text-transform: uppercase;">Campaña B2C Masiva</div>
+            <div style="font-size: 26px; font-weight: 800; font-family: var(--font-heading); color: var(--text-primary);">18.0%</div>
             <div style="font-size: 12px; color: var(--text-muted);">Open Rate (9.976 lecturas directas)</div>
-            <div style="font-size: 11px; color: var(--success-green); margin-top: 4px;">249 clics a cartelera</div>
+            <div style="font-size: 11.5px; color: var(--success-green-text); font-weight: 700; margin-top: 4px;">249 clics a cartelera</div>
           </div>
 
-          <div style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 11px; font-weight: 700; color: var(--primary-cyan); text-transform: uppercase;">Campaña B2B Corporativa</div>
-            <div style="font-size: 26px; font-weight: 800; font-family: var(--font-heading); color: #FFFFFF;">30.84%</div>
+          <div style="background: var(--bg-card-alt); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase;">Campaña B2B Corporativa</div>
+            <div style="font-size: 26px; font-weight: 800; font-family: var(--font-heading); color: var(--text-primary);">30.84%</div>
             <div style="font-size: 12px; color: var(--text-muted);">Open Rate (128 empresas abrieron)</div>
-            <div style="font-size: 11px; color: var(--success-green); margin-top: 4px;">25 cotizaciones de eventos</div>
+            <div style="font-size: 11.5px; color: var(--success-green-text); font-weight: 700; margin-top: 4px;">25 cotizaciones de eventos</div>
           </div>
         </div>
 
@@ -345,7 +664,7 @@
       <!-- Pauta Digital Meta Ads -->
       <div class="content-card">
         <div class="card-header-inner">
-          <span class="card-title-inner"><i data-lucide="dollar-sign" style="color: var(--accent-orange);"></i> Micro-Pauta de Alta Eficiencia (Meta Ads)</span>
+          <span class="card-title-inner"><i data-lucide="dollar-sign" style="color: var(--channel-google);"></i> Micro-Pauta de Alta Eficiencia (Meta Ads)</span>
           <span class="kpi-badge badge-positive">$112,82 COP / Resultado</span>
         </div>
         <div style="height: 200px;">
@@ -357,136 +676,9 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: ECOSISTEMA DE CONVERSIÓN (Slide 9) -->
+    <!-- SECCIÓN: CATÁLOGO INTERACTIVO DE LOS 117 ENTREGABLES -->
     <div class="section-title-wrapper">
-      <h3 class="section-title"><i data-lucide="git-merge" style="color: var(--accent-purple);"></i> El Ecosistema de Conversión Interconectado</h3>
-      <span class="section-badge">De la red social a la taquilla</span>
-    </div>
-
-    <div class="funnel-container">
-      <div class="funnel-channels">
-        <div class="funnel-node">
-          <div class="node-icon-tiktok"><i data-lucide="music" style="width: 20px; height: 20px;"></i></div>
-          <div class="funnel-node-info">
-            <h4>TikTok & Reels UGC</h4>
-            <p>Descubrimiento viral masivo (+144K vistas)</p>
-          </div>
-        </div>
-        <div class="funnel-node">
-          <div class="node-icon-promo"><i data-lucide="tag" style="width: 20px; height: 20px;"></i></div>
-          <div class="funnel-node-info">
-            <h4>Promociones 50% & Combos</h4>
-            <p>Conversión de tráfico (Martes/Miércoles mitad de precio)</p>
-          </div>
-        </div>
-        <div class="funnel-node">
-          <div class="node-icon-email"><i data-lucide="mail" style="width: 20px; height: 20px;"></i></div>
-          <div class="funnel-node-info">
-            <h4>Email a 55K Usuarios</h4>
-            <p>Retención directa y preventas exclusivas</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="funnel-arrows">
-        <i data-lucide="arrow-right" style="width: 36px; height: 36px;"></i>
-      </div>
-
-      <div class="funnel-destination">
-        <div class="destination-icon">🎟️🍿</div>
-        <h3 class="destination-title">Taquilla & Confitería CMV</h3>
-        <p class="destination-desc">
-          No buscamos solo "likes". Orquestamos canales interconectados que empujan a los usuarios desde el descubrimiento en redes hasta la compra física en Cine Múltiplex Villacentro.
-        </p>
-      </div>
-    </div>
-
-    <!-- SECCIÓN: TABLERO DE 10 HITOS ESTRATÉGICOS -->
-    <div class="section-title-wrapper">
-      <h3 class="section-title"><i data-lucide="award" style="color: var(--accent-orange);"></i> Tablero de Hitos & Resultados de Gestión (Julio 2026)</h3>
-      <span class="section-badge">10 Grandes Logros</span>
-    </div>
-
-    <div class="content-card" style="margin-bottom: 36px;">
-      <div class="table-responsive">
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Hito / Métrica Clave</th>
-              <th>Plataforma / Área</th>
-              <th>Resultado Julio 2026</th>
-              <th>Impacto Comercial en CMV</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Toma de control operativo</strong></td>
-              <td><span class="badge-category">Gestión General</span></td>
-              <td><span class="kpi-badge badge-positive">100% asumido desde 15 jul</span></td>
-              <td>Fin del periodo de inactividad; estabilización estratégica de la cuenta.</td>
-            </tr>
-            <tr>
-              <td><strong>Cumplimiento de entregables</strong></td>
-              <td><span class="badge-category">Producción</span></td>
-              <td><span class="kpi-badge badge-positive">117 piezas creadas</span></td>
-              <td>Superación de la cuota operativa base exigida a la agencia.</td>
-            </tr>
-            <tr>
-              <td><strong>Transición a video corto</strong></td>
-              <td><span class="badge-category">Producción</span></td>
-              <td><span class="kpi-badge badge-info">27 Reels / TikToks MP4</span></td>
-              <td>Adaptación a tendencias para retener la atención de la audiencia llanera.</td>
-            </tr>
-            <tr>
-              <td><strong>Freno de caída de audiencia</strong></td>
-              <td><span class="badge-category">Meta (FB & IG)</span></td>
-              <td><span class="kpi-badge badge-positive">Reducción a 94 unfollows</span></td>
-              <td>Reactivación de la comunidad y freno a la fuga de clientes.</td>
-            </tr>
-            <tr>
-              <td><strong>Crecimiento neto</strong></td>
-              <td><span class="badge-category">Meta (FB & IG)</span></td>
-              <td><span class="kpi-badge badge-positive">+289 seguidores reales (+15.6%)</span></td>
-              <td>Aumento de la base instalada de público objetivo directo.</td>
-            </tr>
-            <tr>
-              <td><strong>Explosión de alcance</strong></td>
-              <td><span class="badge-category">Meta (FB & IG)</span></td>
-              <td><span class="kpi-badge badge-positive">+144.000 visualizaciones</span></td>
-              <td>Exposición masiva de la cartelera y productos de confitería.</td>
-            </tr>
-            <tr>
-              <td><strong>Rescate del algoritmo</strong></td>
-              <td><span class="badge-category">TikTok</span></td>
-              <td><span class="kpi-badge badge-positive">93.100 vistas en 7 días</span></td>
-              <td>Recuperación total de la visibilidad tras 3 semanas de inactividad.</td>
-            </tr>
-            <tr>
-              <td><strong>Viralidad y recomendación</strong></td>
-              <td><span class="badge-category">TikTok</span></td>
-              <td><span class="kpi-badge badge-positive">963 compartidos</span></td>
-              <td>Boca a boca digital orgánico para fomentar visitas presenciales.</td>
-            </tr>
-            <tr>
-              <td><strong>Casos de éxito UGC</strong></td>
-              <td><span class="badge-category">Instagram / TikTok</span></td>
-              <td><span class="kpi-badge badge-positive">+47.5K vistas (Spider-Man)</span></td>
-              <td>Conexión genuina con público joven mediante tendencias y humor.</td>
-            </tr>
-            <tr>
-              <td><strong>Recuperación canal atención</strong></td>
-              <td><span class="badge-category">Mensajería CRM</span></td>
-              <td><span class="kpi-badge badge-positive">Tiempo reducido a 40 min</span></td>
-              <td>Rescate de mensajes perdidos e incremento de compras en preventa.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SECCIÓN: CATÁLOGO INTERACTIVO DE LOS 117 ENTREGABLES (Matriz Operativa) -->
-    <div class="section-title-wrapper">
-      <h3 class="section-title"><i data-lucide="folder-check" style="color: var(--primary-cyan);"></i> Catálogo de Producción (117 Entregables)</h3>
+      <h3 class="section-title"><i data-lucide="folder-check" style="color: var(--primary-blue);"></i> Catálogo de Producción (117 Entregables)</h3>
       <span class="section-badge" id="entregablesCountLabel">Cargando 117 entregables...</span>
     </div>
 
@@ -540,48 +732,10 @@
       </div>
     </div>
 
-    <!-- SECCIÓN: PROYECCIÓN Y COMPROMISOS AGOSTO 2026 (Slide 10) -->
-    <div class="section-title-wrapper">
-      <h3 class="section-title"><i data-lucide="target" style="color: var(--primary-blue-light);"></i> Proyección y Compromisos para Agosto 2026</h3>
-      <span class="section-badge">Garantía de Escalamiento</span>
-    </div>
-
-    <div class="commitments-grid">
-      <div class="commitment-item">
-        <div class="check-icon-box">✓</div>
-        <div class="commitment-text">
-          <h4>Garantía de Escalamiento</h4>
-          <p>Objetivo mínimo de <strong>+10% de crecimiento sostenido</strong> en métricas operando el mes completo.</p>
-        </div>
-      </div>
-
-      <div class="commitment-item">
-        <div class="check-icon-box">✓</div>
-        <div class="commitment-text">
-          <h4>Consolidación del Formato Rey</h4>
-          <p>Cuota fija de <strong>4 videos de alto impacto semanales</strong> (Reels/TikToks UGC) y 2 días de cobertura in situ.</p>
-        </div>
-      </div>
-
-      <div class="commitment-item">
-        <div class="check-icon-box">✓</div>
-        <div class="commitment-text">
-          <h4>Resolución Técnica de Infraestructura</h4>
-          <p>Optimización de servidores en correos masivos para elevar drásticamente el Open Rate en B2C y B2B.</p>
-        </div>
-      </div>
-    </div>
-
-    <div style="text-align: center; margin: 40px 0 10px;">
-      <h3 style="font-family: var(--font-heading); font-size: 26px; font-weight: 800; color: #FFFFFF;">
-        "Los números de 15 días validan el nuevo modelo. Agosto es el mes de la consolidación total."
-      </h3>
-    </div>
-
     <!-- Footer -->
     <footer class="dashboard-footer">
       <div>
-        <strong>Marketing Insights Platform</strong> • Desarrollado para <strong>Cine Múltiplex Villacentro</strong> por <strong>Cibergenios Agencia Digital SAS</strong>
+        <strong>Marketing Insights Platform</strong> • Desarrollado para <strong id="footerCompanyName">Cine Múltiplex Villacentro</strong> por <strong>Cibergenios Agencia Digital SAS</strong>
       </div>
       <div>
         Periodo Auditado: <strong>1 al 31 de Julio de 2026</strong>
@@ -598,6 +752,40 @@
 
     function toggleTheme() {
       document.body.classList.toggle('light-mode');
+      const isLight = document.body.classList.contains('light-mode');
+      document.getElementById('themeBtnText').textContent = isLight ? 'Modo Oscuro' : 'Modo Claro';
+      
+      if (window.updateChartsTheme) {
+        window.updateChartsTheme();
+      }
+    }
+
+    // Parse URL params for company slug and token
+    const urlParams = new URLSearchParams(window.location.search);
+    const empresaSlug = urlParams.get('empresa');
+    const dashboardSlug = urlParams.get('dashboard');
+    const token = urlParams.get('token');
+
+    if (token) {
+      document.getElementById('labelToken').textContent = `Token: ${token}`;
+    }
+
+    // Aplicar configuración de visibilidad guardada desde el Admin
+    const savedToggles = localStorage.getItem('mkt_dashboard_toggles');
+    if (savedToggles) {
+      try {
+        const toggles = JSON.parse(savedToggles);
+        if (toggles.timeline === false) {
+          const s = document.getElementById('sectionTimeline');
+          if (s) s.style.display = 'none';
+        }
+        if (toggles.google === false) {
+          const s = document.getElementById('sectionGoogle');
+          if (s) s.style.display = 'none';
+        }
+      } catch (e) {
+        console.warn('Error leyendo toggles', e);
+      }
     }
   </script>
 

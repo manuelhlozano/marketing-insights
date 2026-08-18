@@ -16,7 +16,8 @@ class Empresa extends Model
         'sector',
         'ciudad',
         'pais',
-        'logo_url',
+        'logo_light_url',
+        'logo_dark_url',
         'token_acceso_maestro',
         'configuracion_branding',
         'activo'
@@ -45,8 +46,8 @@ class Empresa extends Model
         return $this->hasMany(Dashboard::class);
     }
 
-    public function usuarios(): HasMany
+    public function dashboardsActivos(): HasMany
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(Dashboard::class)->where('es_publico', true);
     }
 }

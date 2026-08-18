@@ -11,17 +11,25 @@ use App\Http\Controllers\EntregablesApiController;
 |--------------------------------------------------------------------------
 */
 
+// Selector / Directorio Principal
 Route::get('/', [DashboardPublicController::class, 'selector'])->name('home');
 
-// Selector de Clientes / Empresas y Dashboards
-Route::get('/dashboards', [DashboardPublicController::class, 'selector'])->name('dashboards.selector');
+// Panel de Administración Maestro (CRUD Empresas, Dashboards, Toggles & Impersonación)
+Route::get('/admin', function () {
+    return file_get_contents(public_path('admin.html'));
+})->name('admin.index');
 
-// Vista Pública del Dashboard con Token de Invitado para Clientes
-Route::get('/dashboard/{empresaSlug}/{dashboardSlug}', [DashboardPublicController::class, 'verDashboard'])
-    ->name('dashboard.public');
+// Impersonación directa desde el Admin
+Route::get('/admin/impersonar/{empresaSlug}/{dashboardSlug}', function ($empresaSlug, $dashboardSlug) {
+    return redirect("/{$empresaSlug}/{$dashboardSlug}?token=mkt_live_cmv_78a9c0f");
+})->name('admin.impersonar');
 
-// Panel de Ingesta & Carga de Archivos Planos
-Route::get('/admin/dashboard/{dashboardId}/import', [IngestionController::class, 'index'])
-    ->name('admin.import');
-Route::post('/admin/dashboard/{dashboardId}/import', [IngestionController::class, 'procesarArchivo'])
-    ->name('admin.import.process');
+// Ingesta de Archivos Planos
+Route::get('/admin/dashboard/{dashboardId}/import', [IngestionController::class, 'index'])->name('admin.import');
+Route::post('/admin/dashboard/{dashboardId}/import', [IngestionController::class, 'procesarArchivo'])->name('admin.import.process');
+
+// 1. Selector de Dashboards por Empresa (ej. /cine-multiplex-villacentro)
+Route::get('/{empresaSlug}', [DashboardPublicController::class, 'selectorPorEmpresa'])->name('empresa.selector');
+
+// 2. Vista Pública de Dashboard por Empresa y Periodo con Token (ej. /cine-multiplex-villacentro/julio-2026?token=...)
+Route::get('/{empresaSlug}/{dashboardSlug}', [DashboardPublicController::class, 'verDashboard'])->name('dashboard.public');

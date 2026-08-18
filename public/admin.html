@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Insights | Panel de Administración Maestro</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/executive-dashboard.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+
+    <!-- Header Admin -->
+    <header class="header-nav">
+      <div class="brand-badge">
+        <div class="brand-icon-box" style="background: linear-gradient(135deg, #475569, #0F172A);">⚙️</div>
+        <div class="brand-info">
+          <h1>Panel de Control & Administración Maestro</h1>
+          <p>Gestión de Empresas, Logos Claro/Oscuro, Dashboards, Toggles de Indicadores e Impersonación</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn-action" onclick="toggleTheme()">
+          <i data-lucide="sun-moon" style="width: 15px; height: 15px;"></i>
+          <span>Tema</span>
+        </button>
+        <button class="btn-action btn-primary" onclick="impersonateClient('cine-multiplex-villacentro', 'julio-2026')">
+          <i data-lucide="user-check" style="width: 15px; height: 15px;"></i>
+          <span>👁️ Ver como Cliente (Impersonar CMV)</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Pestañas de Navegación del Administrador -->
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" onclick="switchAdminTab('tabEmpresas')">🏢 1. Empresas & Clientes</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('tabDashboards')">📊 2. Dashboards por Empresa</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('tabIndicadores')">⚙️ 3. Indicadores & Toggles</button>
+    </div>
+
+    <!-- ====================================================================
+         TAB 1: GESTIÓN DE EMPRESAS
+         ==================================================================== -->
+    <div id="tabEmpresas" class="admin-tab-content">
+      
+      <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px;">
+        <!-- Formulario Crear/Editar Empresa -->
+        <div class="content-card">
+          <h3 class="card-title-inner" style="margin-bottom: 16px;">
+            <i data-lucide="plus-circle" style="color: var(--primary-blue);"></i>
+            <span>Registrar / Configurar Empresa</span>
+          </h3>
+
+          <form id="formEmpresa" onsubmit="saveEmpresa(event)">
+            <input type="hidden" id="empresaId" value="1">
+
+            <div class="form-group">
+              <label class="form-label">Nombre de la Empresa</label>
+              <input type="text" id="empresaNombre" class="form-input" required value="Cine Múltiplex Villacentro">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Slug de URL (Nombre en la ruta)</label>
+              <input type="text" id="empresaSlug" class="form-input" required value="cine-multiplex-villacentro" placeholder="ej: cine-multiplex-villacentro">
+              <small style="font-size: 11px; color: var(--text-dim);">Ruta pública: /{slug}/dashboard-periodo</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Sector / Industria</label>
+              <input type="text" id="empresaSector" class="form-input" value="Entretenimiento & Salas de Cine">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="form-group">
+                <label class="form-label">Ciudad</label>
+                <input type="text" id="empresaCiudad" class="form-input" value="Villavicencio, Meta">
+              </div>
+              <div class="form-group">
+                <label class="form-label">País</label>
+                <input type="text" id="empresaPais" class="form-input" value="Colombia">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🖼️ Logo para Tema Claro (URL o Imagen)</label>
+              <input type="text" id="empresaLogoLight" class="form-input" placeholder="https://.../logo-dark-text.png" value="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=100&auto=format&fit=crop&q=60">
+              <small style="font-size: 11px; color: var(--text-dim);">Visible cuando el cliente usa el Modo Claro</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">🖼️ Logo para Tema Oscuro (URL o Imagen)</label>
+              <input type="text" id="empresaLogoDark" class="form-input" placeholder="https://.../logo-white-text.png" value="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=100&auto=format&fit=crop&q=60">
+              <small style="font-size: 11px; color: var(--text-dim);">Visible cuando el cliente usa el Modo Oscuro</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Token Maestro de la Empresa</label>
+              <input type="text" id="empresaTokenMaestro" class="form-input" value="mkt_live_cmv_78a9c0f" required>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+              <span style="font-size: 13px; font-weight: 700;">Empresa Activa en el Sistema</span>
+              <label class="admin-switch">
+                <input type="checkbox" id="empresaActiva" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+              <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+              <span>Guardar Empresa & Branding</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Lista de Empresas -->
+        <div class="content-card">
+          <div class="card-header-inner">
+            <span class="card-title-inner"><i data-lucide="building" style="color: var(--primary-blue);"></i> Empresas Registradas</span>
+            <span class="kpi-badge badge-positive" id="totalEmpresasBadge">1 Empresa Activa</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Empresa</th>
+                  <th>Slug URL</th>
+                  <th>Dashboards</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="empresasTableBody">
+                <tr>
+                  <td>
+                    <strong>Cine Múltiplex Villacentro</strong><br>
+                    <small style="color: var(--text-muted);">Villavicencio, Meta</small>
+                  </td>
+                  <td><code>/cine-multiplex-villacentro</code></td>
+                  <td><span class="kpi-badge badge-info">2 Dashboards</span></td>
+                  <td><span class="kpi-badge badge-positive">Activo</span></td>
+                  <td>
+                    <div style="display: flex; gap: 6px;">
+                      <button class="btn-action" style="padding: 4px 8px; font-size: 11px;" onclick="impersonateClient('cine-multiplex-villacentro', 'julio-2026')" title="Impersonar / Ver como Cliente">
+                        👁️ Impersonar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ====================================================================
+         TAB 2: GESTIÓN DE DASHBOARDS POR EMPRESA
+         ==================================================================== -->
+    <div id="tabDashboards" class="admin-tab-content" style="display: none;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <label style="font-size: 13px; font-weight: 700; text-transform: uppercase;">Seleccionar Empresa:</label>
+          <select class="filter-select" id="selectEmpresaDashboards" onchange="renderDashboardsList()">
+            <option value="cine-multiplex-villacentro">Cine Múltiplex Villacentro</option>
+          </select>
+        </div>
+
+        <button class="btn-action btn-primary" onclick="openCreateDashboardModal()">
+          <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+          <span>+ Crear Nuevo Dashboard</span>
+        </button>
+      </div>
+
+      <div class="content-card">
+        <h3 class="card-title-inner" style="margin-bottom: 16px;">
+          <i data-lucide="layout-dashboard" style="color: var(--primary-blue);"></i>
+          <span>Dashboards Activos para la Empresa Seleccionada</span>
+        </h3>
+
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Título del Dashboard</th>
+                <th>Periodo</th>
+                <th>Ruta Completa (URL con Slug)</th>
+                <th>Token Público</th>
+                <th>Visibilidad</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardsTableBody">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ====================================================================
+         TAB 3: GESTIÓN DE INDICADORES & TOGGLES EN EL DASHBOARD
+         ==================================================================== -->
+    <div id="tabIndicadores" class="admin-tab-content" style="display: none;">
+      
+      <div class="content-card" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3 class="card-title-inner" style="margin-bottom: 4px;">
+              <i data-lucide="sliders" style="color: var(--primary-cyan);"></i>
+              <span>Configuración de Visibilidad de Módulos & Indicadores</span>
+            </h3>
+            <p style="font-size: 13px; color: var(--text-muted);">
+              Activa o desactiva secciones enteras o indicadores específicos en el dashboard del cliente.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-action" onclick="resetDefaultToggles()">Restablecer por Defecto</button>
+            <button class="btn-action btn-primary" onclick="saveTogglesSettings()">
+              <i data-lucide="check" style="width: 15px; height: 15px;"></i>
+              <span>Aplicar Cambios en Vivo</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2-col">
+
+        <!-- Módulos Principales -->
+        <div class="content-card">
+          <h4 style="font-size: 15px; font-weight: 800; margin-bottom: 16px; color: var(--primary-blue);">
+            Módulos Principales del Tablero
+          </h4>
+
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
+                <strong style="font-size: 13px;">🚀 Timeline de Transición Operativa</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">Muestra las fases del 24 Jun al 31 Jul</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="toggleTimeline" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
+                <strong style="font-size: 13px;">🔍 Google Mi Negocio & Búsquedas</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">Opiniones, Búsquedas y Meta del 88%</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="toggleGoogle" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
+                <strong style="font-size: 13px;">📱 Redes Meta (Facebook & Instagram)</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">144.000 visualizaciones y demografía</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="toggleMeta" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
+                <strong style="font-size: 13px;">⚡ TikTok & Viralidad</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">93.100 vistas en 7 días y 963 compartidos</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="toggleTikTok" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
+                <strong style="font-size: 13px;">🎬 Showcase UGC & Creadores</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">Videos Spiderman, Moana y Humor</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="toggleUgc" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
+                <strong style="font-size: 13px;">💰 Pauta Digital (Meta Ads)</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">Inversión de $50K COP y 449 resultados</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="togglePauta" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
+                <strong style="font-size: 13px;">✉️ Email Marketing (Brevo B2C & B2B)</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">55K base y 30.8% Open Rate corporativo</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="toggleEmail" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <div>
+                <strong style="font-size: 13px;">📁 Catálogo de 117 Entregables</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted);">Tabla interactiva de piezas y formatos</p>
+              </div>
+              <label class="admin-switch">
+                <input type="checkbox" id="toggleEntregables" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Metas & Objetivos de Crecimiento -->
+        <div class="content-card">
+          <h4 style="font-size: 15px; font-weight: 800; margin-bottom: 16px; color: var(--channel-google);">
+            🎯 Metas & Objetivos de Crecimiento para el Cliente
+          </h4>
+
+          <div class="form-group">
+            <label class="form-label">Objetivo Anual Google Opiniones</label>
+            <input type="text" id="metaGoogleAnual" class="form-input" value="Llegar a 3.500 opiniones en un año (Meta: 33/mes)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Objetivo Anual Instagram Seguidores</label>
+            <input type="text" id="metaInstagramAnual" class="form-input" value="Llegar a 15.000 seguidores en un año (Meta: 262 netos/mes)">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Objetivo Anual Facebook Seguidores</label>
+            <input type="text" id="metaFacebookAnual" class="form-input" value="Llegar a 55.000 seguidores en un año (Meta: 337 netos/mes)">
+          </div>
+
+          <div class="insight-callout" style="margin-top: 24px;">
+            <strong>Control Administrativo:</strong> Al pulsar <em>"Aplicar Cambios en Vivo"</em>, el cliente verá en su enlace público únicamente los módulos que hayas dejado activados con sus metas correspondientes.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+      <div>Marketing Insights Administrator Panel • Multi-Tenant & Multi-Dashboard Engine</div>
+      <div>Autenticado como: <strong>Superadministrador de Agencia</strong></div>
+    </footer>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+    }
+
+    function switchAdminTab(tabId) {
+      document.querySelectorAll('.admin-tab-content').forEach(t => t.style.display = 'none');
+      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      
+      const tab = document.getElementById(tabId);
+      if (tab) tab.style.display = 'block';
+      event.target.classList.add('active');
+    }
+
+    // Dashboards en memoria
+    let dashboardsList = [
+      {
+        id: 1,
+        empresaSlug: 'cine-multiplex-villacentro',
+        titulo: 'Informe de Gestión Mensual | Julio 2026',
+        periodo: 'Julio 2026',
+        slug: 'julio-2026',
+        token: 'mkt_live_cmv_78a9c0f',
+        activo: true
+      },
+      {
+        id: 2,
+        empresaSlug: 'cine-multiplex-villacentro',
+        titulo: 'Informe de Rendimiento | Abril 2026',
+        periodo: 'Abril 2026',
+        slug: 'abril-2026',
+        token: 'mkt_live_cmv_abril2026',
+        activo: true
+      }
+    ];
+
+    function renderDashboardsList() {
+      const tbody = document.getElementById('dashboardsTableBody');
+      if (!tbody) return;
+
+      let html = '';
+      dashboardsList.forEach(d => {
+        const fullUrl = `/${d.empresaSlug}/${d.slug}?token=${d.token}`;
+        html += `
+          <tr>
+            <td><strong>${d.titulo}</strong></td>
+            <td><span class="badge-category">${d.periodo}</span></td>
+            <td><code>${fullUrl}</code></td>
+            <td><span class="token-pill">${d.token}</span></td>
+            <td>
+              <label class="admin-switch">
+                <input type="checkbox" ${d.activo ? 'checked' : ''} onchange="toggleDashboardStatus(${d.id})">
+                <span class="slider-toggle"></span>
+              </label>
+            </td>
+            <td>
+              <button class="btn-action btn-primary" style="padding: 5px 10px; font-size: 11.5px;" onclick="impersonateClient('${d.empresaSlug}', '${d.slug}')">
+                👁️ Impersonar
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function toggleDashboardStatus(id) {
+      const d = dashboardsList.find(x => x.id === id);
+      if (d) {
+        d.activo = !d.activo;
+        alert(`Dashboard "${d.titulo}" ahora está: ${d.activo ? 'ACTIVO (Visible)' : 'INACTIVO (Bloqueado al cliente)'}`);
+      }
+    }
+
+    function impersonateClient(empresaSlug, dashboardSlug) {
+      const targetUrl = `index.html?empresa=${encodeURIComponent(empresaSlug)}&dashboard=${encodeURIComponent(dashboardSlug)}&token=mkt_live_cmv_78a9c0f`;
+      window.open(targetUrl, '_blank');
+    }
+
+    function saveEmpresa(e) {
+      e.preventDefault();
+      alert('¡Empresa, Slug y Logos (Claro y Oscuro) guardados exitosamente!');
+    }
+
+    function saveTogglesSettings() {
+      const settings = {
+        timeline: document.getElementById('toggleTimeline').checked,
+        google: document.getElementById('toggleGoogle').checked,
+        meta: document.getElementById('toggleMeta').checked,
+        tiktok: document.getElementById('toggleTikTok').checked,
+        ugc: document.getElementById('toggleUgc').checked,
+        pauta: document.getElementById('togglePauta').checked,
+        email: document.getElementById('toggleEmail').checked,
+        entregables: document.getElementById('toggleEntregables').checked
+      };
+
+      localStorage.setItem('mkt_dashboard_toggles', JSON.stringify(settings));
+      alert('¡Configuración de visibilidad e indicadores guardada! Los dashboards reflejarán estos cambios.');
+    }
+
+    function resetDefaultToggles() {
+      document.querySelectorAll('#tabIndicadores input[type="checkbox"]').forEach(c => c.checked = true);
+      saveTogglesSettings();
+    }
+
+    // Inicializar lista
+    renderDashboardsList();
+  </script>
+</body>
+</html>
