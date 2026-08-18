@@ -1,0 +1,26 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Forzar HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Servir archivos existentes directamente
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Alias limpios
+    RewriteRule ^admin/?$ admin/index.html [L]
+    RewriteRule ^login/?$ login.html [L]
+
+    # Rutas dinámicas de empresa / slug -> index.html
+    RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ index.html?empresa=$1&dashboard=$2 [QSA,L]
+    RewriteRule ^([a-zA-Z0-9_-]+)/?$ index.html?empresa=$1 [QSA,L]
+</IfModule>
+
+# Cache & MIME types
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>

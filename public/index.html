@@ -24,9 +24,10 @@
     <!-- Header & Navigation con Soporte de Logos Duales (Claro / Oscuro) -->
     <header class="header-nav">
       <div class="brand-badge">
-        <div class="brand-icon-box">🎬</div>
+        <img id="brandLogoLight" src="assets/images/logo_multiplex_light.png" alt="Cine Múltiplex Villacentro" class="brand-logo-img logo-light">
+        <img id="brandLogoDark" src="assets/images/logo_multiplex_dark.png" alt="Cine Múltiplex Villacentro" class="brand-logo-img logo-dark">
         <div class="brand-info">
-          <h1 id="brandCompanyName">Cine Múltiplex Villacentro</h1>
+          <h1 id="brandCompanyName" style="display: none;">Cine Múltiplex Villacentro</h1>
           <p id="brandReportSub">Informe Ejecutivo de Gestión Mensual | <strong>Julio 2026</strong> • Por Cibergenios Agencia Digital SAS</p>
         </div>
       </div>
@@ -36,9 +37,9 @@
           <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
           <span id="labelToken">Token: mkt_live_cmv_78a9c0f</span>
         </div>
-        <a href="admin.html" class="btn-action btn-admin" title="Ir al Panel de Administración">
+        <a href="admin/" class="btn-action btn-admin" title="Ir al Panel de Administración">
           <i data-lucide="settings" style="width: 15px; height: 15px;"></i>
-          <span>Administración</span>
+          <span>Admin</span>
         </a>
         <button class="btn-action" onclick="toggleTheme()">
           <i data-lucide="sun-moon" style="width: 15px; height: 15px;"></i>
@@ -734,11 +735,12 @@
 
     <!-- Footer -->
     <footer class="dashboard-footer">
-      <div>
-        <strong>Marketing Insights Platform</strong> • Desarrollado para <strong id="footerCompanyName">Cine Múltiplex Villacentro</strong> por <strong>Cibergenios Agencia Digital SAS</strong>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="assets/images/logo_cibergenios.png" alt="Cibergenios" style="max-height: 24px;">
+        <span>Marketing Insights Platform • Auditoría & Gestión por <strong>Cibergenios Agencia Digital SAS</strong></span>
       </div>
       <div>
-        Periodo Auditado: <strong>1 al 31 de Julio de 2026</strong>
+        Cliente: <strong>Cine Múltiplex Villacentro</strong> | Julio 2026
       </div>
     </footer>
 
@@ -758,6 +760,16 @@
       if (window.updateChartsTheme) {
         window.updateChartsTheme();
       }
+    }
+
+    // Cargar logos locales guardados desde el admin si existen
+    const savedLogoLight = localStorage.getItem('logo_light_data');
+    if (savedLogoLight) {
+      document.getElementById('brandLogoLight').src = savedLogoLight;
+    }
+    const savedLogoDark = localStorage.getItem('logo_dark_data');
+    if (savedLogoDark) {
+      document.getElementById('brandLogoDark').src = savedLogoDark;
     }
 
     // Parse URL params for company slug and token

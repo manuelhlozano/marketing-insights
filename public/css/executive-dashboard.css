@@ -131,25 +131,33 @@ body {
 }
 
 .brand-logo-img {
-  max-height: 48px;
+  max-height: 52px;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+.brand-agency-logo {
+  max-height: 38px;
   max-width: 180px;
   object-fit: contain;
+  display: inline-block;
 }
 
 .logo-light {
-  display: none;
+  display: block;
 }
 
 .logo-dark {
-  display: block;
-}
-
-body.light-mode .logo-light {
-  display: block;
-}
-
-body.light-mode .logo-dark {
   display: none;
+}
+
+body:not(.light-mode) .logo-light {
+  display: none;
+}
+
+body:not(.light-mode) .logo-dark {
+  display: block;
 }
 
 .brand-icon-box {
