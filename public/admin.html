@@ -27,13 +27,21 @@
       </div>
 
       <div class="header-actions">
+        <div class="token-pill" style="color: var(--success-green-text);">
+          <i data-lucide="user-check" style="width: 14px; height: 14px;"></i>
+          <span id="userLoggedLabel">admin@cibergenios.com</span>
+        </div>
         <button class="btn-action" onclick="toggleTheme()">
           <i data-lucide="sun-moon" style="width: 15px; height: 15px;"></i>
           <span>Tema</span>
         </button>
         <button class="btn-action btn-primary" onclick="impersonateClient('cine-multiplex-villacentro', 'julio-2026')">
-          <i data-lucide="user-check" style="width: 15px; height: 15px;"></i>
-          <span>👁️ Ver como Cliente (Impersonar CMV)</span>
+          <i data-lucide="eye" style="width: 15px; height: 15px;"></i>
+          <span>👁️ Ver como Cliente (Impersonar)</span>
+        </button>
+        <button class="btn-action" onclick="logoutAdmin()" title="Cerrar Sesión">
+          <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
+          <span>Salir</span>
         </button>
       </div>
     </header>
@@ -481,6 +489,11 @@
     function resetDefaultToggles() {
       document.querySelectorAll('#tabIndicadores input[type="checkbox"]').forEach(c => c.checked = true);
       saveTogglesSettings();
+    }
+
+    function logoutAdmin() {
+      localStorage.removeItem('mkt_admin_logged');
+      window.location.href = 'login.html';
     }
 
     // Inicializar lista

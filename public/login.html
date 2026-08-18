@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketing Insights | Iniciar Sesión</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/executive-dashboard.css">
+</head>
+<body class="light-mode" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+
+  <div style="width: 100%; max-width: 440px;">
+    
+    <!-- Card de Login -->
+    <div class="content-card" style="padding: 36px 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);">
+      
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div class="brand-icon-box" style="margin: 0 auto 16px; width: 56px; height: 56px; font-size: 26px;">🔐</div>
+        <h2 style="font-family: var(--font-heading); font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
+          Marketing Insights
+        </h2>
+        <p style="font-size: 13px; color: var(--text-muted);">
+          Acceso al Panel de Administración y Control Maestro
+        </p>
+      </div>
+
+      <div id="errorMsg" style="display: none; padding: 10px 14px; background: var(--danger-red-bg); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-sm); color: var(--danger-red-text); font-size: 12.5px; margin-bottom: 16px;">
+        Credenciales incorrectas. Verifica tu correo y contraseña.
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico</label>
+          <input type="email" id="loginEmail" class="form-input" required value="admin@cibergenios.com" placeholder="admin@cibergenios.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input type="password" id="loginPassword" class="form-input" required value="admin123" placeholder="••••••••">
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 12.5px;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
+            <input type="checkbox" id="rememberMe" checked>
+            <span>Recordar sesión</span>
+          </label>
+          <span style="color: var(--primary-blue); font-weight: 600; cursor: pointer;" onclick="autoFillCredentials()">Autocompletar</span>
+        </div>
+
+        <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px;">
+          <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
+          <span>Ingresar al Administrador</span>
+        </button>
+
+      </form>
+
+      <!-- Credenciales Predeterminadas -->
+      <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-card); font-size: 12px; color: var(--text-muted); text-align: center;">
+        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Credenciales de Acceso Administrador:</div>
+        <div>Usuario: <code style="color: var(--primary-blue); font-weight: 700;">admin@cibergenios.com</code></div>
+        <div>Contraseña: <code style="color: var(--primary-blue); font-weight: 700;">admin123</code></div>
+      </div>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 16px;">
+      <a href="index.html" style="font-size: 13px; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        <span>← Volver a la vista de cliente</span>
+      </a>
+    </div>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function autoFillCredentials() {
+      document.getElementById('loginEmail').value = 'admin@cibergenios.com';
+      document.getElementById('loginPassword').value = 'admin123';
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
+
+      // Validación de credenciales
+      if (
+        (email === 'admin@cibergenios.com' || email === 'admin@mktinsights.com' || email === 'admin') &&
+        (pass === 'admin123' || pass === 'admin' || pass === 'cibergenios2026')
+      ) {
+        localStorage.setItem('mkt_admin_logged', 'true');
+        localStorage.setItem('mkt_admin_user', email);
+        window.location.href = 'admin.html';
+      } else {
+        document.getElementById('errorMsg').style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>
