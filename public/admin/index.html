@@ -31,10 +31,6 @@
     <header class="header-nav">
       <div class="brand-badge">
         <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" class="brand-agency-logo">
-        <div class="brand-info">
-          <h1>Panel de Control & Administración Maestro</h1>
-          <p>Gestión de Empresas, Logos Duales, Dashboards, Toggles de Indicadores e Impersonación</p>
-        </div>
       </div>
 
       <div class="header-actions">
@@ -46,10 +42,6 @@
           <i data-lucide="sun-moon" style="width: 15px; height: 15px;"></i>
           <span id="themeText">Modo Oscuro</span>
         </button>
-        <button class="btn-action btn-primary" onclick="impersonateClient('cine-multiplex-villacentro', 'julio-2026')">
-          <i data-lucide="eye" style="width: 15px; height: 15px;"></i>
-          <span>👁️ Ver como Cliente (Impersonar)</span>
-        </button>
         <button class="btn-action" onclick="logoutAdmin()" title="Cerrar Sesión">
           <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
           <span>Salir</span>
@@ -57,12 +49,23 @@
       </div>
     </header>
 
+    <!-- Título Principal del Admin -->
+    <div style="margin: 22px 0 16px 0;">
+      <h2 style="font-family: var(--font-heading); font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+        Panel de Control & Administración Maestro
+      </h2>
+      <p style="font-size: 13.5px; color: var(--text-muted); margin: 0;">
+        Gestión de Empresas, Logos Duales, Dashboards, Toggles de Indicadores e Impersonación
+      </p>
+    </div>
+
     <!-- Pestañas de Navegación del Administrador -->
     <div class="admin-tabs">
       <button class="admin-tab-btn active" onclick="switchAdminTab('tabEmpresas')">🏢 1. Empresas & Clientes</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('tabDashboards')">📊 2. Dashboards por Empresa</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('tabIndicadores')">⚙️ 3. Indicadores & Toggles</button>
     </div>
+
 
     <!-- ====================================================================
          TAB 1: GESTIÓN DE EMPRESAS (LOGOS DESDE ARCHIVO LOCAL DEL PC)
