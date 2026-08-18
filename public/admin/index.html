@@ -11,6 +11,15 @@
   
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="../css/executive-dashboard.css">
+
+  <!-- AUTH GUARD: debe ejecutarse antes que cualquier contenido -->
+  <script>
+    (function() {
+      if (localStorage.getItem('mkt_admin_logged') !== 'true') {
+        window.location.replace('../login.html');
+      }
+    })();
+  </script>
 </head>
 <body class="light-mode">
 

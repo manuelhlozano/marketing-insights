@@ -6,21 +6,30 @@
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Servir archivos existentes directamente
+    # Servir archivos estáticos existentes directamente (CSS, JS, PNG, etc.)
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Alias limpios
+    # /admin -> admin/index.html
     RewriteRule ^admin/?$ admin/index.html [L]
+
+    # /login -> login.html
     RewriteRule ^login/?$ login.html [L]
 
-    # Rutas dinámicas de empresa / slug -> index.html
+    # /api/* -> PHP (sirve directamente como archivo)
+    RewriteRule ^api/(.*)$ api/$1 [L]
+
+    # HOME: redirigir raíz vacía a login.html
+    RewriteRule ^$ login.html [L]
+
+    # /{empresa}/{dashboard}?token=... -> index.html con parámetros
     RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ index.html?empresa=$1&dashboard=$2 [QSA,L]
+
+    # /{empresa} -> index.html
     RewriteRule ^([a-zA-Z0-9_-]+)/?$ index.html?empresa=$1 [QSA,L]
 </IfModule>
 
-# Cache & MIME types
 <IfModule mod_headers.c>
     Header set Access-Control-Allow-Origin "*"
 </IfModule>

@@ -17,7 +17,27 @@
   <!-- Executive High-Contrast Theme CSS -->
   <link rel="stylesheet" href="css/executive-dashboard.css">
 </head>
-<body class="light-mode">
+<body class="light-mode" style="display:none">
+
+  <!-- TOKEN GATE: debe ejecutarse antes que cualquier contenido -->
+  <script>
+    (function() {
+      var VALID_TOKENS = ['mkt_live_cmv_78a9c0f', 'mkt_live_cmv_abril2026'];
+      var params = new URLSearchParams(window.location.search);
+      var token = params.get('token');
+      var isAdminLogged = localStorage.getItem('mkt_admin_logged') === 'true';
+
+      if (!isAdminLogged && (!token || !VALID_TOKENS.includes(token))) {
+        // Sin token válido y sin sesión admin → redirigir al login
+        window.location.replace('login.html');
+      } else {
+        // Acceso autorizado → mostrar el body
+        document.addEventListener('DOMContentLoaded', function() {
+          document.body.style.display = '';
+        });
+      }
+    })();
+  </script>
 
   <div class="dashboard-container">
 
@@ -445,7 +465,7 @@
     </div>
 
     <!-- SECCIÓN: ANÁLISIS DE EVOLUCIÓN TEMPORAL (META & TIKTOK) -->
-    <div class="section-title-wrapper">
+    <div class="section-title-wrapper" id="sectionTikTok">
       <h3 class="section-title"><i data-lucide="trending-up" style="color: var(--primary-blue);"></i> Evolución de Tracción y Rescate de Algoritmos</h3>
       <span class="section-badge">Comparativa Julio 2026</span>
     </div>
@@ -481,7 +501,7 @@
     </div>
 
     <!-- SECCIÓN: SHOWCASE UGC & CREADORES (Slide 7) -->
-    <div class="section-title-wrapper">
+    <div class="section-title-wrapper" id="sectionUgc">
       <h3 class="section-title"><i data-lucide="sparkles" style="color: var(--channel-google);"></i> El Entretenimiento Atrae Clientes (Showcase UGC)</h3>
       <span class="section-badge">+110.000 impactos con 3 piezas clave</span>
     </div>
@@ -628,7 +648,7 @@
     </div>
 
     <!-- SECCIÓN: PAUTA DIGITAL & EMAIL MARKETING B2C / B2B -->
-    <div class="section-title-wrapper">
+    <div class="section-title-wrapper" id="sectionPauta" style="--email-anchor:1">
       <h3 class="section-title"><i data-lucide="target" style="color: var(--success-green-text);"></i> Fidelización, Pauta Digital & Email Marketing</h3>
       <span class="section-badge">Brevo + Meta Ads</span>
     </div>
@@ -678,7 +698,7 @@
     </div>
 
     <!-- SECCIÓN: CATÁLOGO INTERACTIVO DE LOS 117 ENTREGABLES -->
-    <div class="section-title-wrapper">
+    <div class="section-title-wrapper" id="sectionEntregables">
       <h3 class="section-title"><i data-lucide="folder-check" style="color: var(--primary-blue);"></i> Catálogo de Producción (117 Entregables)</h3>
       <span class="section-badge" id="entregablesCountLabel">Cargando 117 entregables...</span>
     </div>
@@ -772,14 +792,21 @@
       document.getElementById('brandLogoDark').src = savedLogoDark;
     }
 
-    // Parse URL params for company slug and token
+    // Parse URL params
     const urlParams = new URLSearchParams(window.location.search);
     const empresaSlug = urlParams.get('empresa');
     const dashboardSlug = urlParams.get('dashboard');
     const token = urlParams.get('token');
+    const isAdminLogged = localStorage.getItem('mkt_admin_logged') === 'true';
+
+    // Mostrar u ocultar el enlace de Admin según sesión
+    const adminLink = document.querySelector('a[href="admin/"]');
+    if (!isAdminLogged && adminLink) adminLink.style.display = 'none';
 
     if (token) {
       document.getElementById('labelToken').textContent = `Token: ${token}`;
+    } else if (isAdminLogged) {
+      document.getElementById('labelToken').textContent = 'Admin Autenticado';
     }
 
     // Aplicar configuración de visibilidad guardada desde el Admin
@@ -787,14 +814,22 @@
     if (savedToggles) {
       try {
         const toggles = JSON.parse(savedToggles);
-        if (toggles.timeline === false) {
-          const s = document.getElementById('sectionTimeline');
-          if (s) s.style.display = 'none';
-        }
-        if (toggles.google === false) {
-          const s = document.getElementById('sectionGoogle');
-          if (s) s.style.display = 'none';
-        }
+        const sectionMap = {
+          timeline: 'sectionTimeline',
+          google: 'sectionGoogle',
+          meta: 'sectionMeta',
+          tiktok: 'sectionTikTok',
+          ugc: 'sectionUgc',
+          pauta: 'sectionPauta',
+          email: 'sectionEmail',
+          entregables: 'sectionEntregables'
+        };
+        Object.entries(sectionMap).forEach(([key, id]) => {
+          if (toggles[key] === false) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+          }
+        });
       } catch (e) {
         console.warn('Error leyendo toggles', e);
       }
