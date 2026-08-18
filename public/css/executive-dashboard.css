@@ -276,12 +276,13 @@ body.light-mode .hero-banner {
 
 .hero-title {
   font-family: var(--font-heading);
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.25;
   margin-bottom: 8px;
   color: var(--text-primary);
 }
+
 
 .hero-subtitle {
   font-size: 15px;
