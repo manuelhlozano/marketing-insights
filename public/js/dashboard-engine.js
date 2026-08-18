@@ -200,34 +200,58 @@
     set('tiktokVideos',    fmt(val(t, 'videos_creados')));
   }
 
-  // ─── UGC ──────────────────────────────────────────────────────────────────────
+  // ─── UGC / CONTENIDO VIRAL ───────────────────────────────────────────────────
   function renderUgc(ugc) {
     const container = document.getElementById('ugcGrid');
     if (!container) return;
+
+    // Calcular total de vistas dinámicamente
+    const totalViews = ugc.reduce((sum, u) => sum + (u.vistas || 0), 0);
+    const badgeEl = document.getElementById('ugcHeaderBadge');
+    if (badgeEl) {
+      badgeEl.textContent = `+${fmt(totalViews)} visualizaciones en ${ugc.length} piezas clave de UGC`;
+    }
+
     container.innerHTML = ugc.map((u, i) => {
       const badges = ['#1 Video del Mes', 'Top 2 UGC', 'Top 3 UGC', 'Top 4 UGC'];
-      const badge = u.badge_label || badges[i] || '';
-      const canal = u.canal === 'tiktok' ? 'TikTok' : 'Instagram';
+      const rankBadge = u.badge_label || badges[i] || `Pieza #${i+1}`;
+      const isTikTok = u.canal === 'tiktok';
+      const canalLabel = isTikTok ? 'TikTok Viral' : 'Instagram Reel';
+      const canalClass = isTikTok ? 'pill-tiktok' : 'pill-instagram';
+      const canalIcon = isTikTok ? 'music' : 'camera';
+
       return `
-        <div class="ugc-card">
-          <div class="ugc-media-mock">
-            <span class="ugc-badge-views"><i data-lucide="eye" style="width:12px;height:12px"></i> +${fmt(u.vistas)} Vistas</span>
-            <span class="ugc-badge-shares">${fmt(u.compartidos)} Shares</span>
-            <div class="ugc-play-icon">&#9654;</div>
+        <div class="ugc-exec-card">
+          <div class="ugc-exec-header">
+            <span class="ugc-rank-badge">${rankBadge}</span>
+            <span class="channel-header-pill ${canalClass}" style="padding: 3px 10px; font-size: 11.5px;">
+              <i data-lucide="${canalIcon}" style="width: 12px; height: 12px;"></i>
+              ${canalLabel}
+            </span>
           </div>
-          <div class="ugc-body">
-            <div>
-              <h4 class="ugc-title">${u.titulo} <small style="font-size:11px;color:var(--text-muted)">[${canal}]</small></h4>
-              <p class="ugc-desc">${u.nota_estrategica || u.subtitulo || ''}</p>
+
+          <h4 class="ugc-exec-title">${u.titulo}</h4>
+          <p class="ugc-exec-desc">${u.nota_estrategica || u.subtitulo || ''}</p>
+
+          <div class="ugc-exec-metrics">
+            <div class="ugc-metric-pill">
+              <span class="ugc-metric-val"><i data-lucide="eye" style="width: 13px; height: 13px; display: inline;"></i> ${fmt(u.vistas)}</span>
+              <span class="ugc-metric-lbl">Visualizaciones</span>
             </div>
-            <div class="ugc-stats-row">
-              <span style="background:var(--accent-primary);color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${badge}</span>
-              ${u.likes ? `<span>&#10084;&#65039; ${fmt(u.likes)} Likes</span>` : ''}
+            <div class="ugc-metric-pill highlight-orange">
+              <span class="ugc-metric-val"><i data-lucide="share-2" style="width: 13px; height: 13px; display: inline;"></i> ${fmt(u.compartidos)}</span>
+              <span class="ugc-metric-lbl">Compartidos</span>
             </div>
+            ${u.likes ? `
+            <div class="ugc-metric-pill">
+              <span class="ugc-metric-val"><i data-lucide="heart" style="width: 13px; height: 13px; display: inline;"></i> ${fmt(u.likes)}</span>
+              <span class="ugc-metric-lbl">Me Gusta</span>
+            </div>` : ''}
           </div>
         </div>`;
     }).join('');
   }
+
 
 
   // ─── PAUTA ────────────────────────────────────────────────────────────────────
