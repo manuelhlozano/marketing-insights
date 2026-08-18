@@ -6,28 +6,40 @@
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Servir archivos estáticos existentes directamente (CSS, JS, PNG, etc.)
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    # Servir archivos físicos existentes (CSS, JS, PNG, PHP, etc.) sin reescribir
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Servir directorios físicos sin reescribir (excepto raíz)
+    RewriteCond %{REQUEST_URI} !^/$
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # /admin -> admin/index.html
-    RewriteRule ^admin/?$ admin/index.html [L]
-
-    # /login -> login.html
-    RewriteRule ^login/?$ login.html [L]
-
-    # /api/* -> PHP (sirve directamente como archivo)
-    RewriteRule ^api/(.*)$ api/$1 [L]
-
-    # HOME: redirigir raíz vacía a login.html
+    # HOME: Redirigir raíz estricta a login.html
     RewriteRule ^$ login.html [L]
 
-    # /{empresa}/{dashboard}?token=... -> index.html con parámetros
+    # /login -> login.html (también /login/)
+    RewriteRule ^login/?$ login.html [L]
+
+    # /admin -> admin/index.html (sin exponer la ruta del archivo)
+    RewriteRule ^admin/?$ admin/index.html [L]
+
+    # /api/* -> PHP handler
+    RewriteRule ^api/(.+)$ api/$1 [L]
+
+    # /{empresa}/{dashboard} con token -> index.html
     RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ index.html?empresa=$1&dashboard=$2 [QSA,L]
 
-    # /{empresa} -> index.html
+    # /{empresa} solo -> index.html
     RewriteRule ^([a-zA-Z0-9_-]+)/?$ index.html?empresa=$1 [QSA,L]
+</IfModule>
+
+# Cache de archivos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png "access plus 7 days"
+    ExpiresByType text/css "access plus 1 day"
+    ExpiresByType application/javascript "access plus 1 day"
 </IfModule>
 
 <IfModule mod_headers.c>
