@@ -251,6 +251,19 @@ if ($action === 'dashboard') {
             ];
         };
 
+        // UGC Posts de Junio (Mes Previo)
+        $stmtUgcPrev = $pdo->prepare("SELECT titulo, subtitulo, canal, vistas, compartidos,
+                                              likes, badge_label, nota_estrategica
+                                       FROM ugc_posts WHERE dashboard_id = ? ORDER BY orden");
+        $stmtUgcPrev->execute([$pId]);
+        $ugcPrevio = $stmtUgcPrev->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($ugcPrevio as &$u) {
+            $u['vistas']      = is_null($u['vistas'])      ? null : (int)$u['vistas'];
+            $u['compartidos'] = is_null($u['compartidos']) ? null : (int)$u['compartidos'];
+            $u['likes']       = is_null($u['likes'])       ? null : (int)$u['likes'];
+        }
+        unset($u);
+
         $comparativo = [
             'disponible'      => true,
             'periodo_previo'  => $prevDash['periodo'],
@@ -270,10 +283,12 @@ if ($action === 'dashboard') {
             'atencion'               => $prevAtenc,
             'tiktok'                 => $prevTiktok,
             'email_b2c'              => $prevEmailB2c,
+            'ugc_posts'              => $ugcPrevio,
             'series_previas'         => $prevSeriesMeta,
             'series_previas_tiktok'  => $prevSeriesTiktok,
         ];
     }
+
 
 
     // ─── Payload final ────────────────────────────────────────────────────────

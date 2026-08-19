@@ -229,19 +229,46 @@
     set('tiktokVideos',    fmt(val(t, 'videos_creados')));
   }
 
-  // ─── UGC / CONTENIDO VIRAL ───────────────────────────────────────────────────
+  // ─── UGC / CONTENIDO VIRAL & POPULAR ──────────────────────────────────────────
   function renderUgc(ugc) {
+    window.setUgcMonth = function(month) {
+      window._currentUgcMonth = month;
+      const btnJul = document.getElementById('btnUgcJulio');
+      const btnJun = document.getElementById('btnUgcJunio');
+      const badgeEl = document.getElementById('ugcHeaderBadge');
+      
+      let list = [];
+      if (month === 'junio') {
+        if (btnJul) { btnJul.className = 'btn-action'; }
+        if (btnJun) { btnJun.className = 'btn-action btn-primary'; }
+        list = window._lastDashboardData?.comparativo?.ugc_posts || [];
+        const totalViews = list.reduce((sum, u) => sum + (u.vistas || 0), 0);
+        if (badgeEl) badgeEl.textContent = `Línea Base Junio 2026: +${fmt(totalViews)} visualizaciones en ${list.length} piezas`;
+      } else {
+        if (btnJul) { btnJul.className = 'btn-action btn-primary'; }
+        if (btnJun) { btnJun.className = 'btn-action'; }
+        list = window._lastDashboardData?.ugc || [];
+        const totalViews = list.reduce((sum, u) => sum + (u.vistas || 0), 0);
+        if (badgeEl) badgeEl.textContent = `+${fmt(totalViews)} visualizaciones en ${list.length} piezas clave de UGC`;
+      }
+      renderUgcList(list);
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    };
+
+    // Renderizar inicial (Julio)
+    window.setUgcMonth('julio');
+  }
+
+  function renderUgcList(list) {
     const container = document.getElementById('ugcGrid');
     if (!container) return;
 
-    // Calcular total de vistas dinámicamente
-    const totalViews = ugc.reduce((sum, u) => sum + (u.vistas || 0), 0);
-    const badgeEl = document.getElementById('ugcHeaderBadge');
-    if (badgeEl) {
-      badgeEl.textContent = `+${fmt(totalViews)} visualizaciones en ${ugc.length} piezas clave de UGC`;
+    if (!list || !list.length) {
+      container.innerHTML = `<div style="grid-column: 1/-1; padding: 20px; text-align: center; color: var(--text-muted);">No hay contenidos registrados para este mes.</div>`;
+      return;
     }
 
-    container.innerHTML = ugc.map((u, i) => {
+    container.innerHTML = list.map((u, i) => {
       const badges = ['#1 Video del Mes', 'Top 2 UGC', 'Top 3 UGC', 'Top 4 UGC'];
       const rankBadge = u.badge_label || badges[i] || `Pieza #${i+1}`;
       const isTikTok = u.canal === 'tiktok';
@@ -267,10 +294,11 @@
               <span class="ugc-metric-val"><i data-lucide="eye" style="width: 13px; height: 13px; display: inline;"></i> ${fmt(u.vistas)}</span>
               <span class="ugc-metric-lbl">Visualizaciones</span>
             </div>
+            ${u.compartidos ? `
             <div class="ugc-metric-pill highlight-orange">
               <span class="ugc-metric-val"><i data-lucide="share-2" style="width: 13px; height: 13px; display: inline;"></i> ${fmt(u.compartidos)}</span>
               <span class="ugc-metric-lbl">Compartidos</span>
-            </div>
+            </div>` : ''}
             ${u.likes ? `
             <div class="ugc-metric-pill">
               <span class="ugc-metric-val"><i data-lucide="heart" style="width: 13px; height: 13px; display: inline;"></i> ${fmt(u.likes)}</span>
@@ -280,6 +308,7 @@
         </div>`;
     }).join('');
   }
+
 
 
 

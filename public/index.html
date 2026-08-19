@@ -564,10 +564,17 @@
     </div>
 
     <!-- SECCIÓN: SHOWCASE UGC & CREADORES (Slide 7) -->
-    <div class="section-title-wrapper" id="sectionUgc">
-      <h3 class="section-title"><i data-lucide="sparkles" style="color: var(--channel-google);"></i> Estrategia UGC & Contenido Viral (Reels y TikToks)</h3>
-      <span class="section-badge" id="ugcHeaderBadge">+152.200 visualizaciones en 4 piezas clave de UGC</span>
+    <div class="section-title-wrapper" id="sectionUgc" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h3 class="section-title" style="margin-bottom: 4px;"><i data-lucide="sparkles" style="color: var(--channel-google);"></i> Contenidos Populares & Estrategia UGC (Reels & TikToks)</h3>
+        <span class="section-badge" id="ugcHeaderBadge">+152.200 visualizaciones en 4 piezas clave de UGC</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button id="btnUgcJulio" class="btn-action btn-primary" onclick="setUgcMonth('julio')" style="font-size: 12px; padding: 6px 14px;">Julio 2026</button>
+        <button id="btnUgcJunio" class="btn-action" onclick="setUgcMonth('junio')" style="font-size: 12px; padding: 6px 14px;">Junio 2026 (Mes Previo)</button>
+      </div>
     </div>
+
 
 
     <div class="ugc-grid" id="ugcGrid">
