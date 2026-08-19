@@ -219,16 +219,21 @@ if ($action === 'dashboard') {
     $comparativo = null;
     if ($prevDash) {
         $pId = (int)$prevDash['id'];
-        $prevMeta   = $fnMetricas('meta', $pId);
-        $prevFb     = $fnMetricas('facebook', $pId);
-        $prevIg     = $fnMetricas('instagram', $pId);
-        $prevAtenc  = $fnMetricas('atencion', $pId);
+        $prevMeta     = $fnMetricas('meta', $pId);
+        $prevFb       = $fnMetricas('facebook', $pId);
+        $prevIg       = $fnMetricas('instagram', $pId);
+        $prevAtenc    = $fnMetricas('atencion', $pId);
+        $prevTiktok   = $fnMetricas('tiktok', $pId);
+        $prevEmailB2c = $fnMetricas('email_b2c', $pId);
 
         $prevSeriesMeta = [
             'visualizaciones' => $fnSerie('meta', 'visualizaciones', $pId),
             'alcance'         => $fnSerie('meta', 'alcance', $pId),
             'interacciones'   => $fnSerie('meta', 'interacciones', $pId),
             'espectadores'    => $fnSerie('meta', 'espectadores', $pId),
+        ];
+        $prevSeriesTiktok = [
+            'vistas' => $fnSerie('tiktok', 'vistas', $pId),
         ];
 
         // Helper para calcular deltas
@@ -256,14 +261,20 @@ if ($action === 'dashboard') {
                 'interacciones'    => $calcDelta($meta['interacciones_totales']['valor'] ?? 14200, $prevMeta['interacciones_totales']['valor'] ?? 5700),
                 'clics_enlaces'    => $calcDelta(449, $prevMeta['clics_enlace_total']['valor'] ?? 15),
                 'seguidores_netos' => $calcDelta(182, $prevMeta['crecimiento_neto']['valor'] ?? 51),
+                'tiktok_vistas'    => $calcDelta($tiktok['vistas_7d']['valor'] ?? 80400, $prevTiktok['vistas_totales']['valor'] ?? 349800),
+                'email_open_rate'  => $calcDelta($email_b2c['open_rate']['valor'] ?? 18.0, $prevEmailB2c['open_rate']['valor'] ?? 12.14),
             ],
-            'meta'            => $prevMeta,
-            'facebook'        => $prevFb,
-            'instagram'       => $prevIg,
-            'atencion'        => $prevAtenc,
-            'series_previas'  => $prevSeriesMeta,
+            'meta'                   => $prevMeta,
+            'facebook'               => $prevFb,
+            'instagram'              => $prevIg,
+            'atencion'               => $prevAtenc,
+            'tiktok'                 => $prevTiktok,
+            'email_b2c'              => $prevEmailB2c,
+            'series_previas'         => $prevSeriesMeta,
+            'series_previas_tiktok'  => $prevSeriesTiktok,
         ];
     }
+
 
     // ─── Payload final ────────────────────────────────────────────────────────
     $payload = [

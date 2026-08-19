@@ -22,7 +22,7 @@ window.renderChartsFromData = function(data) {
   const googleGoals = window._googleGoals || { opiniones: 88, ig: 15, fb: 92 };
   renderGoalRings(googleGoals);
   renderMetaChart(data.series_meta || {}, data.comparativo);
-  renderTikTokChart(data.series_tiktok || {});
+  renderTikTokChart(data.series_tiktok || {}, data.comparativo);
   renderDemograficsChart(data.demografica?.edad_genero || {});
   renderCiudadesChart(data.demografica?.ciudades       || {});
   renderFormatsChart(data.entregables_summary          || {});
@@ -134,31 +134,61 @@ function renderMetaChart(seriesMeta, comparativo) {
 
 
 // ─── TIKTOK CHART ────────────────────────────────────────────────────────────
-function renderTikTokChart(seriesTiktok) {
+function renderTikTokChart(seriesTiktok, comparativo) {
   const ctx = document.getElementById('chartTikTokGrowth');
   if (!ctx) return;
+
+  const isCmp = window._isComparisonMode === true && comparativo && comparativo.disponible;
 
   const labels = seriesTiktok.vistas?.labels
     || ['1-5 Jul','6-10 Jul','11-15 Jul','16-20 Jul','21-23 Jul','24-27 Jul (Cibergenios)','28-31 Jul (Viral)'];
   const data   = seriesTiktok.vistas?.data
     || [3500, 2800, 2100, 1900, 2400, 32500, 47900];
 
+  const datasets = [{
+    label: isCmp ? 'Julio 2026 (Cibergenios)' : 'Visualizaciones TikTok',
+    data,
+    borderColor: '#06B6D4',
+    backgroundColor: isLightMode() ? 'rgba(6,182,212,0.12)' : 'rgba(6,182,212,0.25)',
+    fill: true, tension: 0.35, borderWidth: 3,
+    pointBackgroundColor: '#06B6D4', pointBorderColor: '#FFFFFF', pointBorderWidth: 2, pointRadius: 5
+  }];
+
+  if (isCmp && comparativo.series_previas_tiktok?.vistas?.data) {
+    const junFull = comparativo.series_previas_tiktok.vistas.data;
+    const junSample = [
+      Math.round((junFull.slice(0,5).reduce((a,b)=>a+b,0))/5),
+      Math.round((junFull.slice(5,10).reduce((a,b)=>a+b,0))/5),
+      Math.round((junFull.slice(10,15).reduce((a,b)=>a+b,0))/5),
+      Math.round((junFull.slice(15,20).reduce((a,b)=>a+b,0))/5),
+      Math.round((junFull.slice(20,23).reduce((a,b)=>a+b,0))/3),
+      Math.round((junFull.slice(23,27).reduce((a,b)=>a+b,0))/4),
+      Math.round((junFull.slice(27,30).reduce((a,b)=>a+b,0))/3)
+    ];
+
+    datasets.push({
+      label: 'Junio 2026 (Promedio Diario Línea Base)',
+      data: junSample,
+      borderColor: '#94A3B8',
+      backgroundColor: 'transparent',
+      borderDash: [6, 4],
+      tension: 0.35,
+      borderWidth: 2.5,
+      pointBackgroundColor: '#94A3B8',
+      pointRadius: 4
+    });
+  }
+
   chartInstances['tiktok'] = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
-      datasets: [{
-        label: 'Visualizaciones TikTok',
-        data,
-        borderColor: '#06B6D4',
-        backgroundColor: isLightMode() ? 'rgba(6,182,212,0.12)' : 'rgba(6,182,212,0.25)',
-        fill: true, tension: 0.35, borderWidth: 3,
-        pointBackgroundColor: '#06B6D4', pointBorderColor: '#FFFFFF', pointBorderWidth: 2, pointRadius: 5
-      }]
+      datasets
     },
     options: baseLineOptions('Vistas')
   });
 }
+
 
 // ─── DEMOGRAFÍA EDAD/GÉNERO ───────────────────────────────────────────────────
 function renderDemograficsChart(edadGenero) {

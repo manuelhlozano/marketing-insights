@@ -153,6 +153,10 @@
         set('kpiCmpComunidadBadge', `${cmp.kpis.seguidores_netos.label} vs Jun`);
         set('kpiCmpComunidadText', `Jun: +${fmt(cmp.kpis.seguidores_netos.anterior)} netos (+${fmt(cmp.kpis.seguidores_netos.diferencia)} más)`);
       }
+      if (cmp.tiktok?.vistas_totales) {
+        set('kpiCmpTiktokBadge', `Junio: ${cmp.tiktok.vistas_totales.texto} vistas`);
+        set('kpiCmpTiktokText', `Jun: ${cmp.tiktok.compartidos?.texto || '7.4K'} comp. · ${cmp.tiktok.seguidores_totales?.texto || '3.440'} seg.`);
+      }
     }
   }
 
