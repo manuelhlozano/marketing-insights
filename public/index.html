@@ -64,6 +64,10 @@
           <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
           <span id="labelToken"></span>
         </div>
+        <button id="btnCompareToggle" class="btn-compare" onclick="toggleComparisonMode()" title="Comparar con el mes anterior (Junio 2026)">
+          <span class="cmp-indicator-dot"></span>
+          <span id="btnCompareText">Comparar vs Junio</span>
+        </button>
         <a href="admin/" class="btn-action btn-admin" title="Ir al Panel de Administración">
           <i data-lucide="settings" style="width: 15px; height: 15px;"></i>
           <span>Admin</span>
@@ -144,6 +148,10 @@
           <span class="kpi-badge badge-positive">FB + IG</span>
         </div>
         <p class="kpi-subtext"><span id="kpiMetaSub">107.196 en Instagram | 36.783 en Facebook</span></p>
+        <div class="kpi-cmp-row">
+          <span class="kpi-cmp-badge" id="kpiCmpMetaBadge">+37.7% vs Jun</span>
+          <span class="kpi-cmp-text" id="kpiCmpMetaText">Junio: 172.2K (+64.9K vistas)</span>
+        </div>
       </div>
 
       <div class="kpi-card highlight-purple">
@@ -156,6 +164,10 @@
           <span class="kpi-badge badge-positive">Viral</span>
         </div>
         <p class="kpi-subtext"><span id="kpiTiktokSub">963 compartidos (El verdadero ROI viral)</span></p>
+        <div class="kpi-cmp-row">
+          <span class="kpi-cmp-badge" style="background: rgba(192, 38, 211, 0.15); color: #C026D3; border-color: rgba(192, 38, 211, 0.3);">+100% Nuevo Canal</span>
+          <span class="kpi-cmp-text">Junio: 0 (Canal Inactivo)</span>
+        </div>
       </div>
 
       <div class="kpi-card highlight-orange">
@@ -168,6 +180,10 @@
           <span class="kpi-badge badge-positive">+289 neto</span>
         </div>
         <p class="kpi-subtext"><span id="kpiComunidadSub">50.125 en Facebook | 4.045 en Instagram</span></p>
+        <div class="kpi-cmp-row">
+          <span class="kpi-cmp-badge" id="kpiCmpComunidadBadge">+256.9% vs Jun</span>
+          <span class="kpi-cmp-text" id="kpiCmpComunidadText">Jun: +51 netos (+131 más)</span>
+        </div>
       </div>
 
       <div class="kpi-card highlight-green">
@@ -180,9 +196,14 @@
           <span class="kpi-badge badge-positive">Superando cuota</span>
         </div>
         <p class="kpi-subtext"><span id="kpiEntregablesSub">27 Videos MP4 | 74 JPGs | 9 PDFs | 2 Días/Sem in situ</span></p>
+        <div class="kpi-cmp-row">
+          <span class="kpi-cmp-badge" style="background: rgba(2, 132, 199, 0.15); color: #0284C7; border-color: rgba(2, 132, 199, 0.3);">+2.893% Clics Cartelera</span>
+          <span class="kpi-cmp-text">Jun: 15 clics &rarr; Jul: 449 clics</span>
+        </div>
       </div>
 
     </div>
+
 
     <!-- ====================================================================
          SECCIÓN CORPORATIVA: RESUMEN MENSUAL Y RENDIMIENTO DE REDES (SLIDE 26)

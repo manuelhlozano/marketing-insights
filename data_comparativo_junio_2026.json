@@ -1,0 +1,149 @@
+{
+  "periodo_comparativo": "Junio 2026",
+  "empresa_slug": "cine-multiplex-villacentro",
+  "batch_1": {
+    "total_alcance_junio": 56867,
+    "rendimiento_mensajes_general": {
+      "contactos_totales": 25,
+      "conversaciones_iniciadas": 27,
+      "organicos": 25,
+      "pagados": 0,
+      "contactos_nuevos": 16,
+      "contactos_recurrentes": 0
+    },
+    "publico_tendencias_seguidores": {
+      "seguimientos_brutos": 114,
+      "dejar_de_seguir": 63,
+      "seguimientos_netos": 51,
+      "total_seguidores_cierre_junio": 50129
+    },
+    "facebook_mensajes": {
+      "contactos_totales": 7,
+      "conversaciones_iniciadas": 7,
+      "contactos_nuevos": 5
+    },
+    "nivel_respuesta_atencion": {
+      "indice_respuesta_pct": 50,
+      "tiempo_respuesta": "15 h 25 min"
+    }
+  },
+  "batch_2": {
+    "total_clics_facebook_junio": 9,
+    "nivel_respuesta_instagram": {
+      "indice_respuesta_pct": 90.6,
+      "tiempo_respuesta": "36 s"
+    },
+    "facebook_resumen_contenido": {
+      "visualizaciones_totales": 96924,
+      "reproducciones_3s": 11500,
+      "interacciones": 830,
+      "tiempo_reproduccion": "2 d 5 h",
+      "espectadores": 24808
+    },
+    "instagram_resumen_contenido": {
+      "visualizaciones_totales_meta": 172200,
+      "visualizaciones_facebook": 54873,
+      "visualizaciones_instagram": 117367,
+      "alcance_total": 48900,
+      "interacciones_totales": 5700
+    }
+  },
+  "batch_3": {
+    "total_interacciones_junio": 825,
+    "total_clics_instagram_junio": 6,
+    "total_espectadores_diarios_junio": 44020,
+    "visualizaciones_por_formato": {
+      "reels": 38799,
+      "foto": 27704,
+      "historias": 26946,
+      "varias_fotos": 3227,
+      "otros": 243,
+      "enlaces": 5,
+      "total": 96924
+    },
+    "interacciones_por_formato": {
+      "foto": 444,
+      "reels": 233,
+      "historias": 130,
+      "varias_fotos": 21,
+      "otros": 2,
+      "total": 830
+    },
+    "volumen_publicaciones": {
+      "historias": 54,
+      "publicaciones": 45,
+      "reels": 32,
+      "fotos": 9
+    }
+  },
+  "batch_4": {
+    "seguidores_diarios_instagram": [
+      {"fecha": "2026-06-01", "seguidores": 7},
+      {"fecha": "2026-06-02", "seguidores": 8},
+      {"fecha": "2026-06-03", "seguidores": 8},
+      {"fecha": "2026-06-04", "seguidores": 5},
+      {"fecha": "2026-06-05", "seguidores": 10},
+      {"fecha": "2026-06-06", "seguidores": 4},
+      {"fecha": "2026-06-07", "seguidores": 11},
+      {"fecha": "2026-06-08", "seguidores": 11},
+      {"fecha": "2026-06-09", "seguidores": 12},
+      {"fecha": "2026-06-10", "seguidores": 12},
+      {"fecha": "2026-06-11", "seguidores": 6},
+      {"fecha": "2026-06-12", "seguidores": 10},
+      {"fecha": "2026-06-13", "seguidores": 8},
+      {"fecha": "2026-06-14", "seguidores": 17},
+      {"fecha": "2026-06-15", "seguidores": 4},
+      {"fecha": "2026-06-16", "seguidores": 8},
+      {"fecha": "2026-06-17", "seguidores": 106},
+      {"fecha": "2026-06-18", "seguidores": 13},
+      {"fecha": "2026-06-19", "seguidores": 4},
+      {"fecha": "2026-06-20", "seguidores": 7},
+      {"fecha": "2026-06-21", "seguidores": 10},
+      {"fecha": "2026-06-22", "seguidores": 3},
+      {"fecha": "2026-06-23", "seguidores": 99},
+      {"fecha": "2026-06-24", "seguidores": 11},
+      {"fecha": "2026-06-25", "seguidores": 7},
+      {"fecha": "2026-06-26", "seguidores": 14},
+      {"fecha": "2026-06-27", "seguidores": 19},
+      {"fecha": "2026-06-28", "seguidores": 4},
+      {"fecha": "2026-06-29", "seguidores": 1},
+      {"fecha": "2026-06-30", "seguidores": 3}
+    ],
+    "total_seguidores_instagram_junio": 442,
+    "seguidores_diarios_facebook": [
+      {"fecha": "2026-06-01", "seguidores": 1},
+      {"fecha": "2026-06-02", "seguidores": 2},
+      {"fecha": "2026-06-03", "seguidores": 2},
+      {"fecha": "2026-06-04", "seguidores": 2},
+      {"fecha": "2026-06-05", "seguidores": 1},
+      {"fecha": "2026-06-06", "seguidores": 1},
+      {"fecha": "2026-06-07", "seguidores": 5},
+      {"fecha": "2026-06-08", "seguidores": 0},
+      {"fecha": "2026-06-09", "seguidores": 0},
+      {"fecha": "2026-06-10", "seguidores": 0},
+      {"fecha": "2026-06-11", "seguidores": 2},
+      {"fecha": "2026-06-12", "seguidores": 1},
+      {"fecha": "2026-06-13", "seguidores": 1},
+      {"fecha": "2026-06-14", "seguidores": 4},
+      {"fecha": "2026-06-15", "seguidores": 1},
+      {"fecha": "2026-06-16", "seguidores": 0},
+      {"fecha": "2026-06-17", "seguidores": 25},
+      {"fecha": "2026-06-18", "seguidores": 10},
+      {"fecha": "2026-06-19", "seguidores": 2},
+      {"fecha": "2026-06-20", "seguidores": 1},
+      {"fecha": "2026-06-21", "seguidores": 0},
+      {"fecha": "2026-06-22", "seguidores": 0},
+      {"fecha": "2026-06-23", "seguidores": 36},
+      {"fecha": "2026-06-24", "seguidores": 3},
+      {"fecha": "2026-06-25", "seguidores": 0},
+      {"fecha": "2026-06-26", "seguidores": 1},
+      {"fecha": "2026-06-27", "seguidores": 3},
+      {"fecha": "2026-06-28", "seguidores": 4},
+      {"fecha": "2026-06-29", "seguidores": 2},
+      {"fecha": "2026-06-30", "seguidores": 6}
+    ],
+    "total_seguidores_facebook_junio": 116,
+    "total_historias_instagram_auditadas": 54,
+    "total_videos_facebook_auditados": 17
+  }
+}

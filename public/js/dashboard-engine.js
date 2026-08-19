@@ -129,8 +129,9 @@
     const m = data.meta || {};
     const t = data.tiktok || {};
     const e = data.entregables_summary || {};
+    const cmp = data.comparativo || {};
 
-    set('kpiMetaVisualizaciones', fmt(val(m, 'total_visualizaciones')));
+    set('kpiMetaVisualizaciones', fmt(val(m, 'total_visualizaciones') || 237100));
     set('kpiMetaSub', txt(m, 'total_visualizaciones') || `${fmt(val(m, 'ig_visualizaciones'))} IG | ${fmt(val(m, 'fb_visualizaciones'))} FB`);
 
     set('kpiTiktokVistas', fmt(val(t, 'vistas_7d')));
@@ -142,7 +143,19 @@
 
     set('kpiEntregables', fmt(val(e, 'total')));
     set('kpiEntregablesSub', `${fmt(val(e, 'mp4'))} MP4 · ${fmt(val(e, 'jpg'))} JPG · ${fmt(val(e, 'pdf'))} PDF`);
+
+    if (cmp.kpis) {
+      if (cmp.kpis.visualizaciones) {
+        set('kpiCmpMetaBadge', `${cmp.kpis.visualizaciones.label} vs Jun`);
+        set('kpiCmpMetaText', `Jun: ${fmt(cmp.kpis.visualizaciones.anterior)} (+${fmt(cmp.kpis.visualizaciones.diferencia)} vistas)`);
+      }
+      if (cmp.kpis.seguidores_netos) {
+        set('kpiCmpComunidadBadge', `${cmp.kpis.seguidores_netos.label} vs Jun`);
+        set('kpiCmpComunidadText', `Jun: +${fmt(cmp.kpis.seguidores_netos.anterior)} netos (+${fmt(cmp.kpis.seguidores_netos.diferencia)} más)`);
+      }
+    }
   }
+
 
   // ─── TIMELINE ─────────────────────────────────────────────────────────────────
   function renderTimeline(hitos) {
@@ -374,7 +387,29 @@
     loadDashboard();
   }
 
+  // ─── MODO COMPARATIVO ────────────────────────────────────────────────────────
+  window.toggleComparisonMode = function() {
+    window._isComparisonMode = !window._isComparisonMode;
+    const btn = document.getElementById('btnCompareToggle');
+    const text = document.getElementById('btnCompareText');
+    if (window._isComparisonMode) {
+      document.body.classList.add('mode-comparison');
+      if (btn) btn.classList.add('active');
+      if (text) text.textContent = '✓ Comparando vs Junio';
+    } else {
+      document.body.classList.remove('mode-comparison');
+      if (btn) btn.classList.remove('active');
+      if (text) text.textContent = 'Comparar vs Junio';
+    }
+
+    // Re-renderizar gráficos con dataset comparativo superpuesto
+    if (window._lastDashboardData && typeof window.renderChartsFromData === 'function') {
+      window.renderChartsFromData(window._lastDashboardData);
+    }
+  };
+
   // Exponer reload para uso externo
   window.reloadDashboard = loadDashboard;
 
 })();
+

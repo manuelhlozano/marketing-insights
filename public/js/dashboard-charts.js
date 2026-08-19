@@ -21,7 +21,7 @@ window.renderChartsFromData = function(data) {
   destroyAll();
   const googleGoals = window._googleGoals || { opiniones: 88, ig: 15, fb: 92 };
   renderGoalRings(googleGoals);
-  renderMetaChart(data.series_meta   || {});
+  renderMetaChart(data.series_meta || {}, data.comparativo);
   renderTikTokChart(data.series_tiktok || {});
   renderDemograficsChart(data.demografica?.edad_genero || {});
   renderCiudadesChart(data.demografica?.ciudades       || {});
@@ -65,9 +65,11 @@ function renderRing(canvasId, pct, color) {
 }
 
 // ─── META GROWTH CHART ───────────────────────────────────────────────────────
-function renderMetaChart(seriesMeta) {
+function renderMetaChart(seriesMeta, comparativo) {
   const ctx = document.getElementById('chartMetaGrowth');
   if (!ctx) return;
+
+  const isCmp = window._isComparisonMode === true && comparativo && comparativo.disponible;
 
   const labels = seriesMeta.visualizaciones?.labels
     || ['1 jul','6 jul','11 jul','15 jul (Control)','20 jul (Pico)','26 jul','30 jul (Estreno)','31 jul'];
@@ -76,31 +78,60 @@ function renderMetaChart(seriesMeta) {
   const unicosData = seriesMeta.espectadores?.data
     || [800, 1200, 1500, 1800, 9500, 1100, 3800, 1900];
 
+  const datasets = [
+    {
+      label: isCmp ? 'Julio 2026 (Cibergenios)' : 'Visualizaciones Meta (Julio)',
+      data: visData,
+      borderColor: '#0284C7',
+      backgroundColor: isLightMode() ? 'rgba(2,132,199,0.12)' : 'rgba(2,132,199,0.25)',
+      fill: true, tension: 0.35, borderWidth: 3,
+      pointBackgroundColor: '#0284C7', pointBorderColor: '#FFFFFF', pointBorderWidth: 2, pointRadius: 5
+    },
+    {
+      label: 'Espectadores Únicos (Julio)',
+      data: unicosData,
+      borderColor: '#8B5CF6', backgroundColor: 'transparent',
+      tension: 0.35, borderWidth: 2.5,
+      pointBackgroundColor: '#8B5CF6', pointRadius: 4
+    }
+  ];
+
+  if (isCmp && comparativo.series_previas?.visualizaciones?.data) {
+    const junFull = comparativo.series_previas.visualizaciones.data;
+    const junSample = [
+      junFull[0] || 7763,
+      junFull[5] || 2860,
+      junFull[10] || 3732,
+      junFull[14] || 4791,
+      junFull[16] || 16560,
+      junFull[22] || 17376,
+      junFull[27] || 2218,
+      junFull[29] || 1446
+    ];
+
+    datasets.push({
+      label: 'Junio 2026 (Línea Base)',
+      data: junSample,
+      borderColor: '#94A3B8',
+      backgroundColor: 'transparent',
+      borderDash: [6, 4],
+      tension: 0.35,
+      borderWidth: 2.5,
+      pointBackgroundColor: '#94A3B8',
+      pointRadius: 4
+    });
+  }
+
   chartInstances['metaGrowth'] = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
-      datasets: [
-        {
-          label: 'Visualizaciones Meta',
-          data: visData,
-          borderColor: '#0284C7',
-          backgroundColor: isLightMode() ? 'rgba(2,132,199,0.12)' : 'rgba(2,132,199,0.25)',
-          fill: true, tension: 0.35, borderWidth: 3,
-          pointBackgroundColor: '#0284C7', pointBorderColor: '#FFFFFF', pointBorderWidth: 2, pointRadius: 5
-        },
-        {
-          label: 'Espectadores Únicos',
-          data: unicosData,
-          borderColor: '#8B5CF6', backgroundColor: 'transparent',
-          tension: 0.35, borderWidth: 2.5,
-          pointBackgroundColor: '#8B5CF6', pointRadius: 4
-        }
-      ]
+      datasets
     },
     options: baseLineOptions('Visualizaciones')
   });
 }
+
 
 // ─── TIKTOK CHART ────────────────────────────────────────────────────────────
 function renderTikTokChart(seriesTiktok) {

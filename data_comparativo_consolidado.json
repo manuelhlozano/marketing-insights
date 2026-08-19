@@ -1,0 +1,65 @@
+{
+  "periodo_comparativo": "Junio 2026",
+  "empresa_slug": "cine-multiplex-villacentro",
+  "resumen_general_junio_2026": {
+    "visualizaciones_meta_total": 172200,
+    "visualizaciones_facebook": 96924,
+    "visualizaciones_instagram": 117367,
+    "alcance_meta_total": 56867,
+    "alcance_instagram": 48900,
+    "interacciones_meta_total": 5700,
+    "interacciones_facebook": 830,
+    "visitas_perfil_instagram": 1933,
+    "visitas_pagina_facebook": 4316,
+    "clics_enlace_total": 15,
+    "clics_enlace_facebook": 9,
+    "clics_enlace_instagram": 6,
+    "nuevos_seguidores_instagram": 442,
+    "nuevos_seguidores_facebook": 116,
+    "crecimiento_neto_seguidores": 51,
+    "total_seguidores_cierre": 50129,
+    "mensajes_contactos_totales": 25,
+    "mensajes_conversaciones_iniciadas": 27,
+    "tiempo_respuesta_promedio": "15 h 25 min",
+    "tiempo_respuesta_instagram": "36 s",
+    "indice_respuesta_promedio": 50.0,
+    "indice_respuesta_instagram": 90.6,
+    "reproducciones_3s_video": 11500,
+    "total_historias_publicadas": 54,
+    "total_publicaciones_feed": 45,
+    "reels_publicados": 32,
+    "fotos_publicadas": 9
+  },
+  "comparativo_vs_julio_2026": {
+    "visualizaciones_meta": {
+      "junio": 172200,
+      "julio": 237100,
+      "diferencia": 64900,
+      "variacion_pct": "+37.69%"
+    },
+    "alcance_meta": {
+      "junio": 56867,
+      "julio": 78200,
+      "diferencia": 21333,
+      "variacion_pct": "+37.51%"
+    },
+    "interacciones_totales": {
+      "junio": 5700,
+      "julio": 14200,
+      "diferencia": 8500,
+      "variacion_pct": "+149.12%"
+    },
+    "clics_enlaces": {
+      "junio": 15,
+      "julio": 449,
+      "diferencia": 434,
+      "variacion_pct": "+2893.33%"
+    },
+    "tiktok_visualizaciones": {
+      "junio": 0,
+      "julio": 93100,
+      "diferencia": 93100,
+      "variacion_pct": "+100.00% (Nuevo Canal)"
+    }
+  }
+}
