@@ -4,7 +4,16 @@
   <meta charset="UTF-8">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="/assets/images/logo_cibergenios.png">
+  <link rel="icon" id="dynamicFavicon" type="image/svg+xml" href="/assets/images/favicon.svg">
+  <script>
+    (function() {
+      var fav = localStorage.getItem('mkt_custom_favicon');
+      if (fav) {
+        var l = document.getElementById('dynamicFavicon');
+        if (l) l.href = fav;
+      }
+    })();
+  </script>
   <title>Marketing Insights | Panel de Administración Maestro</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,6 +22,7 @@
   
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="/css/executive-dashboard.css">
+
 
   <!-- AUTH GUARD: debe ejecutarse antes que cualquier contenido -->
   <script>
@@ -131,13 +141,42 @@
                   <input type="file" id="fileLogoDark" class="form-input" accept="image/*" onchange="handleLogoUpload(event, 'previewLogoDark', 'logo_dark_data')" style="padding: 6px; font-size: 12px;">
                 </div>
               </div>
-              <small style="font-size: 11px; color: var(--text-dim);">Carga un PNG/SVG con letras claras desde tu PC para el modo oscuro.</small>
+            <!-- GESTOR DE FAVICON (MINIATURA DEL NAVEGADOR) -->
+            <div class="form-group" style="background: var(--bg-card-alt); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+              <label class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
+                <span>🌐 Favicon del Navegador (Miniatura de Pestaña)</span>
+                <span class="kpi-badge badge-positive" style="font-size: 10.5px;">Tabler chart-circles</span>
+              </label>
+              
+              <!-- Vista previa simulada de pestaña de navegador -->
+              <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; width: fit-content;">
+                <img id="previewFavicon" src="/assets/images/favicon.svg" alt="Favicon" style="width: 20px; height: 20px; object-fit: contain;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Marketing Insights | Cine Múltiplex...</span>
+                <span style="color: var(--text-muted); font-size: 10px; margin-left: 4px;">✕</span>
+              </div>
+
+              <!-- Selector de Presets de Color -->
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+                <span style="font-size: 11.5px; color: var(--text-muted);">Icono predeterminado:</span>
+                <button type="button" class="btn-action" onclick="setPresetFavicon('#84CC16')" style="font-size: 11px; padding: 4px 8px; border-color: #84CC16; color: #84CC16; font-weight: 700;">🍏 Verde Manzana</button>
+                <button type="button" class="btn-action" onclick="setPresetFavicon('#0284C7')" style="font-size: 11px; padding: 4px 8px; border-color: #0284C7; color: #0284C7;">🔷 Azul Royal</button>
+                <button type="button" class="btn-action" onclick="setPresetFavicon('#C026D3')" style="font-size: 11px; padding: 4px 8px; border-color: #C026D3; color: #C026D3;">🟣 Púrpura</button>
+                <button type="button" class="btn-action" onclick="setPresetFavicon('#EA580C')" style="font-size: 11px; padding: 4px 8px; border-color: #EA580C; color: #EA580C;">🔶 Naranja</button>
+                <button type="button" class="btn-action" onclick="resetFavicon()" style="font-size: 11px; padding: 4px 8px;">Restablecer</button>
+              </div>
+
+              <!-- Carga de archivo personalizado -->
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="file" id="fileFavicon" class="form-input" accept="image/svg+xml,image/png,image/x-icon,image/jpeg" onchange="handleFaviconUpload(event)" style="padding: 6px; font-size: 12px; flex: 1;">
+              </div>
+              <small style="font-size: 11px; color: var(--text-dim);">Sube tu propio archivo SVG, PNG o ICO transparente o selecciona un color preestablecido.</small>
             </div>
 
             <div class="form-group">
               <label class="form-label">Token Maestro de la Empresa</label>
               <input type="text" id="empresaTokenMaestro" class="form-input" value="mkt_live_cmv_78a9c0f" required>
             </div>
+
 
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
               <span style="font-size: 13px; font-weight: 700;">Empresa Activa en el Sistema</span>
@@ -502,6 +541,59 @@
       const c = document.getElementById('cardLogoDarkPreview');
       if (c) c.src = savedLogoDark;
     }
+
+    // ─── GESTOR DE FAVICON DINÁMICO ──────────────────────────────────────────
+    function getChartCirclesSvg(color) {
+      return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="${encodeURIComponent(color)}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="9.5" cy="9.5" r="5.5" stroke="${encodeURIComponent(color)}" stroke-width="2.2" fill="none" /><circle cx="14.5" cy="14.5" r="5.5" stroke="${encodeURIComponent(color)}" stroke-width="2.2" fill="none" /></svg>`;
+    }
+
+    function applyFavicon(faviconUrl) {
+      let link = document.getElementById('dynamicFavicon');
+      if (!link) {
+        link = document.createElement('link');
+        link.id = 'dynamicFavicon';
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = faviconUrl;
+      const preview = document.getElementById('previewFavicon');
+      if (preview) preview.src = faviconUrl;
+    }
+
+    function setPresetFavicon(color) {
+      const svgData = getChartCirclesSvg(color);
+      localStorage.setItem('mkt_custom_favicon', svgData);
+      applyFavicon(svgData);
+    }
+
+    function resetFavicon() {
+      const defaultFavicon = '/assets/images/favicon.svg';
+      localStorage.removeItem('mkt_custom_favicon');
+      applyFavicon(defaultFavicon);
+      const fileInput = document.getElementById('fileFavicon');
+      if (fileInput) fileInput.value = '';
+    }
+
+    function handleFaviconUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result;
+        localStorage.setItem('mkt_custom_favicon', base64Data);
+        applyFavicon(base64Data);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Inicializar favicon al cargar admin
+    const savedFavicon = localStorage.getItem('mkt_custom_favicon');
+    if (savedFavicon) {
+      applyFavicon(savedFavicon);
+    } else {
+      applyFavicon('/assets/images/favicon.svg');
+    }
+
 
     // Dashboards en memoria
     let dashboardsList = [

@@ -3,8 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="/assets/images/logo_cibergenios.png">
+  <link rel="icon" id="dynamicFavicon" type="image/svg+xml" href="/assets/images/favicon.svg">
+  <script>
+    (function() {
+      var fav = localStorage.getItem('mkt_custom_favicon');
+      if (fav) {
+        var l = document.getElementById('dynamicFavicon');
+        if (l) l.href = fav;
+      }
+    })();
+  </script>
   <title>Marketing Insights | Cine Múltiplex Villacentro (Julio 2026)</title>
   
   <!-- Google Fonts: Outfit (Titulares & KPIs) & Inter (Cuerpo & Tablas) -->
@@ -19,6 +27,7 @@
   <!-- Executive High-Contrast Theme CSS -->
   <link rel="stylesheet" href="css/executive-dashboard.css">
 </head>
+
 <body class="light-mode" style="display:none">
 
   <!-- TOKEN GATE: debe ejecutarse antes que cualquier contenido -->

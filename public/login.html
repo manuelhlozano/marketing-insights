@@ -5,7 +5,16 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marketing Insights | Iniciar Sesión</title>
-  <link rel="icon" type="image/png" href="/assets/images/logo_cibergenios.png">
+  <link rel="icon" id="dynamicFavicon" type="image/svg+xml" href="/assets/images/favicon.svg">
+  <script>
+    (function() {
+      var fav = localStorage.getItem('mkt_custom_favicon');
+      if (fav) {
+        var l = document.getElementById('dynamicFavicon');
+        if (l) l.href = fav;
+      }
+    })();
+  </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
