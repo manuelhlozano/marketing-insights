@@ -11,7 +11,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
-ob_start();
+
+// El servidor tiene la extensión uopz con uopz.exit=0 (deshabilita exit/die
+// globalmente), lo que hacía que el código después de exit() siguiera
+// ejecutándose y se concatenara al JSON de respuesta. Se reactiva aquí.
+if (function_exists('uopz_allow_exit')) {
+    uopz_allow_exit(true);
+}
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -29,7 +35,6 @@ $token        = $_GET['token']     ?? '';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function jsonError(int $code, string $msg): void {
-    if (ob_get_level() > 0) { ob_clean(); }
     http_response_code($code);
     echo json_encode(['error' => $msg]);
     exit;
@@ -49,7 +54,6 @@ if ($action === 'empresas') {
                                 logo_light_url, logo_dark_url, activo
                          FROM empresas ORDER BY nombre");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if (ob_get_level() > 0) { ob_clean(); }
     echo json_encode($rows);
     exit;
 }
@@ -65,7 +69,6 @@ if ($action === 'modulos') {
                            ORDER BY mi.orden");
     $stmt->execute([$empresaSlug, $dashSlug]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if (ob_get_level() > 0) { ob_clean(); }
     echo json_encode($rows);
     exit;
 }
@@ -345,7 +348,6 @@ if ($action === 'dashboard') {
         'comparativo'     => $comparativo,
     ];
 
-    if (ob_get_level() > 0) { ob_clean(); }
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
