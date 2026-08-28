@@ -5,6 +5,14 @@
  * Devuelve payload JSON completo del dashboard para renderizado dinámico
  */
 
+// Nunca imprimir warnings/notices/deprecations en la respuesta: solo loguearlos.
+// (Necesario tras subir de versión de PHP, que puede emitir deprecation notices
+// de librerías/código antiguo y romper el JSON de salida.)
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+ob_start();
+
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
@@ -21,6 +29,7 @@ $token        = $_GET['token']     ?? '';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function jsonError(int $code, string $msg): void {
+    if (ob_get_level() > 0) { ob_clean(); }
     http_response_code($code);
     echo json_encode(['error' => $msg]);
     exit;
@@ -39,7 +48,9 @@ if ($action === 'empresas') {
     $stmt = $pdo->query("SELECT id, nombre, slug, sector, ciudad, pais,
                                 logo_light_url, logo_dark_url, activo
                          FROM empresas ORDER BY nombre");
-    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (ob_get_level() > 0) { ob_clean(); }
+    echo json_encode($rows);
     exit;
 }
 
@@ -53,7 +64,9 @@ if ($action === 'modulos') {
                            WHERE e.slug = ? AND d.slug = ?
                            ORDER BY mi.orden");
     $stmt->execute([$empresaSlug, $dashSlug]);
-    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (ob_get_level() > 0) { ob_clean(); }
+    echo json_encode($rows);
     exit;
 }
 
@@ -332,6 +345,7 @@ if ($action === 'dashboard') {
         'comparativo'     => $comparativo,
     ];
 
+    if (ob_get_level() > 0) { ob_clean(); }
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
