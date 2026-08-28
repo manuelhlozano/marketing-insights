@@ -1,9 +1,37 @@
 <?php
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 
 header("Content-Type: application/json; charset=UTF-8");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
+
+// reCAPTCHA (si está activo desde Ajustes del admin)
+$recaptchaRow = $pdo->prepare("SELECT setting_key, setting_value FROM app_settings WHERE setting_key IN ('recaptcha_enabled', 'recaptcha_secret_key')");
+$recaptchaRow->execute();
+$recaptchaSettings = [];
+foreach ($recaptchaRow->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    $recaptchaSettings[$row['setting_key']] = $row['setting_value'];
+}
+if (($recaptchaSettings['recaptcha_enabled'] ?? '0') === '1' && !empty($recaptchaSettings['recaptcha_secret_key'])) {
+    $token = $_POST['g-recaptcha-response'] ?? '';
+    if (!$token) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Completa el reCAPTCHA."]);
+        exit();
+    }
+    $verify = @file_get_contents('https://www.google.com/recaptcha/api/siteverify?' . http_build_query([
+        'secret' => $recaptchaSettings['recaptcha_secret_key'],
+        'response' => $token,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
+    ]));
+    $verifyData = $verify ? json_decode($verify, true) : null;
+    if (empty($verifyData['success'])) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Verificación reCAPTCHA fallida. Intenta de nuevo."]);
+        exit();
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

@@ -79,6 +79,7 @@
       <button class="admin-tab-btn" onclick="switchAdminTab('tabDashboards')">📊 2. Dashboards por Empresa</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('tabIndicadores')">⚙️ 3. Indicadores & Toggles</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('tabConcursos')">🎟️ 4. Concursos & Sorteos</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('tabAjustes')">🔒 5. Ajustes de Seguridad</button>
     </div>
 
 
@@ -545,6 +546,44 @@
             <p style="font-size: 13px; color: var(--text-muted);">Selecciona un concurso de la lista o crea uno nuevo para ver su auditoría.</p>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         TAB 5: AJUSTES DE SEGURIDAD (reCAPTCHA del login)
+         ==================================================================== -->
+    <div id="tabAjustes" class="admin-tab-content" style="display: none;">
+      <div class="content-card" style="max-width: 560px;">
+        <div class="card-header-inner">
+          <span class="card-title-inner"><i data-lucide="shield-check" style="color: var(--primary-blue);"></i> reCAPTCHA en el Login</span>
+        </div>
+        <p style="font-size: 12.5px; color: var(--text-muted); margin: 10px 0 18px;">
+          Cuando está activo, el formulario de <code>/login</code> exige resolver un reCAPTCHA de Google antes de poder enviar el usuario y contraseña. Consigue tus llaves gratis en
+          <a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener">google.com/recaptcha/admin</a> (tipo reCAPTCHA v2 "Casilla de verificación").
+        </p>
+
+        <form onsubmit="guardarRecaptcha(event)">
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+            <label class="admin-switch">
+              <input type="checkbox" id="recaptchaEnabled">
+              <span class="slider-toggle"></span>
+            </label>
+            <span class="form-label" style="margin:0;">Activar reCAPTCHA en el login</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Site Key</label>
+            <input type="text" id="recaptchaSiteKey" class="form-input" placeholder="6Lc...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Secret Key</label>
+            <input type="text" id="recaptchaSecretKey" class="form-input" placeholder="6Lc...">
+            <small style="font-size: 11px; color: var(--text-dim);">Se guarda en la base de datos del servidor; nunca se envía al navegador del cliente que inicia sesión.</small>
+          </div>
+          <button type="submit" class="btn-action btn-primary" style="padding: 11px 22px;">
+            <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+            <span>Guardar</span>
+          </button>
+        </form>
       </div>
     </div>
 
@@ -1106,13 +1145,47 @@
       concursosCountdownTimer = setInterval(tick, 30000);
     }
 
-    // Cargar la lista de concursos al entrar a la pestaña por primera vez
+    // ─────────────────────────────────────────────────────────────────
+    // TAB 5: AJUSTES DE SEGURIDAD (reCAPTCHA)
+    // ─────────────────────────────────────────────────────────────────
+    let ajustesCargados = false;
+
+    async function cargarAjustes() {
+      const res = await fetch('/api/settings.php?action=get', { credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status !== 'success') return;
+      document.getElementById('recaptchaEnabled').checked = !!data.recaptcha_enabled;
+      document.getElementById('recaptchaSiteKey').value = data.recaptcha_site_key || '';
+      document.getElementById('recaptchaSecretKey').value = data.recaptcha_secret_key || '';
+      ajustesCargados = true;
+    }
+
+    async function guardarRecaptcha(e) {
+      e.preventDefault();
+      const form = new URLSearchParams();
+      form.set('action', 'save_recaptcha');
+      form.set('recaptcha_enabled', document.getElementById('recaptchaEnabled').checked ? '1' : '');
+      form.set('recaptcha_site_key', document.getElementById('recaptchaSiteKey').value.trim());
+      form.set('recaptcha_secret_key', document.getElementById('recaptchaSecretKey').value.trim());
+      const res = await fetch('/api/settings.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert('Ajustes de reCAPTCHA guardados.');
+      } else {
+        alert(data.message || 'No se pudieron guardar los ajustes.');
+      }
+    }
+
+    // Cargar la lista de concursos / ajustes al entrar a cada pestaña por primera vez
     const _origSwitchAdminTab = switchAdminTab;
     switchAdminTab = function(tabId) {
       _origSwitchAdminTab(tabId);
       if (tabId === 'tabConcursos') {
         cargarEmpresasSelect();
         if (concursosCache.length === 0) cargarConcursos();
+      }
+      if (tabId === 'tabAjustes' && !ajustesCargados) {
+        cargarAjustes();
       }
     };
   </script>

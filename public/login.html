@@ -53,15 +53,22 @@
 
         <div class="form-group">
           <label class="form-label">Contraseña</label>
-          <input type="password" id="loginPassword" class="form-input" required placeholder="••••••••••••" autocomplete="new-password">
+          <div style="position: relative;">
+            <input type="password" id="loginPassword" class="form-input" required placeholder="••••••••••••" autocomplete="new-password" style="padding-right: 42px;">
+            <button type="button" id="togglePasswordBtn" onclick="togglePasswordVisibility()" aria-label="Mostrar contraseña" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; display: flex; color: var(--text-muted);">
+              <i data-lucide="eye" id="togglePasswordIcon" style="width: 18px; height: 18px;"></i>
+            </button>
+          </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 12.5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 12.5px;">
           <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary);">
             <input type="checkbox" id="rememberMe" checked>
             <span>Recordar sesión</span>
           </label>
         </div>
+
+        <div id="recaptchaBox" class="g-recaptcha" style="display: none; margin-bottom: 20px;"></div>
 
         <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 13px; font-size: 14px; border-radius: var(--radius-sm);">
           <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
@@ -83,6 +90,43 @@
   <script>
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
+    function togglePasswordVisibility() {
+      const input = document.getElementById('loginPassword');
+      const icon = document.getElementById('togglePasswordIcon');
+      const btn = document.getElementById('togglePasswordBtn');
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      icon.setAttribute('data-lucide', showing ? 'eye' : 'eye-off');
+      btn.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    let recaptchaEnabled = false;
+    let recaptchaWidgetId = null;
+
+    window.onRecaptchaLoaded = function() {
+      if (!recaptchaEnabled || recaptchaWidgetId !== null) return;
+      recaptchaWidgetId = grecaptcha.render('recaptchaBox', { sitekey: window.__recaptchaSiteKey });
+    };
+
+    async function initRecaptcha() {
+      try {
+        const res = await fetch('/api/settings.php?action=public_recaptcha', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (data.status === 'success' && data.enabled && data.site_key) {
+          recaptchaEnabled = true;
+          window.__recaptchaSiteKey = data.site_key;
+          document.getElementById('recaptchaBox').style.display = 'block';
+          const script = document.createElement('script');
+          script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit';
+          script.async = true;
+          script.defer = true;
+          document.head.appendChild(script);
+        }
+      } catch (e) { /* si falla, el login sigue funcionando sin reCAPTCHA */ }
+    }
+    initRecaptcha();
+
     async function handleLogin(e) {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
@@ -90,10 +134,22 @@
       const errEl = document.getElementById('errorMsg');
       errEl.style.display = 'none';
 
+      if (recaptchaEnabled) {
+        const token = typeof grecaptcha !== 'undefined' && recaptchaWidgetId !== null ? grecaptcha.getResponse(recaptchaWidgetId) : '';
+        if (!token) {
+          errEl.textContent = 'Confirma que no eres un robot.';
+          errEl.style.display = 'block';
+          return;
+        }
+      }
+
       try {
         const form = new URLSearchParams();
         form.set('user', email);
         form.set('pass', pass);
+        if (recaptchaEnabled && typeof grecaptcha !== 'undefined' && recaptchaWidgetId !== null) {
+          form.set('g-recaptcha-response', grecaptcha.getResponse(recaptchaWidgetId));
+        }
         const res = await fetch('/api/login.php', { method: 'POST', body: form, credentials: 'same-origin' });
         const data = await res.json();
         if (data.status === 'success') {
@@ -101,6 +157,9 @@
         } else {
           errEl.textContent = data.message || 'Credenciales no válidas.';
           errEl.style.display = 'block';
+          if (recaptchaEnabled && typeof grecaptcha !== 'undefined' && recaptchaWidgetId !== null) {
+            grecaptcha.reset(recaptchaWidgetId);
+          }
         }
       } catch (err) {
         errEl.textContent = 'Error de conexión con el servidor.';
