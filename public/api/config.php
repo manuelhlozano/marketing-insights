@@ -1,4 +1,12 @@
 <?php
+// El servidor tiene uopz.exit=0, que desactiva exit()/die() globalmente
+// (ver data.php para el detalle). config.php es de los primeros archivos
+// que se requieren en casi todos los endpoints, así que se reactiva aquí
+// también como defensa adicional.
+if (function_exists('uopz_allow_exit')) {
+    uopz_allow_exit(true);
+}
+
 // Configuración de Conexión a la Base de Datos dedicada wwcibe_mktinsights
 $db_host = 'localhost';
 $db_name = 'wwcibe_mktinsights';

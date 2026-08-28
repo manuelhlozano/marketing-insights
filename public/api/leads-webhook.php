@@ -2,6 +2,13 @@
 // Webhook público para recibir leads desde los formularios de landing pages
 // del cine (ej. streetoak/upload.php) hacia un concurso de Marketing Insights.
 
+// El servidor tiene uopz.exit=0, que desactiva exit()/die() globalmente
+// (ver data.php para el detalle). Este archivo tiene varios exit() antes
+// de requerir ningún otro archivo, así que se reactiva aquí primero que nada.
+if (function_exists('uopz_allow_exit')) {
+    uopz_allow_exit(true);
+}
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
