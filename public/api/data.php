@@ -27,6 +27,7 @@ header('Cache-Control: no-cache, must-revalidate');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth.php';
 
 $action       = $_GET['action']    ?? 'dashboard';
 $empresaSlug  = $_GET['empresa']   ?? '';
@@ -91,11 +92,13 @@ if ($action === 'dashboard') {
     $dashboard = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$dashboard) jsonError(404, 'Dashboard no encontrado');
 
-    // 3. Validar token (superadmin bypassa con mkt_admin_bypass, no expuesto en JS)
-    $tokenValido = ($dashboard['public_token'] === $token);
-    // Si no hay token en la request, el frontend ya debió haber hecho el guard con localStorage
-    // Aquí en API solo validamos el token de URL público; admin session es localStorage-only
-    // (no enviamos datos sensibles de todas formas)
+    // 3. Validar token. Un admin con sesión real de servidor (login.php) puede
+    // ver cualquier dashboard sin el token público — así funciona "Impersonar"
+    // desde el panel. Cualquier otro caso necesita el public_token exacto.
+    $tokenValido = hash_equals((string) $dashboard['public_token'], (string) $token);
+    if (!$tokenValido && !mkt_is_authenticated()) {
+        jsonError(403, 'Token inválido o expirado.');
+    }
 
     // 4. Módulos activos
     $stmt = $pdo->prepare("SELECT codigo, nombre, tipo_visualizacion, orden

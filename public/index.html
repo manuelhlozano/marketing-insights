@@ -30,23 +30,40 @@
 
 <body class="light-mode" style="display:none">
 
-  <!-- TOKEN GATE: debe ejecutarse antes que cualquier contenido -->
+  <!-- TOKEN GATE: debe ejecutarse antes que cualquier contenido.
+       El token en la URL lo valida data.php contra la BD (público real por
+       dashboard). Sin token, solo se permite con una sesión de admin real
+       verificada contra el servidor — nunca confiar en localStorage para
+       esto: cualquiera puede setear una clave de localStorage desde la
+       consola del navegador y saltarse el gate. -->
   <script>
     (function() {
-      var VALID_TOKENS = ['mkt_live_cmv_78a9c0f', 'mkt_live_cmv_abril2026'];
       var params = new URLSearchParams(window.location.search);
       var token = params.get('token');
-      var isAdminLogged = localStorage.getItem('mkt_admin_logged') === 'true';
 
-      if (!isAdminLogged && (!token || !VALID_TOKENS.includes(token))) {
-        // Sin token válido y sin sesión admin → redirigir al login
-        window.location.replace('/login');
-      } else {
-        // Acceso autorizado → mostrar el body
+      function showBody() {
         document.addEventListener('DOMContentLoaded', function() {
           document.body.style.display = '';
         });
       }
+
+      if (token) {
+        // Hay token: se muestra el shell y data.php decide si es válido
+        // (si no lo es, el loader mostrará el error de la API).
+        showBody();
+        return;
+      }
+
+      fetch('/api/session.php', { credentials: 'same-origin' })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && data.authenticated) {
+            showBody();
+          } else {
+            window.location.replace('/login');
+          }
+        })
+        .catch(function() { window.location.replace('/login'); });
     })();
   </script>
 
