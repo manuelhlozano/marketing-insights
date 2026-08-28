@@ -34,9 +34,9 @@
           else {
             window.__mktAdminUser = d.user;
             document.addEventListener('DOMContentLoaded', function() {
-              document.querySelectorAll('#userLoggedLabel, #footerUserLabel').forEach(function(el) {
-                el.textContent = d.user.email;
-              });
+              document.getElementById('userLoggedLabel').textContent = d.user.email;
+              const initial = (d.user.nombre || d.user.email || '?').trim().charAt(0).toUpperCase();
+              document.getElementById('userAvatarInitials').textContent = initial;
             });
           }
         })
@@ -46,53 +46,66 @@
 </head>
 <body class="light-mode">
 
-  <div class="dashboard-container">
+  <div class="admin-sb-shell">
 
-    <!-- Header Admin con Logo de Cibergenios -->
-    <header class="header-nav">
-      <div class="brand-badge">
-        <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" class="brand-agency-logo">
+    <!-- Sidebar lateral -->
+    <aside class="admin-sb-sidebar">
+      <div class="admin-sb-brand">
+        <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" class="admin-sb-brand-logo">
+        <div class="admin-sb-brand-text">
+          <strong>Marketing Insights</strong>
+          <span>Panel Maestro</span>
+        </div>
       </div>
 
-      <div class="header-actions">
-        <div class="token-pill" style="color: var(--success-green-text);">
-          <i data-lucide="user-check" style="width: 14px; height: 14px;"></i>
-          <span id="userLoggedLabel">webmaster@cibergenios.com</span>
-        </div>
-        <button class="btn-action" onclick="abrirMiCuenta()">
-          <i data-lucide="user-cog" style="width: 15px; height: 15px;"></i>
-          <span>Mi Cuenta</span>
+      <nav class="admin-sb-nav" id="adminSidebarNav">
+        <button class="admin-sb-nav-item active" data-tab="tabEmpresas" onclick="switchAdminTab('tabEmpresas')">
+          <i data-lucide="building-2"></i><span>Empresas & Clientes</span>
         </button>
-        <button class="btn-action" onclick="toggleTheme()">
-          <i data-lucide="sun-moon" style="width: 15px; height: 15px;"></i>
+        <button class="admin-sb-nav-item" data-tab="tabDashboards" onclick="switchAdminTab('tabDashboards')">
+          <i data-lucide="layout-dashboard"></i><span>Dashboards por Empresa</span>
+        </button>
+        <button class="admin-sb-nav-item" data-tab="tabIndicadores" onclick="switchAdminTab('tabIndicadores')">
+          <i data-lucide="sliders-horizontal"></i><span>Indicadores & Toggles</span>
+        </button>
+        <button class="admin-sb-nav-item" data-tab="tabConcursos" onclick="switchAdminTab('tabConcursos')">
+          <i data-lucide="ticket"></i><span>Concursos & Sorteos</span>
+        </button>
+        <button class="admin-sb-nav-item" data-tab="tabAjustes" onclick="switchAdminTab('tabAjustes')">
+          <i data-lucide="shield-check"></i><span>Ajustes de Seguridad</span>
+        </button>
+        <button class="admin-sb-nav-item" data-tab="tabUsuarios" onclick="switchAdminTab('tabUsuarios')">
+          <i data-lucide="users"></i><span>Usuarios del Panel</span>
+        </button>
+      </nav>
+
+      <div class="admin-sb-footer">
+        <div class="admin-sb-user-menu" id="userMenu" style="display: none;">
+          <button onclick="abrirMiCuenta()"><i data-lucide="user-cog"></i> Mi Cuenta</button>
+          <button class="danger" onclick="logoutAdmin()"><i data-lucide="log-out"></i> Cerrar Sesión</button>
+        </div>
+        <button class="admin-sb-theme-btn" onclick="toggleTheme()">
+          <i data-lucide="sun-moon"></i>
           <span id="themeText">Modo Oscuro</span>
         </button>
-        <button class="btn-action" onclick="logoutAdmin()" title="Cerrar Sesión">
-          <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
-          <span>Salir</span>
-        </button>
+        <div class="admin-sb-user" onclick="toggleUserMenu()">
+          <div class="admin-sb-avatar" id="userAvatarInitials">W</div>
+          <div class="admin-sb-user-info">
+            <strong id="userLoggedLabel">webmaster@cibergenios.com</strong>
+            <span>Superadmin</span>
+          </div>
+          <i data-lucide="chevron-up" class="admin-sb-user-caret"></i>
+        </div>
       </div>
-    </header>
+    </aside>
 
-    <!-- Título Principal del Admin -->
-    <div style="margin: 22px 0 16px 0;">
-      <h2 style="font-family: var(--font-heading); font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
-        Panel de Control & Administración Maestro
-      </h2>
-      <p style="font-size: 13.5px; color: var(--text-muted); margin: 0;">
-        Gestión de Empresas, Logos Duales, Dashboards, Toggles de Indicadores e Impersonación
-      </p>
-    </div>
+    <!-- Contenido principal -->
+    <main class="admin-sb-main">
 
-    <!-- Pestañas de Navegación del Administrador -->
-    <div class="admin-tabs">
-      <button class="admin-tab-btn active" onclick="switchAdminTab('tabEmpresas')">🏢 1. Empresas & Clientes</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('tabDashboards')">📊 2. Dashboards por Empresa</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('tabIndicadores')">⚙️ 3. Indicadores & Toggles</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('tabConcursos')">🎟️ 4. Concursos & Sorteos</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('tabAjustes')">🔒 5. Ajustes de Seguridad</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('tabUsuarios')">👤 6. Usuarios del Panel</button>
-    </div>
+      <div class="admin-sb-page-header">
+        <h2 id="pageTitle">Empresas & Clientes</h2>
+        <p id="pageSubtitle">Gestión de logos duales y datos de contacto por empresa cliente.</p>
+      </div>
 
 
     <!-- ====================================================================
@@ -644,15 +657,11 @@
       </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="dashboard-footer">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" style="max-height: 24px;">
-        <span>Marketing Insights Platform • Cibergenios Agencia Digital SAS</span>
-      </div>
-      <div>Autenticado como: <strong id="footerUserLabel">webmaster@cibergenios.com</strong> (Superadmin)</div>
-    </footer>
+      <p style="text-align: center; font-size: 11.5px; color: var(--text-dim); margin-top: 40px;">
+        Marketing Insights Platform • Cibergenios Agencia Digital SAS
+      </p>
 
+    </main>
   </div>
 
   <!-- Modal: Mi Cuenta / Mi Perfil -->
@@ -730,14 +739,43 @@
       document.getElementById('themeText').textContent = isLight ? 'Modo Oscuro' : 'Modo Claro';
     }
 
+    const ADMIN_PAGE_META = {
+      tabEmpresas:    { title: 'Empresas & Clientes',      subtitle: 'Gestión de logos duales y datos de contacto por empresa cliente.' },
+      tabDashboards:  { title: 'Dashboards por Empresa',   subtitle: 'Informes mensuales, tokens públicos e impersonación de clientes.' },
+      tabIndicadores: { title: 'Indicadores & Toggles',    subtitle: 'Visibilidad de módulos y KPIs en los dashboards públicos.' },
+      tabConcursos:   { title: 'Concursos & Sorteos',      subtitle: 'Crea concursos, gestiona leads y ejecuta sorteos con auditoría.' },
+      tabAjustes:     { title: 'Ajustes de Seguridad',     subtitle: 'reCAPTCHA y configuración global del sistema.' },
+      tabUsuarios:    { title: 'Usuarios del Panel',       subtitle: 'Administra quién puede entrar al panel de control.' },
+    };
+
     function switchAdminTab(tabId) {
       document.querySelectorAll('.admin-tab-content').forEach(t => t.style.display = 'none');
-      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
-      
+      document.querySelectorAll('.admin-sb-nav-item').forEach(b => b.classList.remove('active'));
+
       const tab = document.getElementById(tabId);
       if (tab) tab.style.display = 'block';
-      event.target.classList.add('active');
+
+      const navBtn = document.querySelector(`.admin-sb-nav-item[data-tab="${tabId}"]`);
+      if (navBtn) navBtn.classList.add('active');
+
+      const meta = ADMIN_PAGE_META[tabId];
+      if (meta) {
+        document.getElementById('pageTitle').textContent = meta.title;
+        document.getElementById('pageSubtitle').textContent = meta.subtitle;
+      }
     }
+
+    function toggleUserMenu() {
+      const menu = document.getElementById('userMenu');
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+    document.addEventListener('click', function(e) {
+      const menu = document.getElementById('userMenu');
+      if (!menu || menu.style.display === 'none') return;
+      if (!e.target.closest('.admin-sb-user') && !e.target.closest('.admin-sb-user-menu')) {
+        menu.style.display = 'none';
+      }
+    });
 
     // Manejador de carga de logos locales desde el PC
     function handleLogoUpload(event, previewId, storageKey) {
@@ -961,7 +999,8 @@
       const data = await res.json();
       if (data.status === 'success') {
         alert('Perfil actualizado.');
-        document.querySelectorAll('#userLoggedLabel, #footerUserLabel').forEach(el => el.textContent = data.user.email);
+        document.getElementById('userLoggedLabel').textContent = data.user.email;
+        document.getElementById('userAvatarInitials').textContent = (data.user.nombre || data.user.email || '?').trim().charAt(0).toUpperCase();
       } else {
         alert(data.message || 'No se pudo actualizar el perfil.');
       }
