@@ -146,6 +146,7 @@ if ($action === 'dashboard') {
     $email_b2b   = $fnMetricas('email_b2b');
     $seo         = $fnMetricas('seo');
     $entregablesSummary = $fnMetricas('entregables');
+    $concursos   = $fnMetricas('concursos');
 
     // 7. Series de tiempo
     $fnSerie = function(string $canal, string $serie, ?int $customDashId = null) use ($pdo, $dId): array {
@@ -340,6 +341,7 @@ if ($action === 'dashboard') {
         'email_b2b'       => $email_b2b,
         'seo'             => $seo,
         'entregables_summary' => $entregablesSummary,
+        'concursos'       => $concursos,
         'series_meta'     => $seriesMeta,
         'series_tiktok'   => $seriesTiktok,
         'ugc'             => $ugc,

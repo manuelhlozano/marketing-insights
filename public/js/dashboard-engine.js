@@ -85,6 +85,7 @@
     renderEmail(data.email_b2c || {}, data.email_b2b || {});
     renderSeo(data.seo || {});
     renderEntregables(data.entregables || [], data.entregables_summary || {});
+    renderConcursos(data.concursos || {});
     renderResumen(data.dashboard || {});
     applyModulosToggle(data.modulos_activos || []);
 
@@ -375,6 +376,14 @@
     }
   }
 
+  // ─── CONCURSOS & SORTEOS ──────────────────────────────────────────────────────
+  function renderConcursos(concursos) {
+    if (!concursos) return;
+    set('concursosLeads',   fmt(val(concursos, 'leads_captados')));
+    set('concursosPremios', fmt(val(concursos, 'premios_entregados')));
+    set('concursosActivos', fmt(val(concursos, 'concursos_activos')));
+  }
+
   // ─── RESUMEN EJECUTIVO ────────────────────────────────────────────────────────
   function renderResumen(dashboard) {
     set('dashResumen', dashboard.resumen);
@@ -396,6 +405,7 @@
       email:       'sectionEmail',
       seo:         'sectionSeo',
       entregables: 'sectionEntregables',
+      concursos:   'sectionConcursos',
     };
 
 

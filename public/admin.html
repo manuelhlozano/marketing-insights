@@ -24,12 +24,16 @@
   <link rel="stylesheet" href="/css/executive-dashboard.css">
 
 
-  <!-- AUTH GUARD: debe ejecutarse antes que cualquier contenido -->
+  <!-- AUTH GUARD: verificación real de sesión de servidor (no localStorage) -->
   <script>
     (function() {
-      if (localStorage.getItem('mkt_admin_logged') !== 'true') {
-        window.location.replace('/login');
-      }
+      fetch('/api/session.php', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(d => {
+          if (!d.authenticated) { window.location.replace('/login'); }
+          else { window.__mktAdminUser = d.user; }
+        })
+        .catch(() => window.location.replace('/login'));
     })();
   </script>
 </head>
@@ -74,6 +78,7 @@
       <button class="admin-tab-btn active" onclick="switchAdminTab('tabEmpresas')">🏢 1. Empresas & Clientes</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('tabDashboards')">📊 2. Dashboards por Empresa</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('tabIndicadores')">⚙️ 3. Indicadores & Toggles</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('tabConcursos')">🎟️ 4. Concursos & Sorteos</button>
     </div>
 
 
@@ -471,6 +476,67 @@
 
     </div>
 
+    <!-- ====================================================================
+         TAB 4: CONCURSOS & SORTEOS
+         ==================================================================== -->
+    <div id="tabConcursos" class="admin-tab-content" style="display: none;">
+
+      <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 24px; align-items: start;">
+
+        <!-- Columna izquierda: lista + crear -->
+        <div>
+          <div class="content-card">
+            <div class="card-header-inner">
+              <span class="card-title-inner"><i data-lucide="ticket" style="color: var(--primary-blue);"></i> Concursos</span>
+            </div>
+            <div id="concursosListBox" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+              <p style="font-size: 12.5px; color: var(--text-muted);">Cargando…</p>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <h3 class="card-title-inner" style="margin-bottom: 14px;">
+              <i data-lucide="plus-circle" style="color: var(--primary-blue);"></i>
+              <span>Crear Nuevo Concurso</span>
+            </h3>
+            <form id="formConcurso" onsubmit="crearConcurso(event)">
+              <div class="form-group">
+                <label class="form-label">Nombre del Concurso</label>
+                <input type="text" id="ccNombre" class="form-input" required placeholder="ej: Sorteo Estreno Octubre">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Slug (URL pública)</label>
+                <input type="text" id="ccSlug" class="form-input" required placeholder="ej: estreno-octubre-2026">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Metodología / Justificación Técnica</label>
+                <textarea id="ccMetodologia" class="form-input" rows="3" placeholder="Se puede dejar el texto estándar por defecto"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Plazo de reclamo (horas)</label>
+                <input type="number" id="ccClaimHours" class="form-input" value="24" min="1" step="0.5">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Premios (uno por línea: <code>Nombre | Detalle</code>)</label>
+                <textarea id="ccPremios" class="form-input" rows="4" required placeholder="Premio 1 | Combo cine para 2 personas&#10;Premio 2 | Gorra y llavero oficiales"></textarea>
+              </div>
+              <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+                <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                <span>Crear Concurso</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Columna derecha: detalle del concurso seleccionado -->
+        <div id="concursoDetalleBox">
+          <div class="content-card">
+            <p style="font-size: 13px; color: var(--text-muted);">Selecciona un concurso de la lista o crea uno nuevo para ver su auditoría.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="dashboard-footer">
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -689,13 +755,231 @@
       saveTogglesSettings();
     }
 
-    function logoutAdmin() {
-      localStorage.removeItem('mkt_admin_logged');
+    async function logoutAdmin() {
+      try { await fetch('/api/logout.php', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
       window.location.href = '/login';
     }
 
     // Inicializar lista
     renderDashboardsList();
+
+    // ─────────────────────────────────────────────────────────────────
+    // TAB 4: CONCURSOS & SORTEOS
+    // ─────────────────────────────────────────────────────────────────
+    const CONCURSOS_API = '/api/concursos.php';
+    const EMPRESA_ID_ACTUAL = 1; // Cine Múltiplex Villacentro
+    let concursosCache = [];
+    let concursoActivoId = null;
+
+    const METODOLOGIA_DEFAULT = 'El sorteo se ejecuta mediante un algoritmo de selección aleatoria criptográficamente seguro (función random_int(), basada en el generador de números aleatorios seguro -CSPRNG- del sistema operativo), ejecutado exclusivamente en el servidor. Ningún participante, operador o dispositivo cliente puede influir, predecir o manipular el resultado. Antes de cada sorteo se excluyen automáticamente los ganadores previos del mismo concurso. Cada premio solo puede sortearse una vez: el resultado queda bloqueado de forma persistente en el servidor. Todo el proceso se transmite en vivo a través de una página pública, y cada resultado queda registrado con fecha, hora y consecutivo para fines de auditoría y transparencia.';
+    document.addEventListener('DOMContentLoaded', () => {
+      const mEl = document.getElementById('ccMetodologia');
+      if (mEl && !mEl.value) mEl.placeholder = METODOLOGIA_DEFAULT.slice(0, 90) + '…';
+    });
+
+    async function cargarConcursos() {
+      const box = document.getElementById('concursosListBox');
+      try {
+        const res = await fetch(`${CONCURSOS_API}?action=list`, { credentials: 'same-origin' });
+        if (res.status === 401) { window.location.replace('/login'); return; }
+        const data = await res.json();
+        concursosCache = data.concursos || [];
+        if (concursosCache.length === 0) {
+          box.innerHTML = '<p style="font-size:12.5px;color:var(--text-muted);">Todavía no hay concursos creados.</p>';
+          return;
+        }
+        box.innerHTML = concursosCache.map(c => `
+          <div style="padding:12px 14px;border:1px solid var(--border-card);border-radius:var(--radius-sm);cursor:pointer;background:${c.id == concursoActivoId ? 'var(--bg-card-hover)' : 'var(--bg-card-alt)'};"
+               onclick="verConcurso(${c.id})">
+            <strong style="font-size:13px;">${c.nombre}</strong>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${c.total_leads} leads · ${c.premios_sorteados}/${c.total_premios} premios sorteados</div>
+          </div>
+        `).join('');
+        if (!concursoActivoId && concursosCache.length) verConcurso(concursosCache[0].id);
+      } catch (e) {
+        box.innerHTML = '<p style="font-size:12.5px;color:var(--danger-red-text);">Error cargando concursos.</p>';
+      }
+    }
+
+    async function crearConcurso(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('ccNombre').value.trim();
+      const slug = document.getElementById('ccSlug').value.trim();
+      const metodologia = document.getElementById('ccMetodologia').value.trim() || METODOLOGIA_DEFAULT;
+      const claimHours = document.getElementById('ccClaimHours').value;
+      const premiosLineas = document.getElementById('ccPremios').value.trim().split('\n').filter(Boolean);
+      const premios = premiosLineas.map(line => {
+        const [n, d] = line.split('|').map(s => (s || '').trim());
+        return { nombre: n || 'Premio', detalle: d || '' };
+      });
+
+      const form = new URLSearchParams();
+      form.set('action', 'crear_concurso');
+      form.set('empresa_id', EMPRESA_ID_ACTUAL);
+      form.set('nombre', nombre);
+      form.set('slug', slug);
+      form.set('metodologia', metodologia);
+      form.set('claim_hours', claimHours);
+      form.set('premios', JSON.stringify(premios));
+
+      const res = await fetch(CONCURSOS_API, { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(`Concurso creado. Link público: /concursos/index.html?slug=${data.slug}\nToken de webhook para el formulario del landing: ${data.webhook_token}`);
+        document.getElementById('formConcurso').reset();
+        concursoActivoId = data.id;
+        await cargarConcursos();
+      } else {
+        alert(data.message || 'No se pudo crear el concurso.');
+      }
+    }
+
+    async function verConcurso(id) {
+      concursoActivoId = id;
+      await cargarConcursos();
+      const box = document.getElementById('concursoDetalleBox');
+      box.innerHTML = '<div class="content-card"><p style="font-size:13px;color:var(--text-muted);">Cargando auditoría…</p></div>';
+
+      const res = await fetch(`${CONCURSOS_API}?action=auditoria&concurso_id=${id}`, { credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status !== 'success') {
+        box.innerHTML = `<div class="content-card"><p style="font-size:13px;color:var(--danger-red-text);">${data.message}</p></div>`;
+        return;
+      }
+
+      const c = data.concurso;
+      let drawsHtml = data.draws.map(d => `
+        <div style="padding:14px;border:1px solid var(--border-card);border-radius:var(--radius-sm);margin-bottom:12px;background:var(--bg-card-alt);">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <strong style="font-size:13px;">${d.premio ? d.premio.nombre : 'Premio ' + d.kit}</strong>
+            <span class="countdown-badge kpi-badge" data-deadline="${d.deadline_reclamo}">calculando…</span>
+          </div>
+          <div style="font-size:16px;font-weight:800;color:var(--success-green-text);margin:8px 0;">🏆 ${d.ganador.nombre}</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;font-size:12px;">
+            <div><span style="color:var(--text-dim);display:block;font-size:10px;text-transform:uppercase;">Documento</span>${d.ganador.documento || '-'}</div>
+            <div><span style="color:var(--text-dim);display:block;font-size:10px;text-transform:uppercase;">Teléfono</span>${d.ganador.telefono || '-'}</div>
+            <div><span style="color:var(--text-dim);display:block;font-size:10px;text-transform:uppercase;">Correo</span>${d.ganador.correo || '-'}</div>
+            <div><span style="color:var(--text-dim);display:block;font-size:10px;text-transform:uppercase;">Fecha</span>${new Date(d.fecha_sorteo.replace(' ', 'T')).toLocaleString('es-CO')}</div>
+          </div>
+          <div style="margin-top:10px;border-top:1px dashed var(--border-card);padding-top:10px;">
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Suplentes</div>
+            ${d.backups.length === 0 ? '<span style="font-size:12px;color:var(--text-dim);">Ninguno elegido.</span>' :
+              d.backups.map((b, i) => `<div style="font-size:12px;padding:6px 8px;background:var(--bg-card);border-radius:6px;margin-bottom:4px;"><strong>Suplente ${i+1}:</strong> ${b.nombre} — ${b.telefono || '-'} — ${b.correo || '-'}</div>`).join('')}
+            <button class="btn-action" style="margin-top:6px;font-size:11.5px;" onclick="pickBackup(${id}, '${d.kit}')">Elegir ganador suplente</button>
+          </div>
+        </div>
+      `).join('') || '<p style="font-size:13px;color:var(--text-muted);">Todavía no se ha sorteado ningún premio.</p>';
+
+      box.innerHTML = `
+        <div class="content-card">
+          <div class="card-header-inner">
+            <span class="card-title-inner"><i data-lucide="award" style="color: var(--primary-blue);"></i> ${c.nombre}</span>
+            <span class="kpi-badge badge-info">${data.total_leads} leads</span>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin:6px 0 14px;">Link público: <code>${c.public_url}</code> · Plazo de reclamo: <strong>${c.claim_hours}h</strong></p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+            <a href="${c.public_url}" target="_blank"><button class="btn-action btn-primary">Ver página pública</button></a>
+            <button class="btn-action" onclick="window.print()">Descargar / Imprimir PDF</button>
+          </div>
+          <details style="margin-bottom:16px;">
+            <summary style="cursor:pointer;font-size:12.5px;font-weight:700;color:var(--primary-blue);">Metodología y justificación técnica</summary>
+            <p style="font-size:12.5px;color:var(--text-secondary);margin-top:8px;line-height:1.6;">${c.metodologia}</p>
+          </details>
+          ${drawsHtml}
+        </div>
+
+        <div class="content-card">
+          <h3 class="card-title-inner" style="margin-bottom: 12px;"><i data-lucide="users" style="color: var(--primary-blue);"></i> Leads del Concurso</h3>
+          <div class="form-group" style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+              <label class="form-label">Importar desde Google Sheets (URL publicada como CSV)</label>
+              <input type="text" id="sheetsUrl_${id}" class="form-input" placeholder="https://docs.google.com/.../pub?output=csv">
+            </div>
+            <button class="btn-action btn-primary" onclick="importarSheets(${id})">Sincronizar</button>
+          </div>
+          <div class="table-responsive" style="margin-top:10px;max-height:280px;overflow-y:auto;">
+            <table class="custom-table" id="leadsTable_${id}">
+              <thead><tr><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Correo</th><th>Origen</th></tr></thead>
+              <tbody><tr><td colspan="5">Cargando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+      cargarLeads(id);
+      startCountdowns();
+    }
+
+    async function cargarLeads(concursoId) {
+      const res = await fetch(`${CONCURSOS_API}?action=leads&concurso_id=${concursoId}`, { credentials: 'same-origin' });
+      const data = await res.json();
+      const tbody = document.querySelector(`#leadsTable_${concursoId} tbody`);
+      if (!tbody) return;
+      const leads = data.leads || [];
+      tbody.innerHTML = leads.length ? leads.map(l => `
+        <tr><td>${l.nombre} ${l.apellido}</td><td>${l.documento}</td><td>${l.telefono || '-'}</td><td>${l.correo || '-'}</td><td><span class="kpi-badge badge-info">${l.origen}</span></td></tr>
+      `).join('') : '<tr><td colspan="5" style="color:var(--text-muted);">Sin leads todavía.</td></tr>';
+    }
+
+    async function importarSheets(concursoId) {
+      const urlInput = document.getElementById(`sheetsUrl_${concursoId}`);
+      const url = urlInput.value.trim();
+      if (!url) { alert('Pega la URL de la hoja publicada como CSV.'); return; }
+      const form = new URLSearchParams();
+      form.set('concurso_id', concursoId);
+      form.set('sheet_csv_url', url);
+      const res = await fetch('/api/sheets-import.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(`${data.importados} leads importados/actualizados desde la hoja.`);
+        cargarLeads(concursoId);
+        cargarConcursos();
+      } else {
+        alert(data.message || 'No se pudo importar la hoja.');
+      }
+    }
+
+    async function pickBackup(concursoId, kit) {
+      const form = new URLSearchParams();
+      form.set('action', 'pick_backup');
+      form.set('concurso_id', concursoId);
+      form.set('kit', kit);
+      const res = await fetch(CONCURSOS_API, { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(`Suplente elegido: ${data.suplente.nombre}`);
+        verConcurso(concursoId);
+      } else {
+        alert(data.message || 'No se pudo elegir un suplente.');
+      }
+    }
+
+    let concursosCountdownTimer = null;
+    function startCountdowns() {
+      if (concursosCountdownTimer) clearInterval(concursosCountdownTimer);
+      function tick() {
+        document.querySelectorAll('.countdown-badge[data-deadline]').forEach(el => {
+          const deadline = new Date(el.dataset.deadline).getTime();
+          const diff = deadline - Date.now();
+          if (diff <= 0) { el.textContent = '⛔ Plazo vencido'; el.className = 'countdown-badge kpi-badge badge-negative'; return; }
+          const totalHours = diff / 3600000;
+          const days = Math.floor(totalHours / 24);
+          const hours = Math.floor(totalHours % 24);
+          const mins = Math.floor((diff % 3600000) / 60000);
+          el.textContent = `⏳ ${days > 0 ? days + 'd ' : ''}${hours}h ${mins}m para reclamar`;
+          el.className = 'countdown-badge kpi-badge ' + (totalHours < 2 ? 'badge-warning' : 'badge-positive');
+        });
+      }
+      tick();
+      concursosCountdownTimer = setInterval(tick, 30000);
+    }
+
+    // Cargar la lista de concursos al entrar a la pestaña por primera vez
+    const _origSwitchAdminTab = switchAdminTab;
+    switchAdminTab = function(tabId) {
+      _origSwitchAdminTab(tabId);
+      if (tabId === 'tabConcursos' && concursosCache.length === 0) cargarConcursos();
+    };
   </script>
 </body>
 </html>

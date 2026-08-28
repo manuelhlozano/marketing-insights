@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<base href="/">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sorteo en Vivo | Marketing Insights</title>
+<link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/css/executive-dashboard.css">
+<style>
+  body { display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px 64px; }
+  .wrap { width: 100%; max-width: 900px; }
+  header.hero { text-align: center; margin-bottom: 28px; }
+  header.hero img { max-height: 52px; margin-bottom: 14px; }
+  header.hero h1 { font-family: var(--font-heading); font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+  .kits { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 8px; }
+  .reveal {
+    height: 52px; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px; border-radius: var(--radius-sm);
+    background: var(--bg-card-alt); border: 1px dashed var(--border-card); margin: 14px 0; padding: 0 10px;
+  }
+  .reveal.winner { background: var(--success-green-bg); border: 1px solid rgba(16,185,129,0.4); color: var(--success-green-text); }
+  .reveal .placeholder { color: var(--text-dim); font-weight: 500; font-size: 13px; }
+  button.draw-btn {
+    width: 100%; padding: 13px; border-radius: var(--radius-sm); border: none;
+    background: var(--primary-blue); color: #fff; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  button.draw-btn:hover:not(:disabled) { background: var(--primary-blue-dark); }
+  button.draw-btn:disabled { background: var(--bg-card-alt); color: var(--text-dim); cursor: not-allowed; }
+  .final-table { margin-top: 30px; }
+  .final-table h2 { text-align: center; color: var(--success-green-text); font-family: var(--font-heading); margin-bottom: 16px; }
+  .status-line { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-muted); }
+  canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <header class="hero">
+    <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" />
+    <h1 id="contestTitle">Cargando sorteo…</h1>
+    <span class="kpi-badge badge-info" id="statusBadge">Sorteo Oficial en Vivo</span>
+  </header>
+
+  <div id="kits" class="kits"></div>
+  <p class="status-line" id="statusLine"></p>
+  <div id="finalTable"></div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug') || '';
+  const API = '/api/concursos.php';
+
+  let concurso = null;
+  let premios = [];
+  let draws = [];
+
+  const kitsEl = document.getElementById('kits');
+  const statusLine = document.getElementById('statusLine');
+  const finalTableEl = document.getElementById('finalTable');
+
+  function renderKits() {
+    kitsEl.innerHTML = '';
+    premios.forEach((p, idx) => {
+      const draw = draws.find(d => d.kit === p.kit);
+      const prevDone = idx === 0 || draws.find(d => d.kit === premios[idx - 1].kit);
+      const isDone = !!draw;
+      const canDraw = !isDone && prevDone;
+
+      const card = document.createElement('div');
+      card.className = 'content-card';
+
+      const reveal = document.createElement('div');
+      reveal.className = 'reveal' + (isDone ? ' winner' : '');
+      reveal.id = `reveal-${p.kit}`;
+      reveal.innerHTML = isDone ? draw.ganador : `<span class="placeholder">Aún sin sortear</span>`;
+
+      const btn = document.createElement('button');
+      btn.className = 'draw-btn';
+      btn.textContent = isDone ? 'Premio entregado' : `Sortear ${p.nombre}`;
+      btn.disabled = isDone || !canDraw;
+      btn.onclick = () => runDraw(p.kit, reveal, btn);
+
+      card.innerHTML = `<h3 class="card-title-inner">${p.nombre}</h3><p style="font-size:13px;color:var(--text-muted);">${p.detalle || ''}</p>`;
+      card.appendChild(reveal);
+      card.appendChild(btn);
+      kitsEl.appendChild(card);
+    });
+
+    if (draws.length >= premios.length && premios.length > 0) {
+      renderFinalTable();
+      statusLine.textContent = '🎉 Los sorteos han finalizado. ¡Felicidades a los ganadores!';
+    } else {
+      finalTableEl.innerHTML = '';
+      statusLine.textContent = '';
+    }
+  }
+
+  function renderFinalTable() {
+    let rows = '';
+    premios.forEach(p => {
+      const d = draws.find(x => x.kit === p.kit);
+      rows += `<tr><td>${p.nombre}</td><td>${p.detalle || ''}</td><td><strong>${d ? d.ganador : '-'}</strong></td></tr>`;
+    });
+    finalTableEl.innerHTML = `
+      <div class="final-table content-card">
+        <h2>🏆 Ganadores del Sorteo</h2>
+        <table class="custom-table">
+          <thead><tr><th>Premio</th><th>Detalle</th><th>Ganador</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  async function runDraw(kit, revealEl, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Sorteando…';
+    let i = 0;
+    const shuffleInterval = setInterval(() => {
+      revealEl.textContent = '🎲 Sorteando…' + '.'.repeat(i % 4);
+      i++;
+    }, 150);
+
+    try {
+      const form = new URLSearchParams();
+      form.set('action', 'draw');
+      form.set('slug', slug);
+      form.set('kit', kit);
+      const res = await fetch(API, { method: 'POST', body: form });
+      const data = await res.json();
+
+      setTimeout(() => {
+        clearInterval(shuffleInterval);
+        if (data.status !== 'success') {
+          revealEl.innerHTML = `<span class="placeholder">Aún sin sortear</span>`;
+          btn.disabled = false;
+          btn.textContent = 'Sortear';
+          alert(data.message || 'No se pudo realizar el sorteo.');
+          return;
+        }
+        revealEl.textContent = data.ganador;
+        revealEl.classList.add('winner');
+        draws.push({ kit: data.kit, ganador: data.ganador });
+        launchConfetti();
+        renderKits();
+      }, 1800);
+    } catch (e) {
+      clearInterval(shuffleInterval);
+      btn.disabled = false;
+      btn.textContent = 'Sortear';
+      alert('Error de conexión. Intenta nuevamente.');
+    }
+  }
+
+  async function loadData() {
+    if (!slug) {
+      document.getElementById('contestTitle').textContent = 'Concurso no especificado';
+      return;
+    }
+    try {
+      const res = await fetch(`${API}?action=detalle_publico&slug=${encodeURIComponent(slug)}`);
+      const data = await res.json();
+      if (data.status !== 'success') {
+        document.getElementById('contestTitle').textContent = data.message || 'Concurso no encontrado';
+        return;
+      }
+      concurso = data.concurso;
+      premios = concurso.premios;
+      draws = data.draws;
+      document.getElementById('contestTitle').textContent = concurso.nombre;
+      document.title = concurso.nombre + ' | Marketing Insights';
+      renderKits();
+    } catch (e) {
+      document.getElementById('contestTitle').textContent = 'No se pudo cargar el sorteo';
+    }
+  }
+
+  function launchConfetti() {
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const colors = ['#0284C7', '#34D399', '#F8FAFC', '#FBBF24'];
+    const pieces = Array.from({ length: 140 }, () => ({
+      x: Math.random() * canvas.width, y: -20 - Math.random() * canvas.height * 0.3,
+      r: 4 + Math.random() * 5, c: colors[Math.floor(Math.random() * colors.length)],
+      vy: 2 + Math.random() * 3, vx: -1.5 + Math.random() * 3, rot: Math.random() * 360, vr: -6 + Math.random() * 12,
+    }));
+    let frame = 0;
+    function tick() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.6); ctx.restore();
+      });
+      frame++;
+      if (frame < 130) requestAnimationFrame(tick); else ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    tick();
+  }
+  window.addEventListener('resize', () => {
+    const c = document.getElementById('confetti'); c.width = window.innerWidth; c.height = window.innerHeight;
+  });
+
+  loadData();
+</script>
+</body>
+</html>

@@ -83,18 +83,28 @@
   <script>
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    function handleLogin(e) {
+    async function handleLogin(e) {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
-      const pass = document.getElementById('loginPassword').value.trim();
+      const pass = document.getElementById('loginPassword').value;
+      const errEl = document.getElementById('errorMsg');
+      errEl.style.display = 'none';
 
-      // Validación estricta del superadmin
-      if (email === 'webmaster@cibergenios.com' && pass === 'Dieg0$m1') {
-        localStorage.setItem('mkt_admin_logged', 'true');
-        localStorage.setItem('mkt_admin_user', 'webmaster@cibergenios.com');
-        window.location.href = '/admin';
-      } else {
-        document.getElementById('errorMsg').style.display = 'block';
+      try {
+        const form = new URLSearchParams();
+        form.set('user', email);
+        form.set('pass', pass);
+        const res = await fetch('/api/login.php', { method: 'POST', body: form, credentials: 'same-origin' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          window.location.href = '/admin';
+        } else {
+          errEl.textContent = data.message || 'Credenciales no válidas.';
+          errEl.style.display = 'block';
+        }
+      } catch (err) {
+        errEl.textContent = 'Error de conexión con el servidor.';
+        errEl.style.display = 'block';
       }
     }
   </script>
