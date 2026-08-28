@@ -897,7 +897,7 @@
             <strong style="font-size:13px;">${d.premio ? d.premio.nombre : 'Premio ' + d.kit}</strong>
             <span class="countdown-badge kpi-badge" data-deadline="${d.deadline_reclamo}">calculando…</span>
           </div>
-          <div style="font-size:16px;font-weight:800;color:var(--success-green-text);margin:8px 0;">🏆 ${d.ganador.nombre}</div>
+          <div style="font-size:16px;font-weight:800;color:var(--success-green-text);margin:8px 0;display:flex;align-items:center;gap:8px;">🏆 ${d.ganador.nombre} ${winsBadge(d.ganador.wins_totales)}</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;font-size:12px;">
             <div><span style="color:var(--text-dim);display:block;font-size:10px;text-transform:uppercase;">Documento</span>${d.ganador.documento || '-'}</div>
             <div><span style="color:var(--text-dim);display:block;font-size:10px;text-transform:uppercase;">Teléfono</span>${d.ganador.telefono || '-'}</div>
@@ -982,8 +982,8 @@
           </div>
           <div class="table-responsive" style="margin-top:10px;max-height:280px;overflow-y:auto;">
             <table class="custom-table" id="leadsTable_${id}">
-              <thead><tr><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Correo</th><th>Origen</th></tr></thead>
-              <tbody><tr><td colspan="5">Cargando…</td></tr></tbody>
+              <thead><tr><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Correo</th><th>Origen</th><th>Wins</th></tr></thead>
+              <tbody><tr><td colspan="6">Cargando…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1011,6 +1011,13 @@
       }
     }
 
+    function winsBadge(winsTotales) {
+      const n = winsTotales || 0;
+      if (n === 0) return '<span class="kpi-badge badge-info">0</span>';
+      if (n === 1) return '<span class="kpi-badge badge-warning">1</span>';
+      return `<span class="kpi-badge badge-negative" title="Ya ganó ${n} veces en distintos concursos — revisar posible fraude">⚠ ${n}</span>`;
+    }
+
     async function cargarLeads(concursoId) {
       const res = await fetch(`${CONCURSOS_API}?action=leads&concurso_id=${concursoId}`, { credentials: 'same-origin' });
       const data = await res.json();
@@ -1018,8 +1025,8 @@
       if (!tbody) return;
       const leads = data.leads || [];
       tbody.innerHTML = leads.length ? leads.map(l => `
-        <tr><td>${l.nombre} ${l.apellido}</td><td>${l.documento}</td><td>${l.telefono || '-'}</td><td>${l.correo || '-'}</td><td><span class="kpi-badge badge-info">${l.origen}</span></td></tr>
-      `).join('') : '<tr><td colspan="5" style="color:var(--text-muted);">Sin leads todavía.</td></tr>';
+        <tr><td>${l.nombre} ${l.apellido}</td><td>${l.documento}</td><td>${l.telefono || '-'}</td><td>${l.correo || '-'}</td><td><span class="kpi-badge badge-info">${l.origen}</span></td><td>${winsBadge(l.wins_totales)}</td></tr>
+      `).join('') : '<tr><td colspan="6" style="color:var(--text-muted);">Sin leads todavía.</td></tr>';
     }
 
     async function importarSheets(concursoId) {
@@ -1055,7 +1062,9 @@
       const res = await fetch(CONCURSOS_API, { method: 'POST', body: form, credentials: 'same-origin' });
       const data = await res.json();
       if (data.status === 'success') {
-        alert(`Ganador registrado: ${data.ganador}`);
+        const wins = data.wins_totales || 0;
+        const aviso = wins >= 2 ? `\n\n⚠ Atención: este documento ya ha ganado ${wins} veces en distintos concursos. Revisa posible fraude antes de entregar el premio.` : '';
+        alert(`Ganador registrado: ${data.ganador}${aviso}`);
         verConcurso(concursoId);
       } else {
         alert(data.message || 'No se pudo registrar el ganador.');

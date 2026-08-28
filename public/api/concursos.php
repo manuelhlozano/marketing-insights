@@ -31,6 +31,18 @@ function fullName(array $lead): string {
     return trim($lead['nombre'] . ' ' . $lead['apellido']);
 }
 
+// Cuántas veces (en TODOS los concursos) ha ganado un premio quien tiene este documento.
+// Es la señal principal anti-fraude: un mismo documento ganando repetidamente en distintos
+// concursos/mecánicas es la sospecha que el admin debe poder ver de un vistazo.
+function mkt_wins_totales(PDO $pdo, string $documento): int {
+    if ($documento === '') return 0;
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM concurso_sorteos s
+                            JOIN concurso_leads l ON l.id = s.lead_id
+                            WHERE l.documento = ?");
+    $stmt->execute([$documento]);
+    return (int) $stmt->fetchColumn();
+}
+
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
 
 try {
@@ -127,7 +139,7 @@ if ($action === 'draw' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $winnerIds = $winnerIdsStmt->fetchAll(PDO::FETCH_COLUMN);
 
         $placeholders = empty($winnerIds) ? '' : ' AND id NOT IN (' . implode(',', array_fill(0, count($winnerIds), '?')) . ')';
-        $eligibleStmt = $pdo->prepare("SELECT id, nombre, apellido FROM concurso_leads WHERE concurso_id = ?{$placeholders}");
+        $eligibleStmt = $pdo->prepare("SELECT id, nombre, apellido, documento FROM concurso_leads WHERE concurso_id = ?{$placeholders}");
         $eligibleStmt->execute(array_merge([$concursoId], $winnerIds));
         $eligible = $eligibleStmt->fetchAll();
 
@@ -260,10 +272,16 @@ if ($action === 'crear_concurso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($action === 'leads' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $concursoId = (int) ($_GET['concurso_id'] ?? 0);
-    $stmt = $pdo->prepare("SELECT id, nombre, apellido, documento, telefono, correo, origen, created_at
-                            FROM concurso_leads WHERE concurso_id = ? ORDER BY created_at DESC");
+    $stmt = $pdo->prepare("SELECT l.id, l.nombre, l.apellido, l.documento, l.telefono, l.correo, l.origen, l.created_at,
+                                   (SELECT COUNT(*) FROM concurso_sorteos s
+                                    JOIN concurso_leads l2 ON l2.id = s.lead_id
+                                    WHERE l2.documento = l.documento) AS wins_totales
+                            FROM concurso_leads l WHERE l.concurso_id = ? ORDER BY l.created_at DESC");
     $stmt->execute([$concursoId]);
-    jsonOut(["status" => "success", "leads" => $stmt->fetchAll()]);
+    $rows = $stmt->fetchAll();
+    foreach ($rows as &$row) $row['wins_totales'] = (int) $row['wins_totales'];
+    unset($row);
+    jsonOut(["status" => "success", "leads" => $rows]);
 }
 
 if ($action === 'lead_manual' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -305,7 +323,10 @@ if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $premiosByKit = [];
     foreach ($premios as $p) $premiosByKit[$p['kit']] = $p;
 
-    $drawsStmt = $pdo->prepare("SELECT s.kit, s.created_at, l.id AS lead_id, l.nombre, l.apellido, l.documento, l.telefono, l.correo
+    $drawsStmt = $pdo->prepare("SELECT s.kit, s.created_at, l.id AS lead_id, l.nombre, l.apellido, l.documento, l.telefono, l.correo,
+                                       (SELECT COUNT(*) FROM concurso_sorteos s2
+                                        JOIN concurso_leads l2 ON l2.id = s2.lead_id
+                                        WHERE l2.documento = l.documento) AS wins_totales
                                  FROM concurso_sorteos s JOIN concurso_leads l ON l.id = s.lead_id
                                  WHERE s.concurso_id = ? ORDER BY s.created_at");
     $drawsStmt->execute([$concursoId]);
@@ -335,6 +356,7 @@ if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
             "ganador" => [
                 "nombre" => trim($d['nombre'] . ' ' . $d['apellido']),
                 "documento" => $d['documento'], "telefono" => $d['telefono'], "correo" => $d['correo'],
+                "wins_totales" => (int) $d['wins_totales'],
             ],
             "fecha_sorteo" => $d['created_at'],
             "deadline_reclamo" => date('c', $deadline),
@@ -461,7 +483,12 @@ if ($action === 'registrar_ganador_manual' && $_SERVER['REQUEST_METHOD'] === 'PO
         throw $e;
     }
 
-    jsonOut(["status" => "success", "kit" => $kit, "ganador" => trim("$nombre $apellido")]);
+    jsonOut([
+        "status" => "success",
+        "kit" => $kit,
+        "ganador" => trim("$nombre $apellido"),
+        "wins_totales" => mkt_wins_totales($pdo, $documento),
+    ]);
 }
 
 if ($action === 'reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
