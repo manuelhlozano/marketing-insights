@@ -31,7 +31,14 @@
         .then(r => r.json())
         .then(d => {
           if (!d.authenticated) { window.location.replace('/login'); }
-          else { window.__mktAdminUser = d.user; }
+          else {
+            window.__mktAdminUser = d.user;
+            document.addEventListener('DOMContentLoaded', function() {
+              document.querySelectorAll('#userLoggedLabel, #footerUserLabel').forEach(function(el) {
+                el.textContent = d.user.email;
+              });
+            });
+          }
         })
         .catch(() => window.location.replace('/login'));
     })();
@@ -52,6 +59,10 @@
           <i data-lucide="user-check" style="width: 14px; height: 14px;"></i>
           <span id="userLoggedLabel">webmaster@cibergenios.com</span>
         </div>
+        <button class="btn-action" onclick="abrirMiCuenta()">
+          <i data-lucide="user-cog" style="width: 15px; height: 15px;"></i>
+          <span>Mi Cuenta</span>
+        </button>
         <button class="btn-action" onclick="toggleTheme()">
           <i data-lucide="sun-moon" style="width: 15px; height: 15px;"></i>
           <span id="themeText">Modo Oscuro</span>
@@ -80,6 +91,7 @@
       <button class="admin-tab-btn" onclick="switchAdminTab('tabIndicadores')">⚙️ 3. Indicadores & Toggles</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('tabConcursos')">🎟️ 4. Concursos & Sorteos</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('tabAjustes')">🔒 5. Ajustes de Seguridad</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('tabUsuarios')">👤 6. Usuarios del Panel</button>
     </div>
 
 
@@ -587,15 +599,125 @@
       </div>
     </div>
 
+    <!-- ====================================================================
+         TAB 6: USUARIOS DEL PANEL (crear, editar, cambiar password, activar/desactivar)
+         ==================================================================== -->
+    <div id="tabUsuarios" class="admin-tab-content" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; align-items: start;">
+
+        <div class="content-card">
+          <div class="card-header-inner">
+            <span class="card-title-inner"><i data-lucide="users" style="color: var(--primary-blue);"></i> Usuarios con acceso al panel</span>
+          </div>
+          <div class="table-responsive" style="margin-top: 10px;">
+            <table class="custom-table">
+              <thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody id="usuariosTableBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h3 class="card-title-inner" style="margin-bottom: 14px;">
+            <i data-lucide="user-plus" style="color: var(--primary-blue);"></i>
+            <span>Crear Nuevo Usuario</span>
+          </h3>
+          <form onsubmit="crearUsuario(event)">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input type="text" id="nuNombre" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correo</label>
+              <input type="email" id="nuEmail" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <input type="password" id="nuPassword" class="form-input" required minlength="8" placeholder="Mínimo 8 caracteres">
+            </div>
+            <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+              <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+              <span>Crear Usuario</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="dashboard-footer">
       <div style="display: flex; align-items: center; gap: 10px;">
         <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" style="max-height: 24px;">
         <span>Marketing Insights Platform • Cibergenios Agencia Digital SAS</span>
       </div>
-      <div>Autenticado como: <strong>webmaster@cibergenios.com</strong> (Superadmin)</div>
+      <div>Autenticado como: <strong id="footerUserLabel">webmaster@cibergenios.com</strong> (Superadmin)</div>
     </footer>
 
+  </div>
+
+  <!-- Modal: Mi Cuenta / Mi Perfil -->
+  <div id="miCuentaModal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div class="content-card" style="max-width: 480px; width: 100%; max-height: 88vh; overflow-y: auto;">
+      <div class="card-header-inner" style="justify-content: space-between; display: flex; align-items: center;">
+        <span class="card-title-inner"><i data-lucide="user-cog" style="color: var(--primary-blue);"></i> Mi Cuenta</span>
+        <button class="btn-action" onclick="cerrarMiCuenta()" style="padding: 6px 8px;"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
+      </div>
+
+      <h4 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin: 18px 0 10px;">Mi Perfil</h4>
+      <form onsubmit="guardarMiPerfil(event)">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input type="text" id="mcNombre" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo</label>
+          <input type="email" id="mcEmail" class="form-input" required>
+        </div>
+        <button type="submit" class="btn-action btn-primary" style="padding: 10px 20px;">
+          <i data-lucide="save" style="width: 15px; height: 15px;"></i>
+          <span>Guardar Perfil</span>
+        </button>
+      </form>
+
+      <hr style="border: none; border-top: 1px solid var(--border-card); margin: 22px 0;">
+
+      <h4 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin: 0 0 10px;">Cambiar Contraseña</h4>
+      <form onsubmit="cambiarMiPassword(event)">
+        <div class="form-group">
+          <label class="form-label">Contraseña Actual</label>
+          <input type="password" id="mcPassActual" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña Nueva</label>
+          <input type="password" id="mcPassNueva" class="form-input" required minlength="8" placeholder="Mínimo 8 caracteres">
+        </div>
+        <button type="submit" class="btn-action btn-primary" style="padding: 10px 20px;">
+          <i data-lucide="key" style="width: 15px; height: 15px;"></i>
+          <span>Cambiar Contraseña</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Cambiar contraseña de OTRO usuario (desde tab Usuarios) -->
+  <div id="setPasswordModal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div class="content-card" style="max-width: 420px; width: 100%;">
+      <div class="card-header-inner" style="justify-content: space-between; display: flex; align-items: center;">
+        <span class="card-title-inner"><i data-lucide="key" style="color: var(--primary-blue);"></i> Cambiar Contraseña</span>
+        <button class="btn-action" onclick="cerrarSetPassword()" style="padding: 6px 8px;"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
+      </div>
+      <p id="setPasswordUserLabel" style="font-size: 12.5px; color: var(--text-muted); margin: 12px 0;"></p>
+      <form onsubmit="guardarSetPassword(event)">
+        <div class="form-group">
+          <label class="form-label">Nueva Contraseña</label>
+          <input type="password" id="spPassword" class="form-input" required minlength="8" placeholder="Mínimo 8 caracteres">
+        </div>
+        <button type="submit" class="btn-action btn-primary" style="padding: 10px 20px;">
+          <i data-lucide="save" style="width: 15px; height: 15px;"></i>
+          <span>Guardar</span>
+        </button>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -808,6 +930,146 @@
     async function logoutAdmin() {
       try { await fetch('/api/logout.php', { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
       window.location.href = '/login';
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // MI CUENTA / MI PERFIL
+    // ─────────────────────────────────────────────────────────────────
+    async function abrirMiCuenta() {
+      const res = await fetch('/api/account.php?action=me', { credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        document.getElementById('mcNombre').value = data.user.nombre;
+        document.getElementById('mcEmail').value = data.user.email;
+      }
+      document.getElementById('mcPassActual').value = '';
+      document.getElementById('mcPassNueva').value = '';
+      document.getElementById('miCuentaModal').style.display = 'flex';
+    }
+
+    function cerrarMiCuenta() {
+      document.getElementById('miCuentaModal').style.display = 'none';
+    }
+
+    async function guardarMiPerfil(e) {
+      e.preventDefault();
+      const form = new URLSearchParams();
+      form.set('action', 'update_profile');
+      form.set('nombre', document.getElementById('mcNombre').value.trim());
+      form.set('email', document.getElementById('mcEmail').value.trim());
+      const res = await fetch('/api/account.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert('Perfil actualizado.');
+        document.querySelectorAll('#userLoggedLabel, #footerUserLabel').forEach(el => el.textContent = data.user.email);
+      } else {
+        alert(data.message || 'No se pudo actualizar el perfil.');
+      }
+    }
+
+    async function cambiarMiPassword(e) {
+      e.preventDefault();
+      const form = new URLSearchParams();
+      form.set('action', 'change_password');
+      form.set('current_password', document.getElementById('mcPassActual').value);
+      form.set('new_password', document.getElementById('mcPassNueva').value);
+      const res = await fetch('/api/account.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert('Contraseña actualizada.');
+        cerrarMiCuenta();
+      } else {
+        alert(data.message || 'No se pudo cambiar la contraseña.');
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // TAB 6: USUARIOS DEL PANEL
+    // ─────────────────────────────────────────────────────────────────
+    let usuariosCargados = false;
+
+    async function cargarUsuarios() {
+      const tbody = document.getElementById('usuariosTableBody');
+      const res = await fetch('/api/users.php?action=list', { credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status !== 'success') {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:var(--danger-red-text);">${data.message || 'Error al cargar usuarios.'}</td></tr>`;
+        return;
+      }
+      const propioId = window.__mktAdminUser ? window.__mktAdminUser.id : null;
+      tbody.innerHTML = data.users.map(u => `
+        <tr>
+          <td>${u.nombre}${u.id === propioId ? ' <span class="kpi-badge badge-info">Tú</span>' : ''}</td>
+          <td>${u.email}</td>
+          <td>${u.activo ? '<span class="kpi-badge badge-positive">Activo</span>' : '<span class="kpi-badge badge-negative">Inactivo</span>'}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="abrirSetPassword(${u.id}, '${u.nombre.replace(/'/g, "\\'")}')">Cambiar contraseña</button>
+            <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="toggleUsuarioActivo(${u.id})">${u.activo ? 'Desactivar' : 'Activar'}</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="4" style="color:var(--text-muted);">Sin usuarios.</td></tr>';
+      usuariosCargados = true;
+    }
+
+    async function crearUsuario(e) {
+      e.preventDefault();
+      const form = new URLSearchParams();
+      form.set('action', 'create');
+      form.set('nombre', document.getElementById('nuNombre').value.trim());
+      form.set('email', document.getElementById('nuEmail').value.trim());
+      form.set('password', document.getElementById('nuPassword').value);
+      const res = await fetch('/api/users.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert('Usuario creado.');
+        e.target.reset();
+        cargarUsuarios();
+      } else {
+        alert(data.message || 'No se pudo crear el usuario.');
+      }
+    }
+
+    async function toggleUsuarioActivo(id) {
+      const form = new URLSearchParams();
+      form.set('action', 'toggle_active');
+      form.set('id', id);
+      const res = await fetch('/api/users.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        cargarUsuarios();
+      } else {
+        alert(data.message || 'No se pudo cambiar el estado del usuario.');
+      }
+    }
+
+    let setPasswordUserId = null;
+
+    function abrirSetPassword(id, nombre) {
+      setPasswordUserId = id;
+      document.getElementById('setPasswordUserLabel').textContent = `Usuario: ${nombre}`;
+      document.getElementById('spPassword').value = '';
+      document.getElementById('setPasswordModal').style.display = 'flex';
+    }
+
+    function cerrarSetPassword() {
+      document.getElementById('setPasswordModal').style.display = 'none';
+      setPasswordUserId = null;
+    }
+
+    async function guardarSetPassword(e) {
+      e.preventDefault();
+      const form = new URLSearchParams();
+      form.set('action', 'set_password');
+      form.set('id', setPasswordUserId);
+      form.set('password', document.getElementById('spPassword').value);
+      const res = await fetch('/api/users.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert('Contraseña actualizada.');
+        cerrarSetPassword();
+      } else {
+        alert(data.message || 'No se pudo cambiar la contraseña.');
+      }
     }
 
     // Inicializar lista
@@ -1186,6 +1448,9 @@
       }
       if (tabId === 'tabAjustes' && !ajustesCargados) {
         cargarAjustes();
+      }
+      if (tabId === 'tabUsuarios' && !usuariosCargados) {
+        cargarUsuarios();
       }
     };
   </script>
