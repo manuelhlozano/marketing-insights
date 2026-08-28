@@ -1,29 +1,30 @@
 <?php
 // Sincroniza los KPIs agregados de Concursos & Sorteos hacia metricas_canal
 // para que aparezcan como tarjeta en el informe mensual del cliente (data.php).
+// Solo sincroniza si el concurso tiene un dashboard_id asignado explícitamente
+// (nunca adivina el periodo "más reciente": eso mezclaría datos de meses distintos).
 
 function mkt_sync_concurso_metricas(PDO $pdo, int $concursoId): void {
-    $empStmt = $pdo->prepare("SELECT empresa_id FROM concursos WHERE id = ?");
-    $empStmt->execute([$concursoId]);
-    $empresaId = $empStmt->fetchColumn();
-    if (!$empresaId) return;
+    $cStmt = $pdo->prepare("SELECT empresa_id, dashboard_id FROM concursos WHERE id = ?");
+    $cStmt->execute([$concursoId]);
+    $concurso = $cStmt->fetch();
+    if (!$concurso || !$concurso['dashboard_id']) return;
 
-    // Dashboard vigente de la empresa (el periodo más reciente por fecha, no por id)
-    $dashStmt = $pdo->prepare("SELECT id FROM dashboards WHERE empresa_id = ? ORDER BY fecha_inicio DESC, id DESC LIMIT 1");
-    $dashStmt->execute([$empresaId]);
-    $dashboardId = $dashStmt->fetchColumn();
-    if (!$dashboardId) return;
+    $dashboardId = (int) $concurso['dashboard_id'];
+    $empresaId = (int) $concurso['empresa_id'];
 
-    $leadsStmt = $pdo->prepare("SELECT COUNT(*) FROM concurso_leads WHERE concurso_id IN (SELECT id FROM concursos WHERE empresa_id = ?)");
-    $leadsStmt->execute([$empresaId]);
+    $leadsStmt = $pdo->prepare("SELECT COUNT(*) FROM concurso_leads WHERE concurso_id IN
+                                 (SELECT id FROM concursos WHERE dashboard_id = ?)");
+    $leadsStmt->execute([$dashboardId]);
     $totalLeads = (int) $leadsStmt->fetchColumn();
 
-    $premiosStmt = $pdo->prepare("SELECT COUNT(*) FROM concurso_sorteos s JOIN concursos c ON c.id = s.concurso_id WHERE c.empresa_id = ?");
-    $premiosStmt->execute([$empresaId]);
+    $premiosStmt = $pdo->prepare("SELECT COUNT(*) FROM concurso_sorteos s JOIN concursos c ON c.id = s.concurso_id
+                                   WHERE c.dashboard_id = ?");
+    $premiosStmt->execute([$dashboardId]);
     $totalPremios = (int) $premiosStmt->fetchColumn();
 
-    $activosStmt = $pdo->prepare("SELECT COUNT(*) FROM concursos WHERE empresa_id = ? AND estado = 'activo'");
-    $activosStmt->execute([$empresaId]);
+    $activosStmt = $pdo->prepare("SELECT COUNT(*) FROM concursos WHERE dashboard_id = ? AND estado = 'activo'");
+    $activosStmt->execute([$dashboardId]);
     $totalActivos = (int) $activosStmt->fetchColumn();
 
     $upsert = $pdo->prepare("INSERT INTO metricas_canal (dashboard_id, canal, clave, etiqueta, valor_numerico, orden)

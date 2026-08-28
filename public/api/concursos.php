@@ -47,6 +47,10 @@ if ($action === 'detalle_publico' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $concurso = $stmt->fetch();
     if (!$concurso) jsonOut(["status" => "error", "message" => "Concurso no encontrado."], 404);
 
+    $empStmt = $pdo->prepare("SELECT nombre, logo_light_url, logo_dark_url FROM empresas WHERE id = ?");
+    $empStmt->execute([$concurso['empresa_id']]);
+    $empresa = $empStmt->fetch() ?: null;
+
     $premios = $pdo->prepare("SELECT kit, nombre, detalle FROM concurso_premios WHERE concurso_id = ? ORDER BY orden");
     $premios->execute([$concurso['id']]);
     $premiosRows = $premios->fetchAll();
@@ -69,6 +73,7 @@ if ($action === 'detalle_publico' && $_SERVER['REQUEST_METHOD'] === 'GET') {
             "slug" => $concurso['slug'],
             "premios" => $premiosRows,
         ],
+        "empresa" => $empresa,
         "draws" => $drawsOut,
         "completed" => count($drawsOut) >= count($premiosRows),
     ]);
@@ -161,17 +166,64 @@ if ($action === 'draw' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 mkt_require_auth();
 
 if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stmt = $pdo->query("SELECT c.id, c.nombre, c.slug, c.estado, c.created_at,
+    $stmt = $pdo->query("SELECT c.id, c.nombre, c.slug, c.estado, c.created_at, c.empresa_id, c.dashboard_id,
+                                 e.nombre AS empresa_nombre,
+                                 d.titulo AS dashboard_titulo, d.periodo AS dashboard_periodo,
                                  (SELECT COUNT(*) FROM concurso_premios p WHERE p.concurso_id = c.id) AS total_premios,
                                  (SELECT COUNT(*) FROM concurso_sorteos s WHERE s.concurso_id = c.id) AS premios_sorteados,
                                  (SELECT COUNT(*) FROM concurso_leads l WHERE l.concurso_id = c.id) AS total_leads
-                          FROM concursos c ORDER BY c.created_at DESC");
+                          FROM concursos c
+                          JOIN empresas e ON e.id = c.empresa_id
+                          LEFT JOIN dashboards d ON d.id = c.dashboard_id
+                          ORDER BY c.created_at DESC");
     $rows = $stmt->fetchAll();
     jsonOut(["status" => "success", "concursos" => $rows]);
 }
 
+if ($action === 'empresas' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $stmt = $pdo->query("SELECT id, nombre, slug FROM empresas WHERE activo = 1 ORDER BY nombre");
+    jsonOut(["status" => "success", "empresas" => $stmt->fetchAll()]);
+}
+
+if ($action === 'dashboards_by_empresa' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $empresaId = (int) ($_GET['empresa_id'] ?? 0);
+    $stmt = $pdo->prepare("SELECT id, titulo, periodo, slug FROM dashboards WHERE empresa_id = ? ORDER BY fecha_inicio DESC, id DESC");
+    $stmt->execute([$empresaId]);
+    jsonOut(["status" => "success", "dashboards" => $stmt->fetchAll()]);
+}
+
+if ($action === 'asignar_dashboard' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $concursoId = (int) ($_POST['concurso_id'] ?? 0);
+    $dashboardId = $_POST['dashboard_id'] ?? '';
+    $dashboardId = $dashboardId === '' ? null : (int) $dashboardId;
+
+    $prevStmt = $pdo->prepare("SELECT dashboard_id FROM concursos WHERE id = ?");
+    $prevStmt->execute([$concursoId]);
+    $prevDashboardId = $prevStmt->fetchColumn();
+
+    $upd = $pdo->prepare("UPDATE concursos SET dashboard_id = ? WHERE id = ?");
+    $upd->execute([$dashboardId, $concursoId]);
+
+    if ($dashboardId) mkt_sync_concurso_metricas($pdo, $concursoId);
+
+    // Si cambió de periodo, recalcular también el periodo anterior con los concursos que le queden
+    if ($prevDashboardId && (int) $prevDashboardId !== $dashboardId) {
+        $otherStmt = $pdo->prepare("SELECT id FROM concursos WHERE dashboard_id = ? LIMIT 1");
+        $otherStmt->execute([$prevDashboardId]);
+        $otherConcursoId = $otherStmt->fetchColumn();
+        if ($otherConcursoId) {
+            mkt_sync_concurso_metricas($pdo, (int) $otherConcursoId);
+        } else {
+            $pdo->prepare("DELETE FROM metricas_canal WHERE dashboard_id = ? AND canal = 'concursos'")->execute([$prevDashboardId]);
+        }
+    }
+
+    jsonOut(["status" => "success"]);
+}
+
 if ($action === 'crear_concurso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $empresaId = (int) ($_POST['empresa_id'] ?? 0);
+    $dashboardId = ($_POST['dashboard_id'] ?? '') !== '' ? (int) $_POST['dashboard_id'] : null;
     $nombre = trim($_POST['nombre'] ?? '');
     $slug = trim($_POST['slug'] ?? '');
     $metodologia = trim($_POST['metodologia'] ?? '');
@@ -186,9 +238,9 @@ if ($action === 'crear_concurso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $pdo->beginTransaction();
     try {
-        $ins = $pdo->prepare("INSERT INTO concursos (empresa_id, nombre, slug, metodologia, claim_hours, webhook_token, estado)
-                               VALUES (?, ?, ?, ?, ?, ?, 'activo')");
-        $ins->execute([$empresaId, $nombre, $slug, $metodologia, $claimHours, $webhookToken]);
+        $ins = $pdo->prepare("INSERT INTO concursos (empresa_id, dashboard_id, nombre, slug, metodologia, claim_hours, webhook_token, estado)
+                               VALUES (?, ?, ?, ?, ?, ?, ?, 'activo')");
+        $ins->execute([$empresaId, $dashboardId, $nombre, $slug, $metodologia, $claimHours, $webhookToken]);
         $concursoId = (int) $pdo->lastInsertId();
 
         $orden = 1;
@@ -238,7 +290,11 @@ if ($action === 'lead_manual' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $concursoId = (int) ($_GET['concurso_id'] ?? 0);
 
-    $cStmt = $pdo->prepare("SELECT * FROM concursos WHERE id = ?");
+    $cStmt = $pdo->prepare("SELECT c.*, e.nombre AS empresa_nombre, d.titulo AS dashboard_titulo, d.periodo AS dashboard_periodo
+                             FROM concursos c
+                             JOIN empresas e ON e.id = c.empresa_id
+                             LEFT JOIN dashboards d ON d.id = c.dashboard_id
+                             WHERE c.id = ?");
     $cStmt->execute([$concursoId]);
     $concurso = $cStmt->fetch();
     if (!$concurso) jsonOut(["status" => "error", "message" => "Concurso no encontrado."], 404);
@@ -301,6 +357,10 @@ if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
             "premios" => $premios,
             "public_url" => "/concursos/index.html?slug=" . urlencode($concurso['slug']),
             "webhook_token" => $concurso['webhook_token'],
+            "empresa_id" => (int) $concurso['empresa_id'],
+            "empresa_nombre" => $concurso['empresa_nombre'],
+            "dashboard_id" => $concurso['dashboard_id'] ? (int) $concurso['dashboard_id'] : null,
+            "dashboard_periodo" => $concurso['dashboard_periodo'],
         ],
         "draws" => $draws,
         "total_leads" => (int) $totalLeadsStmt->fetchColumn(),

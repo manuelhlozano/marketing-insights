@@ -501,6 +501,17 @@
             </h3>
             <form id="formConcurso" onsubmit="crearConcurso(event)">
               <div class="form-group">
+                <label class="form-label">Empresa / Cliente</label>
+                <select id="ccEmpresa" class="form-input" required onchange="cargarDashboardsDeEmpresa(this.value, 'ccDashboard')"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Periodo / Informe Mensual al que pertenece</label>
+                <select id="ccDashboard" class="form-input">
+                  <option value="">Aún sin asignar (se vincula después)</option>
+                </select>
+                <small style="font-size: 11px; color: var(--text-dim);">Si el mes todavía no existe como informe, deja esta opción y vincúlalo luego desde la auditoría del concurso.</small>
+              </div>
+              <div class="form-group">
                 <label class="form-label">Nombre del Concurso</label>
                 <input type="text" id="ccNombre" class="form-input" required placeholder="ej: Sorteo Estreno Octubre">
               </div>
@@ -767,9 +778,33 @@
     // TAB 4: CONCURSOS & SORTEOS
     // ─────────────────────────────────────────────────────────────────
     const CONCURSOS_API = '/api/concursos.php';
-    const EMPRESA_ID_ACTUAL = 1; // Cine Múltiplex Villacentro
     let concursosCache = [];
     let concursoActivoId = null;
+    let empresasCache = [];
+
+    async function cargarEmpresasSelect() {
+      if (empresasCache.length) return;
+      try {
+        const res = await fetch(`${CONCURSOS_API}?action=empresas`, { credentials: 'same-origin' });
+        const data = await res.json();
+        empresasCache = data.empresas || [];
+        const sel = document.getElementById('ccEmpresa');
+        sel.innerHTML = empresasCache.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+        if (empresasCache.length) cargarDashboardsDeEmpresa(empresasCache[0].id, 'ccDashboard');
+      } catch (e) {}
+    }
+
+    async function cargarDashboardsDeEmpresa(empresaId, selectId, selectedId) {
+      const sel = document.getElementById(selectId);
+      if (!sel || !empresaId) return;
+      const res = await fetch(`${CONCURSOS_API}?action=dashboards_by_empresa&empresa_id=${empresaId}`, { credentials: 'same-origin' });
+      const data = await res.json();
+      const opciones = (data.dashboards || []).map(d =>
+        `<option value="${d.id}" ${selectedId == d.id ? 'selected' : ''}>${d.periodo} — ${d.titulo}</option>`
+      ).join('');
+      sel.innerHTML = '<option value="">Aún sin asignar (se vincula después)</option>' + opciones;
+      if (selectedId) sel.value = selectedId;
+    }
 
     const METODOLOGIA_DEFAULT = 'El sorteo se ejecuta mediante un algoritmo de selección aleatoria criptográficamente seguro (función random_int(), basada en el generador de números aleatorios seguro -CSPRNG- del sistema operativo), ejecutado exclusivamente en el servidor. Ningún participante, operador o dispositivo cliente puede influir, predecir o manipular el resultado. Antes de cada sorteo se excluyen automáticamente los ganadores previos del mismo concurso. Cada premio solo puede sortearse una vez: el resultado queda bloqueado de forma persistente en el servidor. Todo el proceso se transmite en vivo a través de una página pública, y cada resultado queda registrado con fecha, hora y consecutivo para fines de auditoría y transparencia.';
     document.addEventListener('DOMContentLoaded', () => {
@@ -792,7 +827,8 @@
           <div style="padding:12px 14px;border:1px solid var(--border-card);border-radius:var(--radius-sm);cursor:pointer;background:${c.id == concursoActivoId ? 'var(--bg-card-hover)' : 'var(--bg-card-alt)'};"
                onclick="verConcurso(${c.id})">
             <strong style="font-size:13px;">${c.nombre}</strong>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${c.total_leads} leads · ${c.premios_sorteados}/${c.total_premios} premios sorteados</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${c.empresa_nombre} · ${c.dashboard_periodo || 'Periodo sin asignar'}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${c.total_leads} leads · ${c.premios_sorteados}/${c.total_premios} premios sorteados</div>
           </div>
         `).join('');
         if (!concursoActivoId && concursosCache.length) verConcurso(concursosCache[0].id);
@@ -803,6 +839,8 @@
 
     async function crearConcurso(e) {
       e.preventDefault();
+      const empresaId = document.getElementById('ccEmpresa').value;
+      const dashboardId = document.getElementById('ccDashboard').value;
       const nombre = document.getElementById('ccNombre').value.trim();
       const slug = document.getElementById('ccSlug').value.trim();
       const metodologia = document.getElementById('ccMetodologia').value.trim() || METODOLOGIA_DEFAULT;
@@ -813,9 +851,12 @@
         return { nombre: n || 'Premio', detalle: d || '' };
       });
 
+      if (!empresaId) { alert('Selecciona la empresa/cliente del concurso.'); return; }
+
       const form = new URLSearchParams();
       form.set('action', 'crear_concurso');
-      form.set('empresa_id', EMPRESA_ID_ACTUAL);
+      form.set('empresa_id', empresaId);
+      form.set('dashboard_id', dashboardId || '');
       form.set('nombre', nombre);
       form.set('slug', slug);
       form.set('metodologia', metodologia);
@@ -876,7 +917,13 @@
             <span class="card-title-inner"><i data-lucide="award" style="color: var(--primary-blue);"></i> ${c.nombre}</span>
             <span class="kpi-badge badge-info">${data.total_leads} leads</span>
           </div>
-          <p style="font-size:12px;color:var(--text-muted);margin:6px 0 14px;">Link público: <code>${c.public_url}</code> · Plazo de reclamo: <strong>${c.claim_hours}h</strong></p>
+          <p style="font-size:12px;color:var(--text-muted);margin:6px 0 6px;">Empresa: <strong>${c.empresa_nombre}</strong> · Link público: <code>${c.public_url}</code> · Plazo de reclamo: <strong>${c.claim_hours}h</strong></p>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;background:var(--bg-card-alt);padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-card);">
+            <span style="font-size:12px;font-weight:700;">Periodo / Informe mensual:</span>
+            <select id="periodoSelect_${id}" class="form-input" style="width:auto;flex:1;min-width:180px;"></select>
+            <button class="btn-action btn-primary" style="font-size:11.5px;" onclick="vincularPeriodo(${id})">Vincular</button>
+            <span style="font-size:11px;color:var(--text-muted);">Actual: ${c.dashboard_periodo || 'sin asignar'}</span>
+          </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             <a href="${c.public_url}" target="_blank"><button class="btn-action btn-primary">Ver página pública</button></a>
             <button class="btn-action" onclick="window.print()">Descargar / Imprimir PDF</button>
@@ -908,6 +955,24 @@
       lucide.createIcons();
       cargarLeads(id);
       startCountdowns();
+      cargarDashboardsDeEmpresa(c.empresa_id, `periodoSelect_${id}`, c.dashboard_id);
+    }
+
+    async function vincularPeriodo(concursoId) {
+      const sel = document.getElementById(`periodoSelect_${concursoId}`);
+      const dashboardId = sel ? sel.value : '';
+      const form = new URLSearchParams();
+      form.set('action', 'asignar_dashboard');
+      form.set('concurso_id', concursoId);
+      form.set('dashboard_id', dashboardId);
+      const res = await fetch(CONCURSOS_API, { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert('Periodo actualizado. Las métricas del informe mensual se recalcularon.');
+        verConcurso(concursoId);
+      } else {
+        alert(data.message || 'No se pudo vincular el periodo.');
+      }
     }
 
     async function cargarLeads(concursoId) {
@@ -978,7 +1043,10 @@
     const _origSwitchAdminTab = switchAdminTab;
     switchAdminTab = function(tabId) {
       _origSwitchAdminTab(tabId);
-      if (tabId === 'tabConcursos' && concursosCache.length === 0) cargarConcursos();
+      if (tabId === 'tabConcursos') {
+        cargarEmpresasSelect();
+        if (concursosCache.length === 0) cargarConcursos();
+      }
     };
   </script>
 </body>

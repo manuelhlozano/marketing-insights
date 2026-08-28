@@ -35,13 +35,22 @@
   canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
 </style>
 </head>
-<body>
+<body class="light-mode">
 <canvas id="confetti"></canvas>
+<button class="btn-action" id="themeToggleBtn" onclick="toggleTheme()" style="position:fixed;top:16px;right:16px;z-index:60;">
+  <i data-lucide="sun-moon" style="width:15px;height:15px;"></i>
+  <span id="themeToggleText">Modo Oscuro</span>
+</button>
+<script src="https://unpkg.com/lucide@latest"></script>
 <div class="wrap">
   <header class="hero">
-    <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" />
+    <img id="empresaLogoLight" class="logo-light" src="/assets/images/logo_multiplex_light.png" alt="" style="max-height:52px;margin-bottom:14px;" />
+    <img id="empresaLogoDark" class="logo-dark" src="/assets/images/logo_multiplex_dark.png" alt="" style="max-height:52px;margin-bottom:14px;" />
     <h1 id="contestTitle">Cargando sorteo…</h1>
     <span class="kpi-badge badge-info" id="statusBadge">Sorteo Oficial en Vivo</span>
+    <div style="margin-top:10px;">
+      <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" style="max-height:22px;opacity:0.6;" />
+    </div>
   </header>
 
   <div id="kits" class="kits"></div>
@@ -172,10 +181,28 @@
       draws = data.draws;
       document.getElementById('contestTitle').textContent = concurso.nombre;
       document.title = concurso.nombre + ' | Marketing Insights';
+
+      const empresa = data.empresa;
+      if (empresa) {
+        if (empresa.logo_light_url) document.getElementById('empresaLogoLight').src = empresa.logo_light_url;
+        if (empresa.logo_dark_url) document.getElementById('empresaLogoDark').src = empresa.logo_dark_url;
+        document.getElementById('empresaLogoLight').alt = empresa.nombre;
+        document.getElementById('empresaLogoDark').alt = empresa.nombre;
+        document.getElementById('empresaLogoLight').style.display = '';
+        document.getElementById('empresaLogoDark').style.display = '';
+      }
+
       renderKits();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     } catch (e) {
       document.getElementById('contestTitle').textContent = 'No se pudo cargar el sorteo';
     }
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    document.getElementById('themeToggleText').textContent = isLight ? 'Modo Oscuro' : 'Modo Claro';
   }
 
   function launchConfetti() {
