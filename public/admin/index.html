@@ -52,14 +52,16 @@
     <aside class="admin-sb-sidebar">
       <div class="admin-sb-brand">
         <img src="/assets/images/logo_cibergenios.png" alt="Cibergenios" class="admin-sb-brand-logo">
-        <div class="admin-sb-brand-text">
-          <strong>Marketing Insights</strong>
-          <span>Panel Maestro</span>
-        </div>
+        <button class="admin-sb-icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Cambiar a modo oscuro">
+          <i data-lucide="sun-moon"></i>
+        </button>
       </div>
 
       <nav class="admin-sb-nav" id="adminSidebarNav">
-        <button class="admin-sb-nav-item active" data-tab="tabEmpresas" onclick="switchAdminTab('tabEmpresas')">
+        <button class="admin-sb-nav-item active" data-tab="tabHome" onclick="switchAdminTab('tabHome')">
+          <i data-lucide="home"></i><span>Inicio</span>
+        </button>
+        <button class="admin-sb-nav-item" data-tab="tabEmpresas" onclick="switchAdminTab('tabEmpresas')">
           <i data-lucide="building-2"></i><span>Empresas & Clientes</span>
         </button>
         <button class="admin-sb-nav-item" data-tab="tabDashboards" onclick="switchAdminTab('tabDashboards')">
@@ -84,10 +86,6 @@
           <button onclick="abrirMiCuenta()"><i data-lucide="user-cog"></i> Mi Cuenta</button>
           <button class="danger" onclick="logoutAdmin()"><i data-lucide="log-out"></i> Cerrar Sesión</button>
         </div>
-        <button class="admin-sb-theme-btn" onclick="toggleTheme()">
-          <i data-lucide="sun-moon"></i>
-          <span id="themeText">Modo Oscuro</span>
-        </button>
         <div class="admin-sb-user" onclick="toggleUserMenu()">
           <div class="admin-sb-avatar" id="userAvatarInitials">W</div>
           <div class="admin-sb-user-info">
@@ -103,15 +101,43 @@
     <main class="admin-sb-main">
 
       <div class="admin-sb-page-header">
-        <h2 id="pageTitle">Empresas & Clientes</h2>
-        <p id="pageSubtitle">Gestión de logos duales y datos de contacto por empresa cliente.</p>
+        <h2 id="pageTitle">Marketing Insights</h2>
+        <p id="pageSubtitle">Panel Maestro — resumen general del sistema.</p>
       </div>
 
+      <!-- ====================================================================
+           TAB HOME: RESUMEN / INDICADORES DEL SOFTWARE
+           ==================================================================== -->
+      <div id="tabHome" class="admin-tab-content">
+        <div class="kpi-grid" id="homeKpiGrid">
+          <div class="kpi-card"><p style="font-size:12.5px;color:var(--text-muted);">Cargando indicadores…</p></div>
+        </div>
+
+        <div class="content-card">
+          <div class="card-header-inner">
+            <span class="card-title-inner"><i data-lucide="zap" style="color: var(--primary-blue);"></i> Accesos Rápidos</span>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;">
+            <button class="btn-action btn-primary" onclick="switchAdminTab('tabEmpresas'); abrirEmpresaModal();">
+              <i data-lucide="plus" style="width: 15px; height: 15px;"></i><span>Registrar Empresa</span>
+            </button>
+            <button class="btn-action" onclick="switchAdminTab('tabConcursos');">
+              <i data-lucide="ticket" style="width: 15px; height: 15px;"></i><span>Concursos & Sorteos</span>
+            </button>
+            <button class="btn-action" onclick="switchAdminTab('tabUsuarios');">
+              <i data-lucide="users" style="width: 15px; height: 15px;"></i><span>Gestionar Usuarios</span>
+            </button>
+            <button class="btn-action" onclick="switchAdminTab('tabAjustes');">
+              <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i><span>Ajustes de Seguridad</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
     <!-- ====================================================================
          TAB 1: GESTIÓN DE EMPRESAS (LOGOS DESDE ARCHIVO LOCAL DEL PC)
          ==================================================================== -->
-    <div id="tabEmpresas" class="admin-tab-content">
+    <div id="tabEmpresas" class="admin-tab-content" style="display: none;">
 
       <div class="content-card">
         <div class="card-header-inner">
@@ -687,10 +713,12 @@
     function toggleTheme() {
       document.body.classList.toggle('light-mode');
       const isLight = document.body.classList.contains('light-mode');
-      document.getElementById('themeText').textContent = isLight ? 'Modo Oscuro' : 'Modo Claro';
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.title = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
     }
 
     const ADMIN_PAGE_META = {
+      tabHome:        { title: 'Marketing Insights',       subtitle: 'Panel Maestro — resumen general del sistema.' },
       tabEmpresas:    { title: 'Empresas & Clientes',      subtitle: 'Gestión de logos duales y datos de contacto por empresa cliente.' },
       tabDashboards:  { title: 'Dashboards por Empresa',   subtitle: 'Informes mensuales, tokens públicos e impersonación de clientes.' },
       tabIndicadores: { title: 'Indicadores & Toggles',    subtitle: 'Visibilidad de módulos y KPIs en los dashboards públicos.' },
@@ -719,6 +747,9 @@
       // Envuelto en try/catch para que un error en una pestaña no deje muda a
       // ninguna otra (cada pestaña es independiente).
       try {
+        if (tabId === 'tabHome' && !homeCargado) {
+          cargarHome();
+        }
         if (tabId === 'tabEmpresas' && !empresasCargadas) {
           cargarEmpresas();
         }
@@ -866,6 +897,56 @@
     function impersonateClient(empresaSlug, dashboardSlug) {
       const targetUrl = `/index.html?empresa=${encodeURIComponent(empresaSlug)}&dashboard=${encodeURIComponent(dashboardSlug)}&token=mkt_live_cmv_78a9c0f`;
       window.open(targetUrl, '_blank');
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // TAB HOME: RESUMEN / INDICADORES DEL SOFTWARE
+    // ─────────────────────────────────────────────────────────────────
+    let homeCargado = false;
+
+    async function cargarHome() {
+      const grid = document.getElementById('homeKpiGrid');
+      try {
+        const [empRes, conRes, userRes] = await Promise.all([
+          fetch('/api/empresas.php?action=list', { credentials: 'same-origin' }),
+          fetch('/api/concursos.php?action=list', { credentials: 'same-origin' }),
+          fetch('/api/users.php?action=list', { credentials: 'same-origin' }),
+        ]);
+        const [empData, conData, userData] = await Promise.all([empRes.json(), conRes.json(), userRes.json()]);
+
+        const empresas = empData.status === 'success' ? empData.empresas : [];
+        const concursos = conData.status === 'success' ? conData.concursos : [];
+        const usuarios = userData.status === 'success' ? userData.users : [];
+
+        const empresasActivas = empresas.filter(e => e.activo).length;
+        const totalDashboards = empresas.reduce((sum, e) => sum + (e.total_dashboards || 0), 0);
+        const concursosActivos = concursos.filter(c => c.estado === 'activo').length;
+        const totalLeads = concursos.reduce((sum, c) => sum + (c.total_leads || 0), 0);
+        const usuariosActivos = usuarios.filter(u => u.activo).length;
+
+        const cards = [
+          { label: 'Empresas Activas', value: empresasActivas, sub: `${empresas.length} en total`, icon: 'building-2', highlight: 'highlight-blue' },
+          { label: 'Dashboards Publicados', value: totalDashboards, sub: 'informes mensuales', icon: 'layout-dashboard', highlight: 'highlight-green' },
+          { label: 'Concursos Activos', value: concursosActivos, sub: `${concursos.length} en total`, icon: 'ticket', highlight: 'highlight-purple' },
+          { label: 'Leads Registrados', value: totalLeads, sub: 'en todos los concursos', icon: 'users', highlight: 'highlight-orange' },
+          { label: 'Usuarios del Panel', value: usuariosActivos, sub: `${usuarios.length} en total`, icon: 'user-cog', highlight: 'highlight-blue' },
+        ];
+
+        grid.innerHTML = cards.map(c => `
+          <div class="kpi-card ${c.highlight}">
+            <div class="kpi-header">
+              <span class="kpi-label">${c.label}</span>
+              <div class="kpi-icon-box"><i data-lucide="${c.icon}" style="width:16px;height:16px;"></i></div>
+            </div>
+            <div class="kpi-value-row"><span class="kpi-number">${c.value}</span></div>
+            <span style="font-size:11.5px;color:var(--text-dim);">${c.sub}</span>
+          </div>
+        `).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        homeCargado = true;
+      } catch (err) {
+        grid.innerHTML = '<div class="kpi-card"><p style="font-size:12.5px;color:var(--danger-red-text);">No se pudieron cargar los indicadores.</p></div>';
+      }
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -1164,7 +1245,7 @@
 
     // Inicializar lista
     renderDashboardsList();
-    cargarEmpresas();
+    cargarHome();
 
     // ─────────────────────────────────────────────────────────────────
     // TAB 4: CONCURSOS & SORTEOS

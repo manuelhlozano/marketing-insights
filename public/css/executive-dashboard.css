@@ -1360,17 +1360,44 @@ input:checked + .slider-toggle:before {
 .admin-sb-brand {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 22px 20px;
+  padding: 20px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .admin-sb-brand-logo {
   max-height: 30px;
-  max-width: 76px;
+  max-width: 130px;
   width: auto;
   flex-shrink: 0;
   object-fit: contain;
+}
+
+.admin-sb-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-card);
+  background: var(--bg-card-alt);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-sb-icon-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
+}
+
+.admin-sb-icon-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .admin-sb-brand-text {
@@ -1453,33 +1480,6 @@ input:checked + .slider-toggle:before {
   border-top: 1px solid var(--border-subtle);
   padding: 12px;
   position: relative;
-}
-
-.admin-sb-theme-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 6px;
-  transition: background 0.15s ease;
-}
-
-.admin-sb-theme-btn:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-}
-
-.admin-sb-theme-btn svg {
-  width: 15px;
-  height: 15px;
 }
 
 .admin-sb-user {
