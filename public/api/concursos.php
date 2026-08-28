@@ -410,6 +410,60 @@ if ($action === 'pick_backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     ]]);
 }
 
+if ($action === 'registrar_ganador_manual' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Para mecánicas oficiales externas (ej. sorteo por comentarios de Instagram/Facebook):
+    // el equipo de marketing registra aquí al ganador ya anunciado en redes, para que quede
+    // en la auditoría, el conteo de premios entregados y el PDF, aunque la selección aleatoria
+    // no haya ocurrido dentro de este sistema.
+    $concursoId = (int) ($_POST['concurso_id'] ?? 0);
+    $kit = (string) ($_POST['kit'] ?? '');
+    $documento = trim($_POST['documento'] ?? '');
+    $nombre = trim($_POST['nombre'] ?? '');
+    $apellido = trim($_POST['apellido'] ?? '');
+    $telefono = trim($_POST['telefono'] ?? '');
+    $correo = trim($_POST['correo'] ?? '');
+
+    if (!$concursoId || !$kit || !$documento || !$nombre) {
+        jsonOut(["status" => "error", "message" => "Concurso, premio, nombre y documento son obligatorios."], 400);
+    }
+
+    $premioStmt = $pdo->prepare("SELECT id FROM concurso_premios WHERE concurso_id = ? AND kit = ?");
+    $premioStmt->execute([$concursoId, $kit]);
+    if (!$premioStmt->fetch()) jsonOut(["status" => "error", "message" => "Premio inválido."], 400);
+
+    $pdo->beginTransaction();
+    try {
+        $already = $pdo->prepare("SELECT COUNT(*) FROM concurso_sorteos WHERE concurso_id = ? AND kit = ?");
+        $already->execute([$concursoId, $kit]);
+        if ((int) $already->fetchColumn() > 0) {
+            $pdo->rollBack();
+            jsonOut(["status" => "error", "message" => "Ese premio ya tiene un ganador registrado."], 409);
+        }
+
+        $upsertLead = $pdo->prepare("INSERT INTO concurso_leads (concurso_id, nombre, apellido, documento, telefono, correo, origen)
+                                      VALUES (?, ?, ?, ?, ?, ?, 'manual')
+                                      ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), apellido = VALUES(apellido),
+                                          telefono = COALESCE(NULLIF(VALUES(telefono), ''), telefono),
+                                          correo = COALESCE(NULLIF(VALUES(correo), ''), correo)");
+        $upsertLead->execute([$concursoId, $nombre, $apellido, $documento, $telefono, $correo ?: null]);
+
+        $leadStmt = $pdo->prepare("SELECT id FROM concurso_leads WHERE concurso_id = ? AND documento = ?");
+        $leadStmt->execute([$concursoId, $documento]);
+        $leadId = $leadStmt->fetchColumn();
+
+        $ins = $pdo->prepare("INSERT INTO concurso_sorteos (concurso_id, kit, lead_id) VALUES (?, ?, ?)");
+        $ins->execute([$concursoId, $kit, $leadId]);
+
+        $pdo->commit();
+        mkt_sync_concurso_metricas($pdo, $concursoId);
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $e;
+    }
+
+    jsonOut(["status" => "success", "kit" => $kit, "ganador" => trim("$nombre $apellido")]);
+}
+
 if ($action === 'reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $concursoId = (int) ($_POST['concurso_id'] ?? 0);
     $pdo->prepare("DELETE FROM concurso_suplentes WHERE concurso_id = ?")->execute([$concursoId]);

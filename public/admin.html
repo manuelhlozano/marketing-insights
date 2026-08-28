@@ -889,6 +889,8 @@
       }
 
       const c = data.concurso;
+      const kitsGanados = new Set(data.draws.map(d => d.kit));
+      const premiosPendientes = c.premios.filter(p => !kitsGanados.has(p.kit));
       let drawsHtml = data.draws.map(d => `
         <div style="padding:14px;border:1px solid var(--border-card);border-radius:var(--radius-sm);margin-bottom:12px;background:var(--bg-card-alt);">
           <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
@@ -933,6 +935,40 @@
             <p style="font-size:12.5px;color:var(--text-secondary);margin-top:8px;line-height:1.6;">${c.metodologia}</p>
           </details>
           ${drawsHtml}
+        </div>
+
+        <div class="content-card" id="manualWinnerBox_${id}">
+          <h3 class="card-title-inner" style="margin-bottom: 12px;"><i data-lucide="user-check" style="color: var(--primary-blue);"></i> Registrar Ganador Manual</h3>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Para premios cuyo ganador se elige por fuera de este sistema (ej. sorteo de comentarios en Instagram/Facebook). Si el documento ya está entre los leads, se completan sus datos automáticamente.</p>
+          <form onsubmit="registrarGanadorManual(event, ${id})" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Premio</label>
+              <select id="mgKit_${id}" class="form-input" required>
+                ${premiosPendientes.map(p => `<option value="${p.kit}">${p.nombre}</option>`).join('') || '<option value="">Sin premios pendientes</option>'}
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Documento</label>
+              <input type="text" id="mgDocumento_${id}" class="form-input" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Nombre</label>
+              <input type="text" id="mgNombre_${id}" class="form-input" required>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Apellido</label>
+              <input type="text" id="mgApellido_${id}" class="form-input">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Teléfono</label>
+              <input type="text" id="mgTelefono_${id}" class="form-input">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Correo</label>
+              <input type="email" id="mgCorreo_${id}" class="form-input">
+            </div>
+            <button type="submit" class="btn-action btn-primary" ${premiosPendientes.length === 0 ? 'disabled' : ''}>Registrar Ganador</button>
+          </form>
         </div>
 
         <div class="content-card">
@@ -1001,6 +1037,28 @@
         cargarConcursos();
       } else {
         alert(data.message || 'No se pudo importar la hoja.');
+      }
+    }
+
+    async function registrarGanadorManual(e, concursoId) {
+      e.preventDefault();
+      const form = new URLSearchParams();
+      form.set('action', 'registrar_ganador_manual');
+      form.set('concurso_id', concursoId);
+      form.set('kit', document.getElementById(`mgKit_${concursoId}`).value);
+      form.set('documento', document.getElementById(`mgDocumento_${concursoId}`).value.trim());
+      form.set('nombre', document.getElementById(`mgNombre_${concursoId}`).value.trim());
+      form.set('apellido', document.getElementById(`mgApellido_${concursoId}`).value.trim());
+      form.set('telefono', document.getElementById(`mgTelefono_${concursoId}`).value.trim());
+      form.set('correo', document.getElementById(`mgCorreo_${concursoId}`).value.trim());
+
+      const res = await fetch(CONCURSOS_API, { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(`Ganador registrado: ${data.ganador}`);
+        verConcurso(concursoId);
+      } else {
+        alert(data.message || 'No se pudo registrar el ganador.');
       }
     }
 
