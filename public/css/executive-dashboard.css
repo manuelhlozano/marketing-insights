@@ -1346,7 +1346,7 @@ input:checked + .slider-toggle:before {
 }
 
 .admin-sb-sidebar {
-  width: 260px;
+  width: 296px;
   flex-shrink: 0;
   background: var(--bg-card);
   border-right: 1px solid var(--border-card);
@@ -1360,28 +1360,34 @@ input:checked + .slider-toggle:before {
 .admin-sb-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 22px 20px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .admin-sb-brand-logo {
   max-height: 30px;
-  max-width: 140px;
+  max-width: 76px;
+  width: auto;
+  flex-shrink: 0;
   object-fit: contain;
 }
 
 .admin-sb-brand-text {
   display: flex;
   flex-direction: column;
-  line-height: 1.25;
+  justify-content: center;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
 }
 
 .admin-sb-brand-text strong {
   font-family: var(--font-heading);
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 800;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .admin-sb-brand-text span {
@@ -1390,6 +1396,7 @@ input:checked + .slider-toggle:before {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .admin-sb-nav {
