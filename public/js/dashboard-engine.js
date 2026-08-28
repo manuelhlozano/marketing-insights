@@ -391,10 +391,6 @@
 
   // ─── MÓDULOS TOGGLE ───────────────────────────────────────────────────────────
   function applyModulosToggle(activos) {
-    // Aplicar toggles guardados en localStorage (del admin) sobre la lista de módulos activos de BD
-    const savedToggles = localStorage.getItem('mkt_dashboard_toggles');
-    const overrides = savedToggles ? JSON.parse(savedToggles) : {};
-
     const sectionMap = {
       timeline:    'sectionTimeline',
       google:      'sectionGoogle',
@@ -412,13 +408,7 @@
     Object.entries(sectionMap).forEach(([codigo, sectionId]) => {
       const el = document.getElementById(sectionId);
       if (!el) return;
-      const activoEnBd    = activos.includes(codigo);
-      const activoEnAdmin = overrides[codigo] !== false;
-      if (!activoEnBd || !activoEnAdmin) {
-        el.style.display = 'none';
-      } else {
-        el.style.display = '';
-      }
+      el.style.display = activos.includes(codigo) ? '' : 'none';
     });
 
   }

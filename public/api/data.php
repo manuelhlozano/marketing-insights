@@ -99,6 +99,9 @@ if ($action === 'dashboard') {
     if (!$tokenValido && !mkt_is_authenticated()) {
         jsonError(403, 'Token inválido o expirado.');
     }
+    if ((int) $dashboard['es_publico'] !== 1 && !mkt_is_authenticated()) {
+        jsonError(403, 'Este dashboard está oculto temporalmente.');
+    }
 
     // 4. Módulos activos
     $stmt = $pdo->prepare("SELECT codigo, nombre, tipo_visualizacion, orden

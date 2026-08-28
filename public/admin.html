@@ -65,7 +65,7 @@
           <i data-lucide="building-2"></i><span>Empresas & Clientes</span>
         </button>
         <button class="admin-sb-nav-item" data-tab="tabDashboards" onclick="switchAdminTab('tabDashboards')">
-          <i data-lucide="layout-dashboard"></i><span>Dashboards por Empresa</span>
+          <i data-lucide="layout-dashboard"></i><span>Dashboards</span>
         </button>
         <button class="admin-sb-nav-item" data-tab="tabIndicadores" onclick="switchAdminTab('tabIndicadores')">
           <i data-lucide="sliders-horizontal"></i><span>Indicadores & Toggles</span>
@@ -80,10 +80,10 @@
           <i data-lucide="dices"></i><span>Sorteos</span>
         </button>
         <button class="admin-sb-nav-item" data-tab="tabAjustes" onclick="switchAdminTab('tabAjustes')">
-          <i data-lucide="shield-check"></i><span>Ajustes de Seguridad</span>
+          <i data-lucide="shield-check"></i><span>Ajustes</span>
         </button>
         <button class="admin-sb-nav-item" data-tab="tabUsuarios" onclick="switchAdminTab('tabUsuarios')">
-          <i data-lucide="users"></i><span>Usuarios del Panel</span>
+          <i data-lucide="users"></i><span>Usuarios</span>
         </button>
       </nav>
 
@@ -160,13 +160,12 @@
               <tr>
                 <th>Empresa</th>
                 <th>Slug URL</th>
-                <th>Ubicación / Sector</th>
                 <th>Dashboards</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
-            <tbody id="empresasTableBody"><tr><td colspan="6">Cargando…</td></tr></tbody>
+            <tbody id="empresasTableBody"><tr><td colspan="5">Cargando…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -177,214 +176,68 @@
          TAB 2: GESTIÓN DE DASHBOARDS POR EMPRESA
          ==================================================================== -->
     <div id="tabDashboards" class="admin-tab-content" style="display: none;">
-      
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <label style="font-size: 13px; font-weight: 700; text-transform: uppercase;">Empresa Seleccionada:</label>
-          <select class="filter-select" id="selectEmpresaDashboards" onchange="renderDashboardsList()">
-            <option value="cine-multiplex-villacentro">Cine Múltiplex Villacentro</option>
+      <div class="content-card">
+        <div class="card-header-inner">
+          <span class="card-title-inner"><i data-lucide="layout-dashboard" style="color: var(--primary-blue);"></i> Dashboards</span>
+          <button class="btn-action btn-primary" onclick="alert('Formulario de creación de nuevo periodo/dashboard abierto.')">
+            <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+            <span>Crear Nuevo Dashboard</span>
+          </button>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px; margin-bottom: 0; max-width: 320px;">
+          <label class="form-label">Filtrar por Empresa</label>
+          <select class="form-input" id="filtroEmpresaDashboards" onchange="renderDashboardsList()">
+            <option value="">Todas las empresas</option>
           </select>
         </div>
 
-        <button class="btn-action btn-primary" onclick="alert('Formulario de creación de nuevo periodo/dashboard abierto.')">
-          <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
-          <span>+ Crear Nuevo Dashboard</span>
-        </button>
-      </div>
-
-      <div class="content-card">
-        <h3 class="card-title-inner" style="margin-bottom: 16px;">
-          <i data-lucide="layout-dashboard" style="color: var(--primary-blue);"></i>
-          <span>Dashboards Activos para la Empresa Seleccionada</span>
-        </h3>
-
-        <div class="table-responsive">
+        <div class="table-responsive" style="margin-top: 14px;">
           <table class="custom-table">
             <thead>
               <tr>
                 <th>Título del Dashboard</th>
+                <th>Empresa</th>
                 <th>Periodo</th>
-                <th>Ruta Completa (URL con Slug)</th>
+                <th>Ruta Pública</th>
                 <th>Token Público</th>
                 <th>Visibilidad</th>
                 <th>Acciones</th>
               </tr>
             </thead>
-            <tbody id="dashboardsTableBody">
-              <!-- Renderizado dinámico -->
-            </tbody>
+            <tbody id="dashboardsTableBody"><tr><td colspan="7">Cargando…</td></tr></tbody>
           </table>
         </div>
       </div>
-
     </div>
 
     <!-- ====================================================================
          TAB 3: GESTIÓN DE INDICADORES & TOGGLES EN EL DASHBOARD
          ==================================================================== -->
     <div id="tabIndicadores" class="admin-tab-content" style="display: none;">
-      
-      <div class="content-card" style="margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h3 class="card-title-inner" style="margin-bottom: 4px;">
-              <i data-lucide="sliders" style="color: var(--primary-blue);"></i>
-              <span>Configuración de Visibilidad de Módulos & Indicadores</span>
-            </h3>
-            <p style="font-size: 13px; color: var(--text-muted);">
-              Activa o desactiva secciones enteras o indicadores específicos en el dashboard del cliente.
-            </p>
-          </div>
 
-          <div style="display: flex; gap: 10px;">
-            <button class="btn-action" onclick="resetDefaultToggles()">Restablecer por Defecto</button>
-            <button class="btn-action btn-primary" onclick="saveTogglesSettings()">
-              <i data-lucide="check" style="width: 15px; height: 15px;"></i>
-              <span>Aplicar Cambios en Vivo</span>
-            </button>
-          </div>
+      <div class="content-card" style="margin-bottom: 24px;">
+        <h3 class="card-title-inner" style="margin-bottom: 4px;">
+          <i data-lucide="sliders" style="color: var(--primary-blue);"></i>
+          <span>Configuración de Visibilidad de Módulos</span>
+        </h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+          Cada informe mensual tiene su propia configuración: activa/desactiva módulos y ordénalos para ese dashboard específico. Los cambios se aplican de inmediato al cliente.
+        </p>
+        <div class="form-group" style="margin-bottom: 0; max-width: 380px;">
+          <label class="form-label">Dashboard</label>
+          <select class="form-input" id="indicadoresDashboardSelect" onchange="cambiarDashboardIndicadores(this.value)"></select>
         </div>
       </div>
 
-      <div class="grid-2-col">
-
-        <!-- Módulos Principales -->
-        <div class="content-card">
-          <h4 style="font-size: 15px; font-weight: 800; margin-bottom: 16px; color: var(--primary-blue);">
-            Módulos Principales del Tablero
-          </h4>
-
-          <div style="display: flex; flex-direction: column; gap: 14px;">
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">🚀 Timeline de Transición Operativa</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">Fases del 24 Jun al 31 Jul</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="toggleTimeline" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">🔍 Google Mi Negocio & Búsquedas</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">Opiniones, Búsquedas y Meta del 88%</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="toggleGoogle" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">📱 Redes Meta (Facebook & Instagram)</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">144.000 visualizaciones y demografía</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="toggleMeta" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">⚡ TikTok & Viralidad</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">93.100 vistas en 7 días y 963 compartidos</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="toggleTikTok" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">🎬 Showcase UGC & Creadores</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">Videos Spiderman, Moana y Humor</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="toggleUgc" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">💰 Pauta Digital (Meta Ads)</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">Inversión de $50K COP y 449 resultados</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="togglePauta" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">✉️ Email Marketing (Brevo B2C & B2B)</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">55K base y 30.8% Open Rate corporativo</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="toggleEmail" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">🌐 Auditoría Técnica SEO & Rendimiento</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">Score 86/100, velocidad 0.47s y seguridad HTTPS</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="toggleSeo" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-alt); border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
-              <div>
-                <strong style="font-size: 13px;">📁 Catálogo de 117 Entregables</strong>
-                <p style="font-size: 11.5px; color: var(--text-muted);">Tabla interactiva de piezas y formatos</p>
-              </div>
-              <label class="admin-switch">
-                <input type="checkbox" id="toggleEntregables" checked>
-                <span class="slider-toggle"></span>
-              </label>
-            </div>
-
-
-          </div>
+      <div class="content-card">
+        <h4 style="font-size: 15px; font-weight: 800; margin-bottom: 6px; color: var(--primary-blue);">
+          Módulos del Tablero
+        </h4>
+        <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 16px;">Usa las flechas para cambiar el orden en que aparecen en el dashboard público.</p>
+        <div id="modulosListBox" style="display: flex; flex-direction: column; gap: 10px;">
+          <p style="font-size: 12.5px; color: var(--text-muted);">Selecciona un dashboard arriba.</p>
         </div>
-
-        <!-- Metas & Objetivos de Crecimiento -->
-        <div class="content-card">
-          <h4 style="font-size: 15px; font-weight: 800; margin-bottom: 16px; color: var(--channel-google);">
-            🎯 Metas & Objetivos de Crecimiento para el Cliente
-          </h4>
-
-          <div class="form-group">
-            <label class="form-label">Objetivo Anual Google Opiniones</label>
-            <input type="text" id="metaGoogleAnual" class="form-input" value="Llegar a 3.500 opiniones en un año (Meta: 33/mes)">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Objetivo Anual Instagram Seguidores</label>
-            <input type="text" id="metaInstagramAnual" class="form-input" value="Llegar a 15.000 seguidores en un año (Meta: 262 netos/mes)">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Objetivo Anual Facebook Seguidores</label>
-            <input type="text" id="metaFacebookAnual" class="form-input" value="Llegar a 55.000 seguidores en un año (Meta: 337 netos/mes)">
-          </div>
-
-          <div class="insight-callout" style="margin-top: 24px;">
-            <strong>Control en Vivo:</strong> Al aplicar cambios, el cliente verá reflejados de inmediato los indicadores activos y sus logos correspondientes.
-          </div>
-        </div>
-
       </div>
 
     </div>
@@ -483,7 +336,8 @@
          TAB 5: AJUSTES DE SEGURIDAD (reCAPTCHA del login)
          ==================================================================== -->
     <div id="tabAjustes" class="admin-tab-content" style="display: none;">
-      <div class="content-card" style="max-width: 560px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+      <div class="content-card">
         <div class="card-header-inner">
           <span class="card-title-inner"><i data-lucide="shield-check" style="color: var(--primary-blue);"></i> reCAPTCHA en el Login</span>
         </div>
@@ -517,7 +371,7 @@
       </div>
 
       <!-- GESTOR DE FAVICON (MINIATURA DEL NAVEGADOR, global del sitio) -->
-      <div class="content-card" style="max-width: 560px;">
+      <div class="content-card">
         <div class="card-header-inner">
           <span class="card-title-inner"><i data-lucide="globe" style="color: var(--primary-blue);"></i> Favicon del Navegador</span>
         </div>
@@ -543,49 +397,26 @@
         <input type="file" id="fileFavicon" class="form-input" accept="image/svg+xml,image/png,image/x-icon,image/jpeg" onchange="handleFaviconUpload(event)" style="padding: 6px; font-size: 12px;">
         <small style="font-size: 11px; color: var(--text-dim); display: block; margin-top: 6px;">Sube tu propio archivo SVG, PNG o ICO transparente, o elige un color preestablecido.</small>
       </div>
+      </div>
     </div>
 
     <!-- ====================================================================
          TAB 6: USUARIOS DEL PANEL (crear, editar, cambiar password, activar/desactivar)
          ==================================================================== -->
     <div id="tabUsuarios" class="admin-tab-content" style="display: none;">
-      <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; align-items: start;">
-
-        <div class="content-card">
-          <div class="card-header-inner">
-            <span class="card-title-inner"><i data-lucide="users" style="color: var(--primary-blue);"></i> Usuarios con acceso al panel</span>
-          </div>
-          <div class="table-responsive" style="margin-top: 10px;">
-            <table class="custom-table">
-              <thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Acciones</th></tr></thead>
-              <tbody id="usuariosTableBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
-            </table>
-          </div>
+      <div class="content-card">
+        <div class="card-header-inner">
+          <span class="card-title-inner"><i data-lucide="users" style="color: var(--primary-blue);"></i> Usuarios con acceso al panel</span>
+          <button class="btn-action btn-primary" onclick="abrirUsuarioModal()">
+            <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
+            <span>Añadir Usuario</span>
+          </button>
         </div>
-
-        <div class="content-card">
-          <h3 class="card-title-inner" style="margin-bottom: 14px;">
-            <i data-lucide="user-plus" style="color: var(--primary-blue);"></i>
-            <span>Crear Nuevo Usuario</span>
-          </h3>
-          <form onsubmit="crearUsuario(event)">
-            <div class="form-group">
-              <label class="form-label">Nombre</label>
-              <input type="text" id="nuNombre" class="form-input" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Correo</label>
-              <input type="email" id="nuEmail" class="form-input" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Contraseña</label>
-              <input type="password" id="nuPassword" class="form-input" required minlength="8" placeholder="Mínimo 8 caracteres">
-            </div>
-            <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
-              <i data-lucide="save" style="width: 16px; height: 16px;"></i>
-              <span>Crear Usuario</span>
-            </button>
-          </form>
+        <div class="table-responsive" style="margin-top: 10px;">
+          <table class="custom-table">
+            <thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="usuariosTableBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -835,6 +666,35 @@
     </div>
   </div>
 
+  <!-- Modal: Añadir / Editar Usuario -->
+  <div id="usuarioModal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div class="content-card" style="max-width: 440px; width: 100%;">
+      <div class="card-header-inner" style="justify-content: space-between; display: flex; align-items: center;">
+        <span class="card-title-inner"><i data-lucide="user-plus" style="color: var(--primary-blue);"></i> <span id="usuarioModalTitle">Añadir Usuario</span></span>
+        <button class="btn-action" onclick="cerrarUsuarioModal()" style="padding: 6px 8px;"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
+      </div>
+      <form id="formUsuario" onsubmit="guardarUsuario(event)" style="margin-top: 16px;">
+        <input type="hidden" id="usuarioId" value="">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input type="text" id="nuNombre" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo</label>
+          <input type="email" id="nuEmail" class="form-input" required>
+        </div>
+        <div class="form-group" id="nuPasswordGroup">
+          <label class="form-label">Contraseña</label>
+          <input type="password" id="nuPassword" class="form-input" minlength="8" placeholder="Mínimo 8 caracteres">
+        </div>
+        <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+          <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+          <span id="usuarioModalSubmitLabel">Crear Usuario</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Cambiar contraseña de OTRO usuario (desde tab Usuarios) -->
   <div id="setPasswordModal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
     <div class="content-card" style="max-width: 420px; width: 100%;">
@@ -870,13 +730,13 @@
     const ADMIN_PAGE_META = {
       tabHome:        { title: 'Marketing Insights',       subtitle: 'Panel Maestro — resumen general del sistema.' },
       tabEmpresas:    { title: 'Empresas & Clientes',      subtitle: 'Gestión de logos duales y datos de contacto por empresa cliente.' },
-      tabDashboards:  { title: 'Dashboards por Empresa',   subtitle: 'Informes mensuales, tokens públicos e impersonación de clientes.' },
+      tabDashboards:  { title: 'Dashboards',               subtitle: 'Informes mensuales, tokens públicos e impersonación de clientes.' },
       tabIndicadores: { title: 'Indicadores & Toggles',    subtitle: 'Visibilidad de módulos y KPIs en los dashboards públicos.' },
       tabConcursos:   { title: 'Concursos',                subtitle: 'Campañas de sorteos y concursos por empresa.' },
       tabLeads:       { title: 'Leads',                    subtitle: 'Participantes registrados por concurso, con historial de premios ganados.' },
       tabSorteos:     { title: 'Sorteos',                  subtitle: 'Auditoría de premios sorteados, ganadores y suplentes por concurso.' },
-      tabAjustes:     { title: 'Ajustes de Seguridad',     subtitle: 'reCAPTCHA y configuración global del sistema.' },
-      tabUsuarios:    { title: 'Usuarios del Panel',       subtitle: 'Administra quién puede entrar al panel de control.' },
+      tabAjustes:     { title: 'Ajustes',                  subtitle: 'reCAPTCHA y configuración global del sistema.' },
+      tabUsuarios:    { title: 'Usuarios',                 subtitle: 'Administra quién puede entrar al panel de control.' },
     };
 
     function switchAdminTab(tabId) {
@@ -904,6 +764,12 @@
         }
         if (tabId === 'tabEmpresas' && !empresasCargadas) {
           cargarEmpresas();
+        }
+        if (tabId === 'tabDashboards' && !dashboardsTabCargado) {
+          cargarDashboardsTab();
+        }
+        if (tabId === 'tabIndicadores' && !indicadoresCargados) {
+          poblarIndicadoresDashboardSelect();
         }
         if (tabId === 'tabConcursos') {
           cargarConcursos();
@@ -1000,70 +866,95 @@
     }
 
 
-    // Dashboards en memoria
-    let dashboardsList = [
-      {
-        id: 1,
-        empresaSlug: 'cine-multiplex-villacentro',
-        titulo: 'Informe de Gestión Mensual | Julio 2026',
-        periodo: 'Julio 2026',
-        slug: 'julio-2026',
-        token: 'mkt_live_cmv_78a9c0f',
-        activo: true
-      },
-      {
-        id: 2,
-        empresaSlug: 'cine-multiplex-villacentro',
-        titulo: 'Informe de Rendimiento | Abril 2026',
-        periodo: 'Abril 2026',
-        slug: 'abril-2026',
-        token: 'mkt_live_cmv_abril2026',
-        activo: true
+    // ── Vista: Dashboards (todas las empresas, con filtro) ──────────────
+    let dashboardsCache = [];
+    let dashboardsTabCargado = false;
+
+    async function cargarDashboardsTab() {
+      const tbody = document.getElementById('dashboardsTableBody');
+      try {
+        const res = await fetch('/api/dashboards.php?action=list', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (data.status !== 'success') {
+          tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger-red-text);">${data.message || 'Error al cargar dashboards.'}</td></tr>`;
+          return;
+        }
+        dashboardsCache = data.dashboards;
+        poblarFiltroEmpresaDashboards();
+        renderDashboardsList();
+        dashboardsTabCargado = true;
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="7" style="color:var(--danger-red-text);">Error cargando dashboards.</td></tr>';
       }
-    ];
+    }
+
+    function poblarFiltroEmpresaDashboards() {
+      const sel = document.getElementById('filtroEmpresaDashboards');
+      if (!sel) return;
+      const vistos = new Set();
+      const opts = dashboardsCache.filter(d => {
+        if (vistos.has(d.empresa_id)) return false;
+        vistos.add(d.empresa_id);
+        return true;
+      }).map(d => `<option value="${d.empresa_id}">${d.empresa_nombre}</option>`).join('');
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">Todas las empresas</option>' + opts;
+      sel.value = prev;
+    }
 
     function renderDashboardsList() {
       const tbody = document.getElementById('dashboardsTableBody');
       if (!tbody) return;
+      const filtro = document.getElementById('filtroEmpresaDashboards') ? document.getElementById('filtroEmpresaDashboards').value : '';
+      const lista = filtro ? dashboardsCache.filter(d => String(d.empresa_id) === String(filtro)) : dashboardsCache;
 
-      let html = '';
-      dashboardsList.forEach(d => {
-        const fullUrl = `/${d.empresaSlug}/${d.slug}?token=${d.token}`;
-        html += `
+      if (lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="color:var(--text-muted);">Sin dashboards todavía.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(d => {
+        const fullUrl = `/${d.empresa_slug}/${d.slug}?token=${d.public_token}`;
+        return `
           <tr>
             <td><strong>${d.titulo}</strong></td>
+            <td>${d.empresa_nombre}</td>
             <td><span class="badge-category">${d.periodo}</span></td>
             <td><code>${fullUrl}</code></td>
-            <td><span class="token-pill">${d.token}</span></td>
+            <td><span class="token-pill">${d.public_token}</span></td>
             <td>
               <label class="admin-switch">
-                <input type="checkbox" ${d.activo ? 'checked' : ''} onchange="toggleDashboardStatus(${d.id})">
+                <input type="checkbox" ${d.es_publico ? 'checked' : ''} onchange="toggleDashboardVisibility(${d.id})">
                 <span class="slider-toggle"></span>
               </label>
             </td>
             <td>
-              <button class="btn-action btn-primary" style="padding: 5px 10px; font-size: 11.5px;" onclick="impersonateClient('${d.empresaSlug}', '${d.slug}')">
-                👁️ Impersonar
+              <button class="admin-sb-icon-btn" title="Impersonar (ver como ${d.empresa_nombre})" onclick="impersonarDashboard('${d.empresa_slug}', '${d.slug}')">
+                <i data-lucide="log-in"></i>
               </button>
             </td>
           </tr>
         `;
-      });
-
-      tbody.innerHTML = html;
+      }).join('');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    function toggleDashboardStatus(id) {
-      const d = dashboardsList.find(x => x.id === id);
-      if (d) {
-        d.activo = !d.activo;
-        alert(`Dashboard "${d.titulo}" ahora está: ${d.activo ? 'ACTIVO (Visible)' : 'INACTIVO (Bloqueado al cliente)'}`);
+    async function toggleDashboardVisibility(id) {
+      const form = new URLSearchParams();
+      form.set('action', 'toggle_visibility');
+      form.set('id', id);
+      const res = await fetch('/api/dashboards.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        const d = dashboardsCache.find(x => x.id === id);
+        if (d) d.es_publico = data.es_publico;
+      } else {
+        alert(data.message || 'No se pudo cambiar la visibilidad.');
+        renderDashboardsList();
       }
     }
 
-    function impersonateClient(empresaSlug, dashboardSlug) {
-      const targetUrl = `/index.html?empresa=${encodeURIComponent(empresaSlug)}&dashboard=${encodeURIComponent(dashboardSlug)}&token=mkt_live_cmv_78a9c0f`;
-      window.open(targetUrl, '_blank');
+    function impersonarDashboard(empresaSlug, dashboardSlug) {
+      window.open(`/${empresaSlug}/${dashboardSlug}`, '_blank');
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -1130,28 +1021,17 @@
         return;
       }
       window.__empresasCache = data.empresas;
-      tbody.innerHTML = data.empresas.map(emp => {
-        const logo = emp.logo_light_url
-          ? `<img src="/${emp.logo_light_url}" alt="${emp.nombre}" style="max-height: 26px; max-width: 84px; object-fit: contain; background:#fff; border-radius:4px; padding:2px;">`
-          : `<div style="width:32px;height:26px;border-radius:4px;background:var(--bg-card-alt);display:flex;align-items:center;justify-content:center;"><i data-lucide="building-2" style="width:14px;height:14px;color:var(--text-dim);"></i></div>`;
-        return `
+      tbody.innerHTML = data.empresas.map(emp => `
         <tr>
-          <td>
-            <div style="display:flex;align-items:center;gap:10px;">
-              ${logo}
-              <strong>${emp.nombre}</strong>
-            </div>
-          </td>
+          <td><strong>${emp.nombre}</strong></td>
           <td><code>/${emp.slug}</code></td>
-          <td><small style="color:var(--text-muted);">${[emp.ciudad, emp.sector].filter(Boolean).join(' • ') || '—'}</small></td>
           <td><span class="kpi-badge badge-info">${emp.total_dashboards} dashboard${emp.total_dashboards === 1 ? '' : 's'}</span></td>
           <td>${emp.activo ? '<span class="kpi-badge badge-positive">Activo</span>' : '<span class="kpi-badge badge-negative">Inactivo</span>'}</td>
           <td style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="abrirEmpresaModal(${emp.id})">Editar</button>
             <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="toggleEmpresaActiva(${emp.id})">${emp.activo ? 'Desactivar' : 'Activar'}</button>
           </td>
-        </tr>`;
-      }).join('') || '<tr><td colspan="6" style="color:var(--text-muted);">Sin empresas registradas todavía.</td></tr>';
+        </tr>`).join('') || '<tr><td colspan="5" style="color:var(--text-muted);">Sin empresas registradas todavía.</td></tr>';
       if (typeof lucide !== 'undefined') lucide.createIcons();
       empresasCargadas = true;
     }
@@ -1241,27 +1121,106 @@
       }
     }
 
-    function saveTogglesSettings() {
-      const settings = {
-        timeline: document.getElementById('toggleTimeline').checked,
-        google: document.getElementById('toggleGoogle').checked,
-        meta: document.getElementById('toggleMeta').checked,
-        tiktok: document.getElementById('toggleTikTok').checked,
-        ugc: document.getElementById('toggleUgc').checked,
-        pauta: document.getElementById('togglePauta').checked,
-        email: document.getElementById('toggleEmail').checked,
-        seo: document.getElementById('toggleSeo').checked,
-        entregables: document.getElementById('toggleEntregables').checked
-      };
+    // ── Vista: Indicadores & Toggles (por dashboard especifico) ────────
+    let indicadoresDashboardId = null;
+    let indicadoresCargados = false;
 
-
-      localStorage.setItem('mkt_dashboard_toggles', JSON.stringify(settings));
-      alert('¡Configuración de visibilidad e indicadores guardada! Los dashboards reflejarán estos cambios.');
+    async function poblarIndicadoresDashboardSelect() {
+      const sel = document.getElementById('indicadoresDashboardSelect');
+      if (!sel) return;
+      if (dashboardsCache.length === 0) await cargarDashboardsTab();
+      const opts = dashboardsCache.map(d => `<option value="${d.id}">${d.empresa_nombre} — ${d.titulo}</option>`).join('');
+      sel.innerHTML = opts || '<option value="">Sin dashboards</option>';
+      if (!indicadoresDashboardId && dashboardsCache.length) {
+        indicadoresDashboardId = dashboardsCache[0].id;
+      }
+      if (indicadoresDashboardId) sel.value = indicadoresDashboardId;
+      cargarModulos();
     }
 
-    function resetDefaultToggles() {
-      document.querySelectorAll('#tabIndicadores input[type="checkbox"]').forEach(c => c.checked = true);
-      saveTogglesSettings();
+    function cambiarDashboardIndicadores(id) {
+      indicadoresDashboardId = id ? parseInt(id, 10) : null;
+      cargarModulos();
+    }
+
+    async function cargarModulos() {
+      const box = document.getElementById('modulosListBox');
+      if (!box) return;
+      if (!indicadoresDashboardId) {
+        box.innerHTML = '<p style="font-size:12.5px;color:var(--text-muted);">Selecciona un dashboard arriba.</p>';
+        return;
+      }
+      box.innerHTML = '<p style="font-size:12.5px;color:var(--text-muted);">Cargando…</p>';
+      const res = await fetch(`/api/modulos.php?action=list&dashboard_id=${indicadoresDashboardId}`, { credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status !== 'success') {
+        box.innerHTML = `<p style="font-size:12.5px;color:var(--danger-red-text);">${data.message || 'Error al cargar los módulos.'}</p>`;
+        return;
+      }
+      renderModulosList(data.modulos);
+      indicadoresCargados = true;
+    }
+
+    function renderModulosList(modulos) {
+      const box = document.getElementById('modulosListBox');
+      if (modulos.length === 0) {
+        box.innerHTML = '<p style="font-size:12.5px;color:var(--text-muted);">Este dashboard todavía no tiene módulos configurados.</p>';
+        return;
+      }
+      box.innerHTML = modulos.map((m, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg-card-alt);border-radius:var(--radius-sm);border:1px solid var(--border-card);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <button class="admin-sb-icon-btn" style="width:22px;height:22px;${i === 0 ? 'opacity:.35;' : ''}" title="Subir" onclick="moverModulo(${m.id}, -1)" ${i === 0 ? 'disabled' : ''}><i data-lucide="chevron-up" style="width:12px;height:12px;"></i></button>
+              <button class="admin-sb-icon-btn" style="width:22px;height:22px;${i === modulos.length - 1 ? 'opacity:.35;' : ''}" title="Bajar" onclick="moverModulo(${m.id}, 1)" ${i === modulos.length - 1 ? 'disabled' : ''}><i data-lucide="chevron-down" style="width:12px;height:12px;"></i></button>
+            </div>
+            <div>
+              <strong style="font-size:13px;">${m.nombre}</strong>
+              <p style="font-size:11px;color:var(--text-muted);">${m.tipo_visualizacion}</p>
+            </div>
+          </div>
+          <label class="admin-switch">
+            <input type="checkbox" ${m.activo ? 'checked' : ''} onchange="toggleModulo(${m.id})">
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+      `).join('');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    async function toggleModulo(id) {
+      const form = new URLSearchParams();
+      form.set('action', 'toggle');
+      form.set('id', id);
+      const res = await fetch('/api/modulos.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status !== 'success') {
+        alert(data.message || 'No se pudo cambiar el módulo.');
+        cargarModulos();
+      }
+    }
+
+    async function moverModulo(id, direccion) {
+      const res = await fetch(`/api/modulos.php?action=list&dashboard_id=${indicadoresDashboardId}`, { credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status !== 'success') return;
+      const modulos = data.modulos;
+      const idx = modulos.findIndex(m => m.id === id);
+      const nuevoIdx = idx + direccion;
+      if (idx === -1 || nuevoIdx < 0 || nuevoIdx >= modulos.length) return;
+      [modulos[idx], modulos[nuevoIdx]] = [modulos[nuevoIdx], modulos[idx]];
+      renderModulosList(modulos);
+
+      const form = new URLSearchParams();
+      form.set('action', 'reorder');
+      form.set('dashboard_id', indicadoresDashboardId);
+      form.set('ids', JSON.stringify(modulos.map(m => m.id)));
+      const saveRes = await fetch('/api/modulos.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const saveData = await saveRes.json();
+      if (saveData.status !== 'success') {
+        alert(saveData.message || 'No se pudo reordenar.');
+        cargarModulos();
+      }
     }
 
     async function logoutAdmin() {
@@ -1334,6 +1293,7 @@
         tbody.innerHTML = `<tr><td colspan="4" style="color:var(--danger-red-text);">${data.message || 'Error al cargar usuarios.'}</td></tr>`;
         return;
       }
+      window.__usuariosCache = data.users;
       const propioId = window.__mktAdminUser ? window.__mktAdminUser.id : null;
       tbody.innerHTML = data.users.map(u => `
         <tr>
@@ -1341,6 +1301,7 @@
           <td>${u.email}</td>
           <td>${u.activo ? '<span class="kpi-badge badge-positive">Activo</span>' : '<span class="kpi-badge badge-negative">Inactivo</span>'}</td>
           <td style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="abrirUsuarioModal(${u.id})">Editar</button>
             <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="abrirSetPassword(${u.id}, '${u.nombre.replace(/'/g, "\\'")}')">Cambiar contraseña</button>
             <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="toggleUsuarioActivo(${u.id})">${u.activo ? 'Desactivar' : 'Activar'}</button>
           </td>
@@ -1349,21 +1310,51 @@
       usuariosCargados = true;
     }
 
-    async function crearUsuario(e) {
+    function abrirUsuarioModal(id) {
+      const form = document.getElementById('formUsuario');
+      form.reset();
+      document.getElementById('usuarioId').value = '';
+      document.getElementById('nuPassword').required = true;
+      document.getElementById('nuPasswordGroup').querySelector('.form-label').textContent = 'Contraseña';
+
+      const u = id ? (window.__usuariosCache || []).find(x => x.id === id) : null;
+      if (u) {
+        document.getElementById('usuarioModalTitle').textContent = 'Editar Usuario';
+        document.getElementById('usuarioModalSubmitLabel').textContent = 'Guardar Cambios';
+        document.getElementById('usuarioId').value = u.id;
+        document.getElementById('nuNombre').value = u.nombre;
+        document.getElementById('nuEmail').value = u.email;
+        document.getElementById('nuPassword').required = false;
+        document.getElementById('nuPasswordGroup').style.display = 'none';
+      } else {
+        document.getElementById('usuarioModalTitle').textContent = 'Añadir Usuario';
+        document.getElementById('usuarioModalSubmitLabel').textContent = 'Crear Usuario';
+        document.getElementById('nuPasswordGroup').style.display = 'block';
+      }
+      document.getElementById('usuarioModal').style.display = 'flex';
+    }
+
+    function cerrarUsuarioModal() {
+      document.getElementById('usuarioModal').style.display = 'none';
+    }
+
+    async function guardarUsuario(e) {
       e.preventDefault();
+      const id = document.getElementById('usuarioId').value;
       const form = new URLSearchParams();
-      form.set('action', 'create');
+      form.set('action', id ? 'update' : 'create');
+      if (id) form.set('id', id);
       form.set('nombre', document.getElementById('nuNombre').value.trim());
       form.set('email', document.getElementById('nuEmail').value.trim());
-      form.set('password', document.getElementById('nuPassword').value);
+      if (!id) form.set('password', document.getElementById('nuPassword').value);
+
       const res = await fetch('/api/users.php', { method: 'POST', body: form, credentials: 'same-origin' });
       const data = await res.json();
       if (data.status === 'success') {
-        alert('Usuario creado.');
-        e.target.reset();
+        cerrarUsuarioModal();
         cargarUsuarios();
       } else {
-        alert(data.message || 'No se pudo crear el usuario.');
+        alert(data.message || 'No se pudo guardar el usuario.');
       }
     }
 
@@ -1411,7 +1402,6 @@
     }
 
     // Inicializar lista
-    renderDashboardsList();
     cargarHome();
 
     // ─────────────────────────────────────────────────────────────────
@@ -1712,7 +1702,7 @@
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             <a href="${c.public_url}" target="_blank"><button class="btn-action btn-primary">Ver página pública</button></a>
-            <button class="btn-action" onclick="window.print()">Descargar / Imprimir PDF</button>
+            <button class="btn-action" onclick="imprimirReporteSorteo()">Descargar / Imprimir PDF</button>
           </div>
           <details style="margin-bottom:16px;">
             <summary style="cursor:pointer;font-size:12.5px;font-weight:700;color:var(--primary-blue);">Metodología y justificación técnica</summary>
@@ -1724,6 +1714,84 @@
       lucide.createIcons();
       startCountdowns();
       cargarDashboardsDeEmpresa(c.empresa_id, 'periodoSelect', c.dashboard_id);
+    }
+
+    function imprimirReporteSorteo() {
+      if (!sorteoAuditCache) { alert('Selecciona un concurso primero.'); return; }
+      const c = sorteoAuditCache.concurso;
+      const draws = sorteoAuditCache.draws;
+      const generadoEl = new Date().toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' });
+
+      const filas = draws.map(d => `
+        <tr>
+          <td>#${d.sorteo_id}</td>
+          <td>${d.premio ? d.premio.nombre : 'Premio ' + d.kit}</td>
+          <td>${d.ganador.nombre}</td>
+          <td>${d.ganador.documento || '-'}</td>
+          <td>${d.ganador.telefono || '-'}</td>
+          <td>${new Date(d.fecha_sorteo.replace(' ', 'T')).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+          <td>${d.ganador.wins_totales > 1 ? `⚠ ${d.ganador.wins_totales} veces` : d.ganador.wins_totales}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="7" style="text-align:center;color:#64748b;">Todavía no se ha sorteado ningún premio en este concurso.</td></tr>';
+
+      const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reporte de Sorteo — ${c.nombre}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #0f172a; padding: 36px 42px; }
+  h1 { font-size: 19px; margin: 0 0 2px; }
+  .subtitulo { font-size: 12px; color: #475569; margin-bottom: 22px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 24px; font-size: 12px; margin-bottom: 24px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; background: #f8fafc; }
+  .meta-grid div span { display: block; font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; margin-bottom: 1px; }
+  .meta-grid div strong { font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #1e293b; color: #fff; font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .footer { margin-top: 28px; font-size: 9.5px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+  .metodologia { margin-top: 22px; font-size: 10.5px; color: #334155; line-height: 1.6; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; }
+  .metodologia strong { display: block; margin-bottom: 4px; font-size: 11px; }
+  @media print { body { padding: 14px 18px; } }
+</style>
+</head>
+<body>
+  <h1>Reporte de Auditoría de Sorteo</h1>
+  <p class="subtitulo">Marketing Insights — Cibergenios Agencia Digital SAS</p>
+
+  <div class="meta-grid">
+    <div><span>Concurso</span><strong>${c.nombre} (ID #${c.id})</strong></div>
+    <div><span>Empresa</span><strong>${c.empresa_nombre}</strong></div>
+    <div><span>Periodo / Informe</span><strong>${c.dashboard_periodo || 'Sin asignar'}</strong></div>
+    <div><span>Plazo de reclamo por premio</span><strong>${c.claim_hours} horas</strong></div>
+    <div><span>Premios sorteados</span><strong>${draws.length} de ${c.premios.length}</strong></div>
+    <div><span>Fecha y hora de generación del reporte</span><strong>${generadoEl}</strong></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>ID Sorteo</th><th>Premio</th><th>Ganador</th><th>Documento</th><th>Teléfono</th><th>Fecha y Hora del Sorteo</th><th>Veces Ganado (Anti-fraude)</th></tr>
+    </thead>
+    <tbody>${filas}</tbody>
+  </table>
+
+  <div class="metodologia">
+    <strong>Metodología y justificación técnica</strong>
+    ${c.metodologia}
+  </div>
+
+  <div class="footer">Documento generado automáticamente por el Panel de Administración de Marketing Insights el ${generadoEl}. Concurso ID #${c.id} — ${c.public_url}</div>
+
+  ${'<scr' + 'ipt>'}window.onload = function() { window.print(); };${'</scr' + 'ipt>'}
+</body>
+</html>`;
+
+      const w = window.open('', '_blank');
+      if (!w) { alert('El navegador bloqueó la ventana emergente. Habilítala para generar el PDF.'); return; }
+      w.document.write(html);
+      w.document.close();
     }
 
     async function vincularPeriodo() {

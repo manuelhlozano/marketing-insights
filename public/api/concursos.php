@@ -323,7 +323,7 @@ if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $premiosByKit = [];
     foreach ($premios as $p) $premiosByKit[$p['kit']] = $p;
 
-    $drawsStmt = $pdo->prepare("SELECT s.kit, s.created_at, l.id AS lead_id, l.nombre, l.apellido, l.documento, l.telefono, l.correo,
+    $drawsStmt = $pdo->prepare("SELECT s.id AS sorteo_id, s.kit, s.created_at, l.id AS lead_id, l.nombre, l.apellido, l.documento, l.telefono, l.correo,
                                        (SELECT COUNT(*) FROM concurso_sorteos s2
                                         JOIN concurso_leads l2 ON l2.id = s2.lead_id
                                         WHERE l2.documento = l.documento) AS wins_totales
@@ -351,6 +351,7 @@ if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         }, $backupsStmt->fetchAll());
 
         $draws[] = [
+            "sorteo_id" => (int) $d['sorteo_id'],
             "kit" => $d['kit'],
             "premio" => $premiosByKit[$d['kit']] ?? null,
             "ganador" => [
