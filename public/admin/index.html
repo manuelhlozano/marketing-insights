@@ -179,7 +179,7 @@
       <div class="content-card">
         <div class="card-header-inner">
           <span class="card-title-inner"><i data-lucide="layout-dashboard" style="color: var(--primary-blue);"></i> Dashboards</span>
-          <button class="btn-action btn-primary" onclick="alert('Formulario de creación de nuevo periodo/dashboard abierto.')">
+          <button class="btn-action btn-primary" onclick="abrirDashboardModal()">
             <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
             <span>Crear Nuevo Dashboard</span>
           </button>
@@ -549,6 +549,50 @@
         <button type="submit" id="sorteoModalSubmitBtn" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
           <i data-lucide="save" style="width: 16px; height: 16px;"></i>
           <span>Registrar Ganador</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Crear Dashboard -->
+  <div id="dashboardModal" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div class="content-card" style="max-width: 480px; width: 100%;">
+      <div class="card-header-inner" style="justify-content: space-between; display: flex; align-items: center;">
+        <span class="card-title-inner"><i data-lucide="layout-dashboard" style="color: var(--primary-blue);"></i> Crear Nuevo Dashboard</span>
+        <button class="btn-action" onclick="cerrarDashboardModal()" style="padding: 6px 8px;"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
+      </div>
+      <form onsubmit="guardarDashboard(event)" style="margin-top: 16px;">
+        <div class="form-group">
+          <label class="form-label">Empresa / Cliente</label>
+          <select id="ndEmpresa" class="form-input" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Título del Dashboard</label>
+          <input type="text" id="ndTitulo" class="form-input" required placeholder="ej: Informe Ejecutivo de Gestión Mensual | Agosto 2026">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">Periodo</label>
+            <input type="text" id="ndPeriodo" class="form-input" required placeholder="ej: Agosto 2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Slug (URL)</label>
+            <input type="text" id="ndSlug" class="form-input" required placeholder="ej: agosto-2026">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">Fecha inicio</label>
+            <input type="date" id="ndFechaInicio" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha fin</label>
+            <input type="date" id="ndFechaFin" class="form-input">
+          </div>
+        </div>
+        <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+          <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+          <span>Crear Dashboard</span>
         </button>
       </form>
     </div>
@@ -955,6 +999,47 @@
 
     function impersonarDashboard(empresaSlug, dashboardSlug) {
       window.open(`/${empresaSlug}/${dashboardSlug}`, '_blank');
+    }
+
+    async function abrirDashboardModal() {
+      const sel = document.getElementById('ndEmpresa');
+      const res = await fetch('/api/empresas.php?action=list', { credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        sel.innerHTML = data.empresas.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+      }
+      document.getElementById('ndTitulo').value = '';
+      document.getElementById('ndPeriodo').value = '';
+      document.getElementById('ndSlug').value = '';
+      document.getElementById('ndFechaInicio').value = '';
+      document.getElementById('ndFechaFin').value = '';
+      document.getElementById('dashboardModal').style.display = 'flex';
+    }
+
+    function cerrarDashboardModal() {
+      document.getElementById('dashboardModal').style.display = 'none';
+    }
+
+    async function guardarDashboard(e) {
+      e.preventDefault();
+      const form = new URLSearchParams();
+      form.set('action', 'create');
+      form.set('empresa_id', document.getElementById('ndEmpresa').value);
+      form.set('titulo', document.getElementById('ndTitulo').value.trim());
+      form.set('periodo', document.getElementById('ndPeriodo').value.trim());
+      form.set('slug', document.getElementById('ndSlug').value.trim());
+      form.set('fecha_inicio', document.getElementById('ndFechaInicio').value);
+      form.set('fecha_fin', document.getElementById('ndFechaFin').value);
+
+      const res = await fetch('/api/dashboards.php', { method: 'POST', body: form, credentials: 'same-origin' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(`Dashboard creado. Token público: ${data.public_token}`);
+        cerrarDashboardModal();
+        cargarDashboardsTab();
+      } else {
+        alert(data.message || 'No se pudo crear el dashboard.');
+      }
     }
 
     // ─────────────────────────────────────────────────────────────────

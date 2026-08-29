@@ -40,6 +40,32 @@ if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     jsonOut(["status" => "success", "dashboards" => $rows]);
 }
 
+if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $empresaId = (int) ($_POST['empresa_id'] ?? 0);
+    $titulo = trim($_POST['titulo'] ?? '');
+    $periodo = trim($_POST['periodo'] ?? '');
+    $slug = trim($_POST['slug'] ?? '');
+    $fechaInicio = trim($_POST['fecha_inicio'] ?? '') ?: null;
+    $fechaFin = trim($_POST['fecha_fin'] ?? '') ?: null;
+
+    if (!$empresaId || !$titulo || !$periodo || !$slug) {
+        jsonOut(["status" => "error", "message" => "Empresa, título, periodo y slug son obligatorios."], 400);
+    }
+
+    $dup = $pdo->prepare("SELECT id FROM dashboards WHERE empresa_id = ? AND slug = ?");
+    $dup->execute([$empresaId, $slug]);
+    if ($dup->fetch()) {
+        jsonOut(["status" => "error", "message" => "Ya existe un dashboard con ese slug para esta empresa."], 409);
+    }
+
+    $token = 'mkt_live_' . bin2hex(random_bytes(8));
+    $ins = $pdo->prepare("INSERT INTO dashboards (empresa_id, titulo, slug, periodo, fecha_inicio, fecha_fin, public_token, es_publico)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
+    $ins->execute([$empresaId, $titulo, $slug, $periodo, $fechaInicio, $fechaFin, $token]);
+
+    jsonOut(["status" => "success", "id" => (int) $pdo->lastInsertId(), "public_token" => $token]);
+}
+
 if ($action === 'toggle_visibility' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     if (!$id) jsonOut(["status" => "error", "message" => "Dashboard inválido."], 400);
