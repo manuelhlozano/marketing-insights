@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Ruleta de Premios</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; width: 100%; overflow: hidden;
+    font-family: 'Inter', Arial, sans-serif;
+    background: linear-gradient(160deg, #0B3D91 0%, #1565D8 55%, #3B9AE1 100%);
+    background-size: cover; background-position: center;
+    color: #0f172a;
+    user-select: none;
+  }
+  #stage {
+    height: 100%; width: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; padding: 24px; text-align: center;
+  }
+  #titulo {
+    color: #fff; font-size: clamp(22px, 4vw, 38px); font-weight: 900;
+    text-shadow: 0 3px 14px rgba(0,0,0,.35); max-width: 900px; line-height: 1.15;
+  }
+  #wheelWrap { position: relative; width: min(70vh, 480px); height: min(70vh, 480px); }
+  #pointer {
+    position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; z-index: 5;
+    border-left: 20px solid transparent; border-right: 20px solid transparent;
+    border-top: 34px solid #FDE047;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+  }
+  #wheel {
+    width: 100%; height: 100%; border-radius: 50%;
+    border: 10px solid #fff; box-shadow: 0 10px 40px rgba(0,0,0,.4), inset 0 0 0 3px #0B3D91;
+    position: relative; transition: transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+  }
+  #wheelHub {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 18%; height: 18%; border-radius: 50%; background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: #0B3D91; font-size: 13px;
+  }
+  .segment-label {
+    position: absolute; top: 50%; left: 50%; transform-origin: 0 0;
+    font-size: 12.5px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.4);
+    width: 42%; text-align: right; white-space: nowrap;
+  }
+  #girarBtn {
+    background: #0F172A; color: #fff; border: none; border-radius: 999px;
+    padding: 16px 46px; font-size: 18px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,.3); transition: transform .15s;
+  }
+  #girarBtn:active { transform: scale(0.96); }
+  #girarBtn:disabled { opacity: .5; cursor: not-allowed; }
+  #hint { color: rgba(255,255,255,.9); font-size: 14px; font-weight: 600; letter-spacing: .02em; }
+  #hint kbd {
+    background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.5);
+    border-radius: 6px; padding: 2px 10px; font-weight: 800; margin: 0 3px;
+  }
+
+  #resultOverlay {
+    position: fixed; inset: 0; background: rgba(6,12,28,.82); backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  #resultCard {
+    background: #fff; border-radius: 20px; padding: 40px 36px; text-align: center;
+    max-width: 420px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  }
+  #resultTitle { font-size: 28px; font-weight: 900; margin-bottom: 10px; }
+  #resultTitle.win { color: #059669; }
+  #resultTitle.lose { color: #64748B; }
+  #resultPremio { font-size: 19px; font-weight: 700; color: #0f172a; margin-bottom: 22px; }
+  #resultActions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn { border: none; border-radius: 10px; padding: 12px 22px; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+  .btn-primary { background: #0B3D91; color: #fff; }
+  .btn-ghost { background: #E2E8F0; color: #0f172a; }
+
+  #loadingBox, #errorBox {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px; font-weight: 600; text-align: center; padding: 30px; z-index: 60;
+  }
+  #errorBox { display: none; flex-direction: column; gap: 10px; }
+</style>
+</head>
+<body>
+
+  <div id="loadingBox">Cargando ruleta…</div>
+  <div id="errorBox"></div>
+
+  <div id="stage" style="display:none;">
+    <h1 id="titulo">¡Gira y gana!</h1>
+
+    <div id="wheelWrap">
+      <div id="pointer"></div>
+      <div id="wheel">
+        <div id="wheelHub">GIRAR</div>
+      </div>
+    </div>
+
+    <button id="girarBtn">¡Girar la Ruleta!</button>
+    <p id="hint">Presiona <kbd>ESPACIO</kbd> o toca el botón para girar</p>
+  </div>
+
+  <div id="resultOverlay">
+    <div id="resultCard">
+      <div id="resultTitle"></div>
+      <div id="resultPremio"></div>
+      <div id="resultActions">
+        <button class="btn btn-primary" id="btnImprimir" onclick="imprimirFichaRuleta()" style="display:none;">Imprimir Ficha del Premio</button>
+        <button class="btn btn-ghost" onclick="cerrarResultado()">Girar de Nuevo</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('e') || params.get('token') || '';
+  const API = '/api/ruleta-publica.php';
+
+  let premios = [];
+  let girando = false;
+  let ultimoGiroId = null;
+  let anchoTicket = '80mm';
+  let acumuladoRotacion = 0;
+
+  function showError(msg) {
+    document.getElementById('loadingBox').style.display = 'none';
+    const box = document.getElementById('errorBox');
+    box.style.display = 'flex';
+    box.textContent = msg;
+  }
+
+  async function cargarDetalle() {
+    if (!token) { showError('Falta el enlace de la estación. Pide al administrador la URL correcta de esta taquilla/cajero.'); return; }
+    try {
+      const res = await fetch(`${API}?action=detalle&token=${encodeURIComponent(token)}`);
+      const data = await res.json();
+      if (data.status !== 'success') { showError(data.message || 'No se pudo cargar la ruleta.'); return; }
+
+      premios = data.ruleta_premios_local = data.premios;
+      anchoTicket = data.estacion.ancho_ticket;
+
+      document.getElementById('titulo').textContent = data.ruleta.titulo_publico;
+      document.title = data.ruleta.titulo_publico;
+      if (data.ruleta.imagen_fondo_url) {
+        document.body.style.backgroundImage = `url('${data.ruleta.imagen_fondo_url}')`;
+      }
+      const durMs = Math.max(1, data.ruleta.duracion_segundos) * 1000;
+      document.getElementById('wheel').style.transitionDuration = (durMs / 1000) + 's';
+
+      construirRueda(premios);
+
+      document.getElementById('loadingBox').style.display = 'none';
+      document.getElementById('stage').style.display = 'flex';
+    } catch (e) {
+      showError('Error de conexión. Verifica la red del punto de venta.');
+    }
+  }
+
+  function construirRueda(premios) {
+    const wheel = document.getElementById('wheel');
+    let acumulado = 0;
+    const stops = [];
+    premios.forEach(p => {
+      const desde = acumulado;
+      const grados = (p.probabilidad / 100) * 360;
+      acumulado += grados;
+      stops.push(`${p.color} ${desde}deg ${acumulado}deg`);
+    });
+    wheel.style.background = `conic-gradient(${stops.join(', ')})`;
+
+    document.querySelectorAll('.segment-label').forEach(el => el.remove());
+    acumulado = 0;
+    premios.forEach(p => {
+      const grados = (p.probabilidad / 100) * 360;
+      const medio = acumulado + grados / 2;
+      acumulado += grados;
+      if (grados < 8) return; // segmentos muy angostos no llevan etiqueta (se solapan)
+      const label = document.createElement('div');
+      label.className = 'segment-label';
+      label.textContent = p.nombre;
+      label.style.transform = `rotate(${medio}deg) translateX(8%)`;
+      wheel.appendChild(label);
+    });
+  }
+
+  async function girar() {
+    if (girando || premios.length === 0) return;
+    girando = true;
+    document.getElementById('girarBtn').disabled = true;
+
+    try {
+      const form = new URLSearchParams();
+      form.set('action', 'girar');
+      form.set('token', token);
+      const res = await fetch(API, { method: 'POST', body: form });
+      const data = await res.json();
+      if (data.status !== 'success') {
+        alert(data.message || 'No se pudo girar la ruleta.');
+        girando = false;
+        document.getElementById('girarBtn').disabled = false;
+        return;
+      }
+
+      animarHaciaPremio(data.premio.id, () => mostrarResultado(data));
+    } catch (e) {
+      alert('Error de conexión al girar.');
+      girando = false;
+      document.getElementById('girarBtn').disabled = false;
+    }
+  }
+
+  function anguloDelPremio(premioId) {
+    let acumulado = 0;
+    for (const p of premios) {
+      const grados = (p.probabilidad / 100) * 360;
+      if (p.id === premioId) return acumulado + grados / 2;
+      acumulado += grados;
+    }
+    return 0;
+  }
+
+  function animarHaciaPremio(premioId, onDone) {
+    const wheel = document.getElementById('wheel');
+    const anguloObjetivo = anguloDelPremio(premioId);
+    // El puntero está fijo arriba (0deg); para que el segmento quede bajo el
+    // puntero hay que rotar la rueda en sentido contrario a su ángulo, más
+    // varias vueltas completas para el efecto visual del giro.
+    const vueltasExtra = 6 * 360;
+    acumuladoRotacion += vueltasExtra + (360 - anguloObjetivo) - (acumuladoRotacion % 360);
+    wheel.style.transform = `rotate(${acumuladoRotacion}deg)`;
+
+    const durMs = parseFloat(getComputedStyle(wheel).transitionDuration) * 1000 || 5000;
+    setTimeout(onDone, durMs + 150);
+  }
+
+  function mostrarResultado(data) {
+    girando = false;
+    ultimoGiroId = data.giro_id;
+    const titleEl = document.getElementById('resultTitle');
+    const premioEl = document.getElementById('resultPremio');
+    const btnImprimir = document.getElementById('btnImprimir');
+
+    if (data.premio.es_perdedor) {
+      titleEl.textContent = '¡Ups, no ganaste!';
+      titleEl.className = 'lose';
+      premioEl.textContent = 'Gracias por participar. ¡Vuelve a intentarlo en tu próxima compra!';
+      btnImprimir.style.display = 'none';
+    } else {
+      titleEl.textContent = '¡ERES GANADOR!';
+      titleEl.className = 'win';
+      premioEl.textContent = data.premio.nombre;
+      btnImprimir.style.display = 'inline-block';
+    }
+
+    document.getElementById('resultOverlay').style.display = 'flex';
+  }
+
+  function cerrarResultado() {
+    document.getElementById('resultOverlay').style.display = 'none';
+    document.getElementById('girarBtn').disabled = false;
+  }
+  window.cerrarResultado = cerrarResultado;
+
+  window.imprimirFichaRuleta = async function() {
+    if (!ultimoGiroId) return;
+    try {
+      const res = await fetch(`${API}?action=ticket&token=${encodeURIComponent(token)}&giro_id=${ultimoGiroId}`);
+      const data = await res.json();
+      if (data.status !== 'success') { alert(data.message || 'No se pudo generar la ficha.'); return; }
+
+      const widthMm = data.ancho_ticket === '58mm' ? 58 : 80;
+      const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ficha de Premio</title>
+<style>
+  @page { size: ${widthMm}mm auto; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    width: ${widthMm}mm; margin: 0; padding: 4mm 3mm;
+    font-family: 'Courier New', monospace; color: #000; text-align: center;
+  }
+  .logo { max-width: 70%; max-height: 18mm; object-fit: contain; margin-bottom: 2mm; }
+  .empresa { font-size: 11px; font-weight: 700; margin-bottom: 3mm; }
+  .titulo { font-size: 16px; font-weight: 900; letter-spacing: 1px; margin: 3mm 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 2mm 0; }
+  .premio { font-size: 14px; font-weight: 800; margin: 3mm 0; }
+  table { width: 100%; font-size: 10px; margin-top: 3mm; border-collapse: collapse; }
+  table td { padding: 1mm 0; text-align: left; }
+  table td.v { text-align: right; font-weight: 700; }
+  .footer { font-size: 8.5px; margin-top: 4mm; color: #333; }
+</style>
+</head>
+<body>
+  ${data.logo_url ? `<img class="logo" src="/${data.logo_url}">` : ''}
+  <div class="empresa">${data.empresa_nombre}</div>
+  <div class="titulo">¡ERES GANADOR!</div>
+  <div class="premio">${data.premio_nombre}</div>
+  <table>
+    <tr><td>Fecha</td><td class="v">${data.fecha}</td></tr>
+    <tr><td>Hora</td><td class="v">${data.hora}</td></tr>
+    <tr><td>ID Giro</td><td class="v">#${data.giro_id}</td></tr>
+    <tr><td>${data.estacion_tipo === 'cajero' ? 'Cajero' : 'Taquilla'}</td><td class="v">${data.estacion_nombre}</td></tr>
+  </table>
+  <div class="footer">Presenta esta ficha para reclamar tu premio. Documento generado por Marketing Insights — Cibergenios.</div>
+  ${'<scr' + 'ipt>'}window.onload = function() { window.print(); };${'</scr' + 'ipt>'}
+</body>
+</html>`;
+
+      const w = window.open('', '_blank');
+      if (!w) { alert('El navegador bloqueó la ventana emergente. Habilítala para imprimir la ficha.'); return; }
+      w.document.write(html);
+      w.document.close();
+    } catch (e) {
+      alert('Error al generar la ficha de impresión.');
+    }
+  };
+
+  document.getElementById('girarBtn').addEventListener('click', girar);
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      e.preventDefault();
+      if (document.getElementById('resultOverlay').style.display === 'flex') return;
+      girar();
+    }
+  });
+
+  cargarDetalle();
+})();
+</script>
+
+</body>
+</html>

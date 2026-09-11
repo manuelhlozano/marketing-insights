@@ -86,6 +86,7 @@
     renderSeo(data.seo || {});
     renderEntregables(data.entregables || [], data.entregables_summary || {});
     renderConcursos(data.concursos || {});
+    renderRuleta(data.ruleta || {});
     renderResumen(data.dashboard || {});
     applyModulosToggle(data.modulos_activos || []);
 
@@ -384,6 +385,31 @@
     set('concursosActivos', fmt(val(concursos, 'concursos_activos')));
   }
 
+  // ─── RULETA DE PREMIOS ────────────────────────────────────────────────────────
+  function renderRuleta(ruleta) {
+    if (!ruleta) return;
+    set('ruletaTotalGiros',       fmt(val(ruleta, 'total_giros')));
+    set('ruletaGirosTaquilla',    fmt(val(ruleta, 'giros_taquilla')));
+    set('ruletaGirosCajero',      fmt(val(ruleta, 'giros_cajero')));
+    set('ruletaPremiosEntregados',fmt(val(ruleta, 'premios_entregados')));
+    set('ruletaHoraPico',         txt(ruleta, 'hora_pico') || '—');
+
+    const top = Object.keys(ruleta)
+      .filter(k => k.startsWith('top_premio_'))
+      .map(k => ({ nombre: ruleta[k].etiqueta, cantidad: ruleta[k].valor }))
+      .filter(t => t.nombre);
+
+    const box = document.getElementById('ruletaTopPremiosList');
+    if (box) {
+      box.innerHTML = top.length ? top.map((t, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-card-alt);border-radius:6px;border:1px solid var(--border-card);margin-bottom:6px;font-size:12.5px;">
+          <span><strong>#${i + 1}</strong> ${t.nombre}</span>
+          <span class="kpi-badge badge-info">${fmt(t.cantidad)}</span>
+        </div>
+      `).join('') : '<p style="font-size:12.5px;color:var(--text-muted);">Sin giros registrados todavía en este periodo.</p>';
+    }
+  }
+
   // ─── RESUMEN EJECUTIVO ────────────────────────────────────────────────────────
   function renderResumen(dashboard) {
     set('dashResumen', dashboard.resumen);
@@ -402,6 +428,7 @@
       seo:         'sectionSeo',
       entregables: 'sectionEntregables',
       concursos:   'sectionConcursos',
+      ruleta:      'sectionRuleta',
     };
 
 
