@@ -128,6 +128,16 @@
   let anchoTicket = '80mm';
   let acumuladoRotacion = 0;
 
+  function escHtml(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function safeRelativePath(p) {
+    // Solo permite rutas relativas del propio servidor (nunca javascript:, data: ni //host externo).
+    if (!p || typeof p !== 'string') return '';
+    if (/^(javascript|data):/i.test(p) || p.startsWith('//') || /^[a-z]+:\/\//i.test(p)) return '';
+    return p.replace(/^\/+/, '');
+  }
+
   function showError(msg) {
     document.getElementById('loadingBox').style.display = 'none';
     const box = document.getElementById('errorBox');
@@ -147,8 +157,8 @@
 
       document.getElementById('titulo').textContent = data.ruleta.titulo_publico;
       document.title = data.ruleta.titulo_publico;
-      if (data.ruleta.imagen_fondo_url) {
-        document.body.style.backgroundImage = `url('${data.ruleta.imagen_fondo_url}')`;
+      if (data.ruleta.imagen_fondo_url && /^https:\/\//i.test(data.ruleta.imagen_fondo_url)) {
+        document.body.style.backgroundImage = `url('${data.ruleta.imagen_fondo_url.replace(/'/g, '%27')}')`;
       }
       const durMs = Math.max(1, data.ruleta.duracion_segundos) * 1000;
       document.getElementById('wheel').style.transitionDuration = (durMs / 1000) + 's';
@@ -298,15 +308,15 @@
 </style>
 </head>
 <body>
-  ${data.logo_url ? `<img class="logo" src="/${data.logo_url}">` : ''}
-  <div class="empresa">${data.empresa_nombre}</div>
+  ${safeRelativePath(data.logo_url) ? `<img class="logo" src="/${escHtml(safeRelativePath(data.logo_url))}">` : ''}
+  <div class="empresa">${escHtml(data.empresa_nombre)}</div>
   <div class="titulo">¡ERES GANADOR!</div>
-  <div class="premio">${data.premio_nombre}</div>
+  <div class="premio">${escHtml(data.premio_nombre)}</div>
   <table>
-    <tr><td>Fecha</td><td class="v">${data.fecha}</td></tr>
-    <tr><td>Hora</td><td class="v">${data.hora}</td></tr>
-    <tr><td>ID Giro</td><td class="v">#${data.giro_id}</td></tr>
-    <tr><td>${data.estacion_tipo === 'cajero' ? 'Cajero' : 'Taquilla'}</td><td class="v">${data.estacion_nombre}</td></tr>
+    <tr><td>Fecha</td><td class="v">${escHtml(data.fecha)}</td></tr>
+    <tr><td>Hora</td><td class="v">${escHtml(data.hora)}</td></tr>
+    <tr><td>ID Giro</td><td class="v">#${Number(data.giro_id) || 0}</td></tr>
+    <tr><td>${data.estacion_tipo === 'cajero' ? 'Cajero' : 'Taquilla'}</td><td class="v">${escHtml(data.estacion_nombre)}</td></tr>
   </table>
   <div class="footer">Presenta esta ficha para reclamar tu premio. Documento generado por Marketing Insights — Cibergenios.</div>
   ${'<scr' + 'ipt>'}window.onload = function() { window.print(); };${'</scr' + 'ipt>'}

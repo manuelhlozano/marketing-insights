@@ -2196,6 +2196,13 @@
     let ruletasCache = [];
     let ruletaActivaId = null;
 
+    function escHtml(s) {
+      return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function escColor(c) {
+      return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#0284C7';
+    }
+
     async function cargarRuletas() {
       const tbody = document.getElementById('ruletasTableBody');
       try {
@@ -2220,9 +2227,9 @@
       }
       tbody.innerHTML = ruletasCache.map(r => `
         <tr>
-          <td><strong>${r.nombre}</strong></td>
-          <td>${r.empresa_nombre}</td>
-          <td>${r.duracion_segundos}s</td>
+          <td><strong>${escHtml(r.nombre)}</strong></td>
+          <td>${escHtml(r.empresa_nombre)}</td>
+          <td>${escHtml(r.duracion_segundos)}s</td>
           <td><span class="kpi-badge badge-info">${r.total_premios}</span></td>
           <td><span class="kpi-badge badge-info">${r.total_estaciones}</span></td>
           <td>
@@ -2363,13 +2370,13 @@
       }
       box.innerHTML = premios.map(p => `
         <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-card-alt);border-radius:var(--radius-sm);border:1px solid var(--border-card);">
-          <div style="width:18px;height:18px;border-radius:50%;background:${p.color};flex-shrink:0;border:2px solid #fff;box-shadow:0 0 0 1px var(--border-card);"></div>
+          <div style="width:18px;height:18px;border-radius:50%;background:${escColor(p.color)};flex-shrink:0;border:2px solid #fff;box-shadow:0 0 0 1px var(--border-card);"></div>
           <div style="flex:1;">
-            <strong style="font-size:13px;">${p.nombre}</strong>
+            <strong style="font-size:13px;">${escHtml(p.nombre)}</strong>
             ${p.es_perdedor ? '<span class="kpi-badge badge-negative" style="margin-left:6px;">Sin premio</span>' : ''}
           </div>
-          <span class="kpi-badge badge-info">${p.probabilidad}%</span>
-          <button class="admin-sb-icon-btn" title="Eliminar" onclick="eliminarPremio(${p.id})"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+          <span class="kpi-badge badge-info">${escHtml(p.probabilidad)}%</span>
+          <button class="admin-sb-icon-btn" title="Eliminar" onclick="eliminarPremio(${Number(p.id)})"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
         </div>
       `).join('');
       if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -2448,24 +2455,27 @@
         <div style="padding:10px 12px;background:var(--bg-card-alt);border-radius:var(--radius-sm);border:1px solid var(--border-card);">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
             <div>
-              <strong style="font-size:13px;">${e.nombre}</strong>
+              <strong style="font-size:13px;">${escHtml(e.nombre)}</strong>
               <span class="kpi-badge badge-info" style="margin-left:6px;">${e.tipo === 'cajero' ? 'Cajero' : 'Taquilla'}</span>
-              <span class="kpi-badge badge-info" style="margin-left:4px;">${e.ancho_ticket}</span>
+              <span class="kpi-badge badge-info" style="margin-left:4px;">${escHtml(e.ancho_ticket)}</span>
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
               <label class="admin-switch">
-                <input type="checkbox" ${e.activa ? 'checked' : ''} onchange="toggleEstacionActiva(${e.id})">
+                <input type="checkbox" ${e.activa ? 'checked' : ''} onchange="toggleEstacionActiva(${Number(e.id)})">
                 <span class="slider-toggle"></span>
               </label>
-              <button class="admin-sb-icon-btn" title="Eliminar" onclick="eliminarEstacion(${e.id})"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+              <button class="admin-sb-icon-btn" title="Eliminar" onclick="eliminarEstacion(${Number(e.id)})"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-            <code style="font-size:11px;flex:1;overflow-x:auto;white-space:nowrap;">${fullBase}${e.url}</code>
-            <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="copiarUrlEstacion('${fullBase}${e.url}')">Copiar</button>
+            <code class="estacion-url-code" style="font-size:11px;flex:1;overflow-x:auto;white-space:nowrap;">${escHtml(fullBase + e.url)}</code>
+            <button class="btn-action btn-copiar-estacion" data-url="${escHtml(fullBase + e.url)}" style="padding:5px 8px;font-size:11px;">Copiar</button>
           </div>
         </div>
       `).join('');
+      box.querySelectorAll('.btn-copiar-estacion').forEach(btn => {
+        btn.addEventListener('click', () => copiarUrlEstacion(btn.dataset.url));
+      });
       if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
@@ -2561,13 +2571,13 @@
 
       const topHtml = data.top_premios.length ? data.top_premios.map((p, i) => `
         <div style="display:flex;justify-content:space-between;padding:7px 10px;background:var(--bg-card-alt);border-radius:6px;border:1px solid var(--border-card);margin-bottom:5px;font-size:12.5px;">
-          <span><strong>#${i + 1}</strong> ${p.nombre}</span><span class="kpi-badge badge-info">${p.total}</span>
+          <span><strong>#${i + 1}</strong> ${escHtml(p.nombre)}</span><span class="kpi-badge badge-info">${escHtml(p.total)}</span>
         </div>
       `).join('') : '<p style="font-size:12px;color:var(--text-muted);">Sin giros en este rango.</p>';
 
       const estacionHtml = data.por_estacion.length ? data.por_estacion.map(e => `
         <div style="display:flex;justify-content:space-between;padding:7px 10px;background:var(--bg-card-alt);border-radius:6px;border:1px solid var(--border-card);margin-bottom:5px;font-size:12.5px;">
-          <span>${e.nombre} <span class="kpi-badge badge-info" style="margin-left:4px;">${e.tipo === 'cajero' ? 'Cajero' : 'Taquilla'}</span></span><span class="kpi-badge badge-info">${e.total}</span>
+          <span>${escHtml(e.nombre)} <span class="kpi-badge badge-info" style="margin-left:4px;">${e.tipo === 'cajero' ? 'Cajero' : 'Taquilla'}</span></span><span class="kpi-badge badge-info">${escHtml(e.total)}</span>
         </div>
       `).join('') : '<p style="font-size:12px;color:var(--text-muted);">Sin giros en este rango.</p>';
 

@@ -117,7 +117,8 @@ if ($action === 'premio_save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     $ruletaId = (int) ($_POST['ruleta_id'] ?? 0);
     $nombre = trim($_POST['nombre'] ?? '');
-    $color = trim($_POST['color'] ?? '') ?: '#0284C7';
+    $color = trim($_POST['color'] ?? '');
+    $color = preg_match('/^#[0-9a-fA-F]{6}$/', $color) ? $color : '#0284C7';
     $probabilidad = (float) ($_POST['probabilidad'] ?? 0);
     $esPerdedor = !empty($_POST['es_perdedor']) ? 1 : 0;
 
