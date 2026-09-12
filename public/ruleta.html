@@ -46,8 +46,8 @@
   }
   .segment-label {
     position: absolute; top: 50%; left: 50%; transform-origin: 0 0;
-    font-size: 12.5px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.4);
-    width: 42%; text-align: right; white-space: nowrap;
+    font-size: 10.5px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.45);
+    width: 44%; text-align: right; white-space: nowrap; letter-spacing: -.01em;
   }
   #girarBtn {
     background: #0F172A; color: #fff; border: none; border-radius: 999px;
@@ -172,29 +172,69 @@
     }
   }
 
+  // La rueda se dibuja con N tajadas del MISMO tamaño (como una ruleta real de
+  // feria), repitiendo cada premio tantas veces como le corresponda según su
+  // probabilidad, e intercalando las tajadas de cada premio para que no
+  // queden todas juntas (evita el efecto "cuña gigante + astilla" que se ve
+  // desprolijo). El sorteo real sigue decidiéndose en el servidor por
+  // probabilidad exacta; esto es solo la representación visual.
+  const TOTAL_TAJADAS = 12;
+  let tajadas = []; // [{ premio, anguloDesde, anguloHasta, anguloMedio }]
+
+  function calcularTajadasPorPremio(premios, total) {
+    // Reparto por mayor resto (Hare-Niemeyer) para que la suma dé exacto `total`.
+    const base = premios.map(p => (p.probabilidad / 100) * total);
+    const counts = base.map(Math.floor);
+    let asignadas = counts.reduce((a, b) => a + b, 0);
+    const restos = base.map((v, i) => ({ i, resto: v - counts[i] })).sort((a, b) => b.resto - a.resto);
+    let idx = 0;
+    while (asignadas < total && idx < restos.length) {
+      counts[restos[idx].i]++;
+      asignadas++;
+      idx++;
+    }
+    // Ningún premio con probabilidad > 0 debería quedar en 0 tajadas.
+    premios.forEach((p, i) => { if (p.probabilidad > 0 && counts[i] === 0) counts[i] = 1; });
+    return premios.map((p, i) => ({ premio: p, count: counts[i] }));
+  }
+
+  function intercalarTajadas(grupos, total) {
+    // Distribuye cada grupo lo más espaciado posible dentro del círculo,
+    // procesando primero los grupos con más tajadas (estilo "reorganize string").
+    const slots = new Array(total).fill(null);
+    const ordenados = [...grupos].sort((a, b) => b.count - a.count);
+    ordenados.forEach(g => {
+      for (let k = 0; k < g.count; k++) {
+        let idx = Math.round((k * total) / g.count) % total;
+        while (slots[idx] !== null) idx = (idx + 1) % total;
+        slots[idx] = g.premio;
+      }
+    });
+    return slots;
+  }
+
   function construirRueda(premios) {
     const wheel = document.getElementById('wheel');
-    let acumulado = 0;
-    const stops = [];
-    premios.forEach(p => {
-      const desde = acumulado;
-      const grados = (p.probabilidad / 100) * 360;
-      acumulado += grados;
-      stops.push(`${p.color} ${desde}deg ${acumulado}deg`);
-    });
+    const grupos = calcularTajadasPorPremio(premios, TOTAL_TAJADAS);
+    const orden = intercalarTajadas(grupos, TOTAL_TAJADAS);
+    const anguloTajada = 360 / TOTAL_TAJADAS;
+
+    tajadas = orden.map((premio, i) => ({
+      premio,
+      anguloDesde: i * anguloTajada,
+      anguloHasta: (i + 1) * anguloTajada,
+      anguloMedio: i * anguloTajada + anguloTajada / 2,
+    }));
+
+    const stops = tajadas.map(t => `${t.premio.color} ${t.anguloDesde}deg ${t.anguloHasta}deg`);
     wheel.style.background = `conic-gradient(${stops.join(', ')})`;
 
     document.querySelectorAll('.segment-label').forEach(el => el.remove());
-    acumulado = 0;
-    premios.forEach(p => {
-      const grados = (p.probabilidad / 100) * 360;
-      const medio = acumulado + grados / 2;
-      acumulado += grados;
-      if (grados < 8) return; // segmentos muy angostos no llevan etiqueta (se solapan)
+    tajadas.forEach(t => {
       const label = document.createElement('div');
       label.className = 'segment-label';
-      label.textContent = p.nombre;
-      label.style.transform = `rotate(${medio}deg) translateX(8%)`;
+      label.textContent = t.premio.nombre;
+      label.style.transform = `rotate(${t.anguloMedio}deg) translateX(8%)`;
       wheel.appendChild(label);
     });
   }
@@ -226,13 +266,10 @@
   }
 
   function anguloDelPremio(premioId) {
-    let acumulado = 0;
-    for (const p of premios) {
-      const grados = (p.probabilidad / 100) * 360;
-      if (p.id === premioId) return acumulado + grados / 2;
-      acumulado += grados;
-    }
-    return 0;
+    const candidatas = tajadas.filter(t => t.premio.id === premioId);
+    if (candidatas.length === 0) return 0;
+    const elegida = candidatas[Math.floor(Math.random() * candidatas.length)];
+    return elegida.anguloMedio;
   }
 
   function animarHaciaPremio(premioId, onDone) {
