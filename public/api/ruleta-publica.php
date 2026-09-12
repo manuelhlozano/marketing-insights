@@ -24,7 +24,7 @@ function jsonOut($data, int $code = 200): void {
 
 function mkt_estacion_por_token(PDO $pdo, string $token): ?array {
     $stmt = $pdo->prepare("SELECT e.id AS estacion_id, e.nombre AS estacion_nombre, e.tipo, e.ancho_ticket, e.activa AS estacion_activa,
-                                   r.id AS ruleta_id, r.nombre AS ruleta_nombre, r.titulo_publico, r.duracion_segundos, r.imagen_fondo_url, r.activa AS ruleta_activa,
+                                   r.id AS ruleta_id, r.nombre AS ruleta_nombre, r.titulo_publico, r.duracion_segundos, r.imagen_fondo_url, r.imagen_centro_url, r.activa AS ruleta_activa,
                                    emp.id AS empresa_id, emp.nombre AS empresa_nombre, emp.logo_light_url
                             FROM ruleta_estaciones e
                             JOIN ruletas r ON r.id = e.ruleta_id
@@ -69,6 +69,7 @@ if ($action === 'detalle' && $_SERVER['REQUEST_METHOD'] === 'GET') {
             "titulo_publico" => $info['titulo_publico'],
             "duracion_segundos" => (float) $info['duracion_segundos'],
             "imagen_fondo_url" => $info['imagen_fondo_url'],
+            "imagen_centro_url" => $info['imagen_centro_url'],
         ],
         "empresa" => [
             "nombre" => $info['empresa_nombre'],

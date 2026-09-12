@@ -17,14 +17,33 @@
   }
   #stage {
     height: 100%; width: 100%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 18px; padding: 24px; text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 24px; gap: 10px; text-align: center; overflow: hidden;
+  }
+  #brandHeader { flex-shrink: 0; padding: 4px 0 2px; }
+  #brandLogo {
+    max-height: 62px; max-width: min(320px, 60vw); object-fit: contain;
+    background: #fff; padding: 8px 20px; border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  }
+  #mainRow {
+    flex: 1; width: 100%; max-width: 1080px; min-height: 0;
+    display: flex; align-items: center; justify-content: center; gap: 44px; flex-wrap: wrap;
+  }
+  .col-wheel { flex: 0 0 auto; }
+  .col-info {
+    flex: 1 1 300px; max-width: 400px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
   }
   #titulo {
-    color: #fff; font-size: clamp(22px, 4vw, 38px); font-weight: 900;
-    text-shadow: 0 3px 14px rgba(0,0,0,.35); max-width: 900px; line-height: 1.15;
+    color: #fff; font-size: clamp(20px, 3.4vw, 32px); font-weight: 900;
+    text-shadow: 0 3px 14px rgba(0,0,0,.35); line-height: 1.2;
   }
-  #wheelWrap { position: relative; width: min(70vh, 480px); height: min(70vh, 480px); }
+  #wheelWrap { position: relative; width: min(56vh, 420px); height: min(56vh, 420px); }
+  @media (max-width: 720px) {
+    #mainRow { flex-direction: column; gap: 22px; }
+    #wheelWrap { width: min(72vw, 380px); height: min(72vw, 380px); }
+  }
   #pointer {
     position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
     width: 0; height: 0; z-index: 5;
@@ -94,17 +113,23 @@
   <div id="errorBox"></div>
 
   <div id="stage" style="display:none;">
-    <h1 id="titulo">¡Gira y gana!</h1>
+    <header id="brandHeader"><img id="brandLogo" src="" alt="" style="display:none;"></header>
 
-    <div id="wheelWrap">
-      <div id="pointer"></div>
-      <div id="wheel">
-        <div id="wheelHub">GIRAR</div>
+    <div id="mainRow">
+      <div class="col-wheel">
+        <div id="wheelWrap">
+          <div id="pointer"></div>
+          <div id="wheel">
+            <div id="wheelHub">GIRAR</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-info">
+        <h1 id="titulo">¡Gira y gana!</h1>
+        <button id="girarBtn">¡Girar la Ruleta!</button>
+        <p id="hint">Presiona <kbd>ESPACIO</kbd> o toca el botón para girar</p>
       </div>
     </div>
-
-    <button id="girarBtn">¡Girar la Ruleta!</button>
-    <p id="hint">Presiona <kbd>ESPACIO</kbd> o toca el botón para girar</p>
   </div>
 
   <div id="resultOverlay">
@@ -139,6 +164,13 @@
     if (/^(javascript|data):/i.test(p) || p.startsWith('//') || /^[a-z]+:\/\//i.test(p)) return '';
     return p.replace(/^\/+/, '');
   }
+  function safeImageSrc(p) {
+    // Igual que safeRelativePath, pero también admite imágenes externas https:// (ej. logo/gráfica alojada aparte).
+    if (!p || typeof p !== 'string') return '';
+    if (/^https:\/\//i.test(p)) return p;
+    const rel = safeRelativePath(p);
+    return rel ? '/' + rel : '';
+  }
 
   function showError(msg) {
     document.getElementById('loadingBox').style.display = 'none';
@@ -165,9 +197,17 @@
       const durMs = Math.max(1, data.ruleta.duracion_segundos) * 1000;
       document.getElementById('wheel').style.transitionDuration = (durMs / 1000) + 's';
 
-      const logo = safeRelativePath(data.empresa.logo_url);
-      if (logo) {
-        document.getElementById('wheelHub').innerHTML = `<img src="/${escHtml(logo)}" alt="${escHtml(data.empresa.nombre)}">`;
+      const logoSrc = safeImageSrc(data.empresa.logo_url);
+      if (logoSrc) {
+        const logoEl = document.getElementById('brandLogo');
+        logoEl.src = logoSrc;
+        logoEl.alt = data.empresa.nombre || '';
+        logoEl.style.display = '';
+      }
+
+      const centroSrc = safeImageSrc(data.ruleta.imagen_centro_url);
+      if (centroSrc) {
+        document.getElementById('wheelHub').innerHTML = `<img src="${escHtml(centroSrc)}" alt="">`;
       }
 
       construirRueda(premios);

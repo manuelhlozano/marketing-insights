@@ -29,7 +29,7 @@ try {
 
 if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt = $pdo->query("SELECT r.id, r.empresa_id, r.nombre, r.slug, r.titulo_publico, r.duracion_segundos,
-                                 r.imagen_fondo_url, r.activa, e.nombre AS empresa_nombre,
+                                 r.imagen_fondo_url, r.imagen_centro_url, r.activa, e.nombre AS empresa_nombre,
                                  (SELECT COUNT(*) FROM ruleta_premios WHERE ruleta_id = r.id) AS total_premios,
                                  (SELECT COUNT(*) FROM ruleta_estaciones WHERE ruleta_id = r.id) AS total_estaciones
                           FROM ruletas r JOIN empresas e ON e.id = r.empresa_id
@@ -52,6 +52,7 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $tituloPublico = trim($_POST['titulo_publico'] ?? '') ?: '¡Gira y gana!';
     $duracion = (float) ($_POST['duracion_segundos'] ?? 5);
     $imagenFondo = trim($_POST['imagen_fondo_url'] ?? '') ?: null;
+    $imagenCentro = trim($_POST['imagen_centro_url'] ?? '') ?: null;
 
     if (!$empresaId || !$nombre || !$slug) {
         jsonOut(["status" => "error", "message" => "Empresa, nombre y slug son obligatorios."], 400);
@@ -63,9 +64,9 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonOut(["status" => "error", "message" => "Ya existe una ruleta con ese slug para esta empresa."], 409);
     }
 
-    $ins = $pdo->prepare("INSERT INTO ruletas (empresa_id, nombre, slug, titulo_publico, duracion_segundos, imagen_fondo_url, activa)
-                           VALUES (?, ?, ?, ?, ?, ?, 1)");
-    $ins->execute([$empresaId, $nombre, $slug, $tituloPublico, $duracion, $imagenFondo]);
+    $ins = $pdo->prepare("INSERT INTO ruletas (empresa_id, nombre, slug, titulo_publico, duracion_segundos, imagen_fondo_url, imagen_centro_url, activa)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
+    $ins->execute([$empresaId, $nombre, $slug, $tituloPublico, $duracion, $imagenFondo, $imagenCentro]);
     jsonOut(["status" => "success", "id" => (int) $pdo->lastInsertId()]);
 }
 
@@ -76,13 +77,14 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $tituloPublico = trim($_POST['titulo_publico'] ?? '') ?: '¡Gira y gana!';
     $duracion = (float) ($_POST['duracion_segundos'] ?? 5);
     $imagenFondo = trim($_POST['imagen_fondo_url'] ?? '') ?: null;
+    $imagenCentro = trim($_POST['imagen_centro_url'] ?? '') ?: null;
 
     if (!$id || !$nombre || !$slug) {
         jsonOut(["status" => "error", "message" => "Datos incompletos."], 400);
     }
 
-    $upd = $pdo->prepare("UPDATE ruletas SET nombre = ?, slug = ?, titulo_publico = ?, duracion_segundos = ?, imagen_fondo_url = ? WHERE id = ?");
-    $upd->execute([$nombre, $slug, $tituloPublico, $duracion, $imagenFondo, $id]);
+    $upd = $pdo->prepare("UPDATE ruletas SET nombre = ?, slug = ?, titulo_publico = ?, duracion_segundos = ?, imagen_fondo_url = ?, imagen_centro_url = ? WHERE id = ?");
+    $upd->execute([$nombre, $slug, $tituloPublico, $duracion, $imagenFondo, $imagenCentro, $id]);
     jsonOut(["status" => "success"]);
 }
 

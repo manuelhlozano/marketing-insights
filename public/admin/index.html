@@ -668,6 +668,10 @@
           <label class="form-label">Imagen de fondo (URL, opcional)</label>
           <input type="text" id="ruImagenFondo" class="form-input" placeholder="https://... (déjalo vacío para usar el fondo azul por defecto)">
         </div>
+        <div class="form-group">
+          <label class="form-label">Imagen del centro de la rueda (URL, opcional)</label>
+          <input type="text" id="ruImagenCentro" class="form-input" placeholder="ej: assets/images/21-anos.png o https://... (déjalo vacío para el círculo blanco)">
+        </div>
         <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
           <i data-lucide="save" style="width: 16px; height: 16px;"></i>
           <span id="ruletaModalSubmitLabel">Crear Ruleta</span>
@@ -2287,6 +2291,7 @@
         document.getElementById('ruTituloPublico').value = r.titulo_publico;
         document.getElementById('ruDuracion').value = r.duracion_segundos;
         document.getElementById('ruImagenFondo').value = r.imagen_fondo_url || '';
+        document.getElementById('ruImagenCentro').value = r.imagen_centro_url || '';
       } else {
         document.getElementById('ruletaModalTitle').textContent = 'Añadir Ruleta';
         document.getElementById('ruletaModalSubmitLabel').textContent = 'Crear Ruleta';
@@ -2311,6 +2316,7 @@
       form.set('titulo_publico', document.getElementById('ruTituloPublico').value.trim());
       form.set('duracion_segundos', document.getElementById('ruDuracion').value);
       form.set('imagen_fondo_url', document.getElementById('ruImagenFondo').value.trim());
+      form.set('imagen_centro_url', document.getElementById('ruImagenCentro').value.trim());
 
       const res = await fetch(RULETAS_API, { method: 'POST', body: form, credentials: 'same-origin' });
       const data = await res.json();
