@@ -49,7 +49,7 @@ if ($action === 'detalle' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         jsonOut(["status" => "error", "message" => "Esta ruleta está desactivada temporalmente."], 403);
     }
 
-    $premiosStmt = $pdo->prepare("SELECT id, nombre, color, probabilidad, es_perdedor, orden FROM ruleta_premios WHERE ruleta_id = ? ORDER BY orden, id");
+    $premiosStmt = $pdo->prepare("SELECT id, nombre, color, icono, probabilidad, es_perdedor, orden FROM ruleta_premios WHERE ruleta_id = ? ORDER BY orden, id");
     $premiosStmt->execute([$info['ruleta_id']]);
     $premios = $premiosStmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($premios as &$p) {

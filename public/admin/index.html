@@ -22,6 +22,7 @@
   
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="/css/executive-dashboard.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css">
 
 
   <!-- AUTH GUARD: verificación real de sesión de servidor (no localStorage) -->
@@ -703,6 +704,10 @@
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Probabilidad %</label>
           <input type="number" id="prProbabilidad" class="form-input" required min="0" max="100" step="0.1" value="10">
+        </div>
+        <div class="form-group" style="margin-bottom:0;grid-column: 1 / -1;">
+          <label class="form-label">Icono (nombre de <a href="https://tabler.io/icons" target="_blank" rel="noopener">Tabler Icons</a>, ej: popcorn, ticket, ballpen)</label>
+          <input type="text" id="prIcono" class="form-input" placeholder="ej: popcorn" pattern="[a-z0-9-]*">
         </div>
         <div class="form-group" style="margin-bottom:0;grid-column: 1 / -1;display:flex;align-items:center;gap:8px;">
           <label class="admin-switch"><input type="checkbox" id="prEsPerdedor"><span class="slider-toggle"></span></label>
@@ -2206,6 +2211,9 @@
     function escColor(c) {
       return /^#[0-9a-fA-F]{6}$/.test(c) ? c : '#0284C7';
     }
+    function escIcono(i) {
+      return /^[a-z0-9-]{1,60}$/.test(i || '') ? i : '';
+    }
 
     async function cargarRuletas() {
       const tbody = document.getElementById('ruletasTableBody');
@@ -2336,6 +2344,7 @@
       document.getElementById('formRuleta') && document.getElementById('prNombre') && (document.getElementById('prNombre').value = '');
       document.getElementById('prColor').value = '#0284C7';
       document.getElementById('prProbabilidad').value = '10';
+      document.getElementById('prIcono').value = '';
       document.getElementById('prEsPerdedor').checked = false;
       await cargarPremios();
       document.getElementById('premiosModal').style.display = 'flex';
@@ -2377,6 +2386,7 @@
       box.innerHTML = premios.map(p => `
         <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-card-alt);border-radius:var(--radius-sm);border:1px solid var(--border-card);">
           <div style="width:18px;height:18px;border-radius:50%;background:${escColor(p.color)};flex-shrink:0;border:2px solid #fff;box-shadow:0 0 0 1px var(--border-card);"></div>
+          ${escIcono(p.icono) ? `<i class="ti ti-${escIcono(p.icono)}" style="font-size:16px;color:var(--text-secondary);flex-shrink:0;"></i>` : ''}
           <div style="flex:1;">
             <strong style="font-size:13px;">${escHtml(p.nombre)}</strong>
             ${p.es_perdedor ? '<span class="kpi-badge badge-negative" style="margin-left:6px;">Sin premio</span>' : ''}
@@ -2396,6 +2406,7 @@
       form.set('nombre', document.getElementById('prNombre').value.trim());
       form.set('color', document.getElementById('prColor').value);
       form.set('probabilidad', document.getElementById('prProbabilidad').value);
+      form.set('icono', document.getElementById('prIcono').value.trim().toLowerCase());
       if (document.getElementById('prEsPerdedor').checked) form.set('es_perdedor', '1');
 
       const res = await fetch(RULETAS_API, { method: 'POST', body: form, credentials: 'same-origin' });
@@ -2403,6 +2414,7 @@
       if (data.status === 'success') {
         document.getElementById('prNombre').value = '';
         document.getElementById('prProbabilidad').value = '10';
+        document.getElementById('prIcono').value = '';
         document.getElementById('prEsPerdedor').checked = false;
         cargarPremios();
       } else {

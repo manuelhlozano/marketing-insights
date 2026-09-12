@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Ruleta de Premios</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -39,10 +40,10 @@
     color: #fff; font-size: clamp(20px, 3.4vw, 32px); font-weight: 900;
     text-shadow: 0 3px 14px rgba(0,0,0,.35); line-height: 1.2;
   }
-  #wheelWrap { position: relative; width: min(56vh, 420px); height: min(56vh, 420px); }
+  #wheelWrap { position: relative; width: min(74vh, 620px); height: min(74vh, 620px); }
   @media (max-width: 720px) {
     #mainRow { flex-direction: column; gap: 22px; }
-    #wheelWrap { width: min(72vw, 380px); height: min(72vw, 380px); }
+    #wheelWrap { width: min(84vw, 420px); height: min(84vw, 420px); }
   }
   #pointer {
     position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
@@ -65,11 +66,20 @@
     overflow: hidden; padding: 6%;
   }
   #wheelHub img { width: 100%; height: 100%; object-fit: contain; }
+  /* Recreación en CSS del "21 años" mientras se recibe el arte original del cliente
+     (ver campo "Imagen del centro de la rueda" en el admin, que reemplaza esto). */
+  .hub21 { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: .8; }
+  .hub21 .nums { font-size: clamp(20px, 4.5vw, 34px); font-weight: 900; letter-spacing: -.03em; }
+  .hub21 .n2 { color: #F97316; }
+  .hub21 .n1 { color: #1D4ED8; }
+  .hub21 .anos { font-family: 'Dancing Script', cursive; font-size: clamp(10px, 2vw, 15px); font-weight: 700; color: #F97316; margin-top: -2px; }
   .segment-label {
     position: absolute; top: 50%; left: 50%; transform-origin: 0 0;
-    font-size: 10.5px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.45);
-    width: 44%; text-align: right; white-space: nowrap; letter-spacing: -.01em;
+    font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.45);
+    width: 46%; text-align: right; white-space: nowrap; letter-spacing: -.01em;
+    display: flex; align-items: center; justify-content: flex-end; gap: 4px;
   }
+  .segment-label i { font-size: 14px; flex-shrink: 0; }
   #girarBtn {
     background: #0F172A; color: #fff; border: none; border-radius: 999px;
     padding: 16px 46px; font-size: 18px; font-weight: 800; cursor: pointer;
@@ -120,7 +130,9 @@
         <div id="wheelWrap">
           <div id="pointer"></div>
           <div id="wheel">
-            <div id="wheelHub">GIRAR</div>
+            <div id="wheelHub">
+              <div class="hub21"><span class="nums"><span class="n2">2</span><span class="n1">1</span></span><span class="anos">años</span></div>
+            </div>
           </div>
         </div>
       </div>
@@ -170,6 +182,10 @@
     if (/^https:\/\//i.test(p)) return p;
     const rel = safeRelativePath(p);
     return rel ? '/' + rel : '';
+  }
+  function safeIcono(i) {
+    // Solo slugs válidos de Tabler Icons (letras, números y guiones) — nunca se usa texto libre en la clase CSS.
+    return /^[a-z0-9-]{1,60}$/.test(i || '') ? i : '';
   }
 
   function showError(msg) {
@@ -285,7 +301,8 @@
     tajadas.forEach(t => {
       const label = document.createElement('div');
       label.className = 'segment-label';
-      label.textContent = t.premio.nombre;
+      const icono = safeIcono(t.premio.icono);
+      label.innerHTML = (icono ? `<i class="ti ti-${icono}"></i>` : '') + `<span>${escHtml(t.premio.nombre)}</span>`;
       label.style.transform = `rotate(${t.anguloMedio}deg) translateX(8%)`;
       wheel.appendChild(label);
     });

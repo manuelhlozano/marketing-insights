@@ -104,7 +104,7 @@ if ($action === 'toggle_active' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'premios_list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $ruletaId = (int) ($_GET['ruleta_id'] ?? 0);
     if (!$ruletaId) jsonOut(["status" => "error", "message" => "Falta la ruleta."], 400);
-    $stmt = $pdo->prepare("SELECT id, nombre, color, probabilidad, es_perdedor, orden FROM ruleta_premios WHERE ruleta_id = ? ORDER BY orden, id");
+    $stmt = $pdo->prepare("SELECT id, nombre, color, icono, probabilidad, es_perdedor, orden FROM ruleta_premios WHERE ruleta_id = ? ORDER BY orden, id");
     $stmt->execute([$ruletaId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($rows as &$r) {
@@ -121,21 +121,23 @@ if ($action === 'premio_save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = trim($_POST['nombre'] ?? '');
     $color = trim($_POST['color'] ?? '');
     $color = preg_match('/^#[0-9a-fA-F]{6}$/', $color) ? $color : '#0284C7';
+    $icono = trim($_POST['icono'] ?? '');
+    $icono = preg_match('/^[a-z0-9-]{1,60}$/', $icono) ? $icono : null;
     $probabilidad = (float) ($_POST['probabilidad'] ?? 0);
     $esPerdedor = !empty($_POST['es_perdedor']) ? 1 : 0;
 
     if (!$ruletaId || !$nombre) jsonOut(["status" => "error", "message" => "Nombre del premio obligatorio."], 400);
 
     if ($id) {
-        $upd = $pdo->prepare("UPDATE ruleta_premios SET nombre = ?, color = ?, probabilidad = ?, es_perdedor = ? WHERE id = ? AND ruleta_id = ?");
-        $upd->execute([$nombre, $color, $probabilidad, $esPerdedor, $id, $ruletaId]);
+        $upd = $pdo->prepare("UPDATE ruleta_premios SET nombre = ?, color = ?, icono = ?, probabilidad = ?, es_perdedor = ? WHERE id = ? AND ruleta_id = ?");
+        $upd->execute([$nombre, $color, $icono, $probabilidad, $esPerdedor, $id, $ruletaId]);
         jsonOut(["status" => "success", "id" => $id]);
     } else {
         $ordenStmt = $pdo->prepare("SELECT COALESCE(MAX(orden), 0) + 1 FROM ruleta_premios WHERE ruleta_id = ?");
         $ordenStmt->execute([$ruletaId]);
         $orden = (int) $ordenStmt->fetchColumn();
-        $ins = $pdo->prepare("INSERT INTO ruleta_premios (ruleta_id, nombre, color, probabilidad, es_perdedor, orden) VALUES (?, ?, ?, ?, ?, ?)");
-        $ins->execute([$ruletaId, $nombre, $color, $probabilidad, $esPerdedor, $orden]);
+        $ins = $pdo->prepare("INSERT INTO ruleta_premios (ruleta_id, nombre, color, icono, probabilidad, es_perdedor, orden) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $ins->execute([$ruletaId, $nombre, $color, $icono, $probabilidad, $esPerdedor, $orden]);
         jsonOut(["status" => "success", "id" => (int) $pdo->lastInsertId()]);
     }
 }
