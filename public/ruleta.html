@@ -388,8 +388,28 @@
     acumuladoRotacion += vueltasExtra + (360 - anguloObjetivo) - (acumuladoRotacion % 360);
     wheel.style.transform = `rotate(${acumuladoRotacion}deg)`;
 
+    // Se dispara con el evento real "transitionend" (el momento exacto en que
+    // el navegador termina de pintar el giro), en vez de un setTimeout con la
+    // duración calculada de antemano. Un setTimeout puede desincronizarse del
+    // giro visual real si la pestaña pierde el foco (ej. al abrir la ventana
+    // de impresión de la ficha) o el navegador la deja en segundo plano, que
+    // es justo lo que causaba que el resultado mostrado no coincidiera con
+    // donde realmente quedó la rueda. Se deja un respaldo por si el evento no
+    // llega a disparar por alguna razón.
+    let yaResuelto = false;
+    const resolverUnaVez = () => {
+      if (yaResuelto) return;
+      yaResuelto = true;
+      wheel.removeEventListener('transitionend', onTransitionEnd);
+      onDone();
+    };
+    const onTransitionEnd = (e) => {
+      if (e.target === wheel && e.propertyName === 'transform') resolverUnaVez();
+    };
+    wheel.addEventListener('transitionend', onTransitionEnd);
+
     const durMs = parseFloat(getComputedStyle(wheel).transitionDuration) * 1000 || 5000;
-    setTimeout(onDone, durMs + 150);
+    setTimeout(resolverUnaVez, durMs + 1500); // respaldo, no la vía principal
   }
 
   function mostrarResultado(data) {
