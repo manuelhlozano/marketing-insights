@@ -78,16 +78,20 @@
      de forma pareja sin importar qué tan largo sea el nombre del premio. */
   .segment-label {
     position: absolute; top: 50%; left: 50%; transform-origin: 0 0;
-    padding-left: 25%; white-space: nowrap;
+    padding-left: 18%; white-space: nowrap;
   }
   .segment-label .chip {
-    display: inline-flex; align-items: center; gap: 4px;
-    background: rgba(15,23,42,.32); backdrop-filter: blur(1px);
-    padding: 2.5px 7px 2.5px 5px; border-radius: 999px;
-    font-size: 9.8px; font-weight: 800; color: #fff; letter-spacing: -.015em;
-    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: transparent;
   }
-  .segment-label i { font-size: 11.5px; flex-shrink: 0; }
+  .segment-label .chip i {
+    font-size: 19px; color: #fff; flex-shrink: 0;
+    text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 0 6px rgba(0,0,0,.35);
+  }
+  .segment-label .chip .txt {
+    font-size: 12.5px; font-weight: 800; color: #fff; letter-spacing: -.01em;
+    text-shadow: 0 1px 3px rgba(0,0,0,.65), 0 0 6px rgba(0,0,0,.4);
+  }
   #girarBtn {
     background: #0F172A; color: #fff; border: none; border-radius: 999px;
     padding: 16px 46px; font-size: 18px; font-weight: 800; cursor: pointer;
@@ -302,7 +306,9 @@
       anguloMedio: i * anguloTajada + anguloTajada / 2,
     }));
 
-    const stops = tajadas.map(t => `${t.color} ${t.anguloDesde}deg ${t.anguloHasta}deg`);
+    // Cada tajada lleva un degradado claro→oscuro de su propio color (en vez
+    // de un color plano) para que se vean más vívidas, tipo vidrio/gema.
+    const stops = tajadas.map(t => `${shade(t.color, 22)} ${t.anguloDesde}deg, ${shade(t.color, -16)} ${t.anguloHasta}deg`);
     // Segunda capa (encima) con líneas finas blancas exactamente en cada borde
     // de tajada, para que el límite entre premios se vea nítido y no
     // "desdibujado" por el difuminado propio del conic-gradient de colores.
@@ -315,10 +321,20 @@
       const label = document.createElement('div');
       label.className = 'segment-label';
       const icono = safeIcono(t.premio.icono);
-      label.innerHTML = `<span class="chip">${icono ? `<i class="ti ti-${icono}"></i>` : ''}${escHtml(t.premio.nombre)}</span>`;
+      label.innerHTML = `<span class="chip">${icono ? `<i class="ti ti-${icono}"></i>` : ''}<span class="txt">${escHtml(t.premio.nombre)}</span></span>`;
       label.style.transform = `rotate(${t.anguloMedio}deg)`;
       wheel.appendChild(label);
     });
+  }
+
+  function shade(hex, percent) {
+    // Aclara (percent>0) u oscurece (percent<0) un color hex para el degradado de cada tajada.
+    const num = parseInt(hex.slice(1), 16);
+    const amt = Math.round(2.55 * percent);
+    const r = Math.min(255, Math.max(0, (num >> 16) + amt));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amt));
+    const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
+    return `#${(0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1)}`;
   }
 
   async function girar() {
