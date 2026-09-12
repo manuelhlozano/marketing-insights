@@ -81,11 +81,11 @@
     padding-left: 18%; white-space: nowrap;
   }
   .segment-label .chip {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    display: flex; flex-direction: row; align-items: center; gap: 5px;
     background: transparent;
   }
   .segment-label .chip i {
-    font-size: 19px; color: #fff; flex-shrink: 0;
+    font-size: 15px; color: #fff; flex-shrink: 0;
     text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 0 6px rgba(0,0,0,.35);
   }
   .segment-label .chip .txt {
@@ -321,7 +321,7 @@
       const label = document.createElement('div');
       label.className = 'segment-label';
       const icono = safeIcono(t.premio.icono);
-      label.innerHTML = `<span class="chip">${icono ? `<i class="ti ti-${icono}"></i>` : ''}<span class="txt">${escHtml(t.premio.nombre)}</span></span>`;
+      label.innerHTML = `<span class="chip"><span class="txt">${escHtml(t.premio.nombre)}</span>${icono ? `<i class="ti ti-${icono}"></i>` : ''}</span>`;
       label.style.transform = `rotate(${t.anguloMedio}deg)`;
       wheel.appendChild(label);
     });
