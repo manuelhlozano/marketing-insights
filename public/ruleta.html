@@ -73,13 +73,21 @@
   .hub21 .n2 { color: #F97316; }
   .hub21 .n1 { color: #1D4ED8; }
   .hub21 .anos { font-family: 'Dancing Script', cursive; font-size: clamp(10px, 2vw, 15px); font-weight: 700; color: #F97316; margin-top: -2px; }
+  /* Las etiquetas arrancan todas al MISMO radio (padding-left en % se calcula
+     sobre el ancho de la rueda, no del propio texto) para que queden alineadas
+     de forma pareja sin importar qué tan largo sea el nombre del premio. */
   .segment-label {
     position: absolute; top: 50%; left: 50%; transform-origin: 0 0;
-    font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.45);
-    width: 46%; text-align: right; white-space: nowrap; letter-spacing: -.01em;
-    display: flex; align-items: center; justify-content: flex-end; gap: 4px;
+    padding-left: 25%; white-space: nowrap;
   }
-  .segment-label i { font-size: 14px; flex-shrink: 0; }
+  .segment-label .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(15,23,42,.32); backdrop-filter: blur(1px);
+    padding: 2.5px 7px 2.5px 5px; border-radius: 999px;
+    font-size: 9.8px; font-weight: 800; color: #fff; letter-spacing: -.015em;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+  .segment-label i { font-size: 11.5px; flex-shrink: 0; }
   #girarBtn {
     background: #0F172A; color: #fff; border: none; border-radius: 999px;
     padding: 16px 46px; font-size: 18px; font-weight: 800; cursor: pointer;
@@ -295,15 +303,20 @@
     }));
 
     const stops = tajadas.map(t => `${t.color} ${t.anguloDesde}deg ${t.anguloHasta}deg`);
-    wheel.style.background = `conic-gradient(${stops.join(', ')})`;
+    // Segunda capa (encima) con líneas finas blancas exactamente en cada borde
+    // de tajada, para que el límite entre premios se vea nítido y no
+    // "desdibujado" por el difuminado propio del conic-gradient de colores.
+    const grosorLinea = 0.35; // grados
+    const separadores = `repeating-conic-gradient(from 0deg, rgba(255,255,255,.85) 0deg ${grosorLinea}deg, rgba(255,255,255,0) ${grosorLinea}deg ${anguloTajada}deg)`;
+    wheel.style.background = `${separadores}, conic-gradient(${stops.join(', ')})`;
 
     document.querySelectorAll('.segment-label').forEach(el => el.remove());
     tajadas.forEach(t => {
       const label = document.createElement('div');
       label.className = 'segment-label';
       const icono = safeIcono(t.premio.icono);
-      label.innerHTML = (icono ? `<i class="ti ti-${icono}"></i>` : '') + `<span>${escHtml(t.premio.nombre)}</span>`;
-      label.style.transform = `rotate(${t.anguloMedio}deg) translateX(8%)`;
+      label.innerHTML = `<span class="chip">${icono ? `<i class="ti ti-${icono}"></i>` : ''}${escHtml(t.premio.nombre)}</span>`;
+      label.style.transform = `rotate(${t.anguloMedio}deg)`;
       wheel.appendChild(label);
     });
   }
