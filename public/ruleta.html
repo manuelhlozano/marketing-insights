@@ -215,13 +215,20 @@
     const rel = safeRelativePath(p);
     return rel ? '/' + rel : '';
   }
+  // Se agrega a la URL de los iconos propios para forzar una descarga limpia.
+  // Hizo falta porque hubo una ventana en la que la base de datos ya apuntaba
+  // a un icono que todavia no estaba subido: los navegadores que cargaron la
+  // pagina en ese momento se quedaron con el 404 cacheado. Subir este numero
+  // invalida esa copia en todos los clientes cuando se cambie un icono.
+  const ICONOS_VERSION = '2';
+
   // El icono de un premio puede ser un slug de Tabler Icons o una imagen
   // propia del sitio (assets/...). Devuelve el HTML ya validado, o '' si el
   // valor no es ninguna de las dos cosas: nunca se inyecta texto libre.
   function iconoHtml(i) {
     const v = String(i || '');
     if (/^assets\/[A-Za-z0-9/_-]+\.(svg|png|webp)$/.test(v)) {
-      return `<img class="icono-img" src="/${escHtml(v)}" alt="">`;
+      return `<img class="icono-img" src="/${escHtml(v)}?v=${ICONOS_VERSION}" alt="">`;
     }
     if (/^[a-z0-9-]{1,60}$/.test(v)) {
       return `<i class="ti ti-${v}"></i>`;
