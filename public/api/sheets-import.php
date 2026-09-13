@@ -28,6 +28,22 @@ if (!$concursoId || !$csvUrl || !filter_var($csvUrl, FILTER_VALIDATE_URL)) {
     exit();
 }
 
+// El servidor descarga esta URL por su cuenta, así que quien la escribe está
+// eligiendo a dónde se conecta el servidor. Sin este filtro, un usuario del
+// panel podía pedirle que leyera archivos locales (file:///...) o servicios
+// internos que desde fuera no son alcanzables, y ver el resultado en el
+// listado de leads. Solo se permite HTTPS hacia Google Sheets, que es lo
+// único que esta función necesita.
+$partes = parse_url($csvUrl);
+$esquema = strtolower($partes['scheme'] ?? '');
+$host = strtolower($partes['host'] ?? '');
+$hostsPermitidos = ['docs.google.com', 'drive.google.com'];
+if ($esquema !== 'https' || !in_array($host, $hostsPermitidos, true)) {
+    http_response_code(400);
+    echo json_encode(["status" => "error", "message" => "La URL debe ser un enlace https de Google Sheets publicado como CSV."]);
+    exit();
+}
+
 $ctx = stream_context_create(['http' => ['timeout' => 12], 'https' => ['timeout' => 12]]);
 $csvContent = @file_get_contents($csvUrl, false, $ctx);
 if ($csvContent === false) {

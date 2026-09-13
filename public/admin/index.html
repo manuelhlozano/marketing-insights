@@ -870,7 +870,7 @@
               <img id="empresaPreviewLight" src="" alt="" style="max-height: 34px; max-width: 100px; object-fit: contain; display: none;">
               <i data-lucide="image" id="empresaPreviewLightPlaceholder" style="width: 18px; height: 18px; color: #CBD5E1;"></i>
             </div>
-            <input type="file" id="empresaFileLight" class="form-input" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="padding: 6px; font-size: 12px; flex: 1;">
+            <input type="file" id="empresaFileLight" class="form-input" accept="image/png,image/jpeg,image/webp" style="padding: 6px; font-size: 12px; flex: 1;">
           </div>
         </div>
 
@@ -881,7 +881,7 @@
               <img id="empresaPreviewDark" src="" alt="" style="max-height: 34px; max-width: 100px; object-fit: contain; display: none;">
               <i data-lucide="image" id="empresaPreviewDarkPlaceholder" style="width: 18px; height: 18px; color: #475569;"></i>
             </div>
-            <input type="file" id="empresaFileDark" class="form-input" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="padding: 6px; font-size: 12px; flex: 1;">
+            <input type="file" id="empresaFileDark" class="form-input" accept="image/png,image/jpeg,image/webp" style="padding: 6px; font-size: 12px; flex: 1;">
           </div>
         </div>
 
@@ -2244,6 +2244,7 @@
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
             <a href="${c.public_url}" target="_blank"><button class="btn-action btn-primary">Ver página pública</button></a>
+            <a href="${c.draw_url}" target="_blank"><button class="btn-action" title="Enlace privado: es el único que muestra el botón de sortear. No lo compartas con la audiencia.">Abrir para sortear (privado)</button></a>
             <button class="btn-action" onclick="imprimirReporteSorteo()">Descargar / Imprimir PDF</button>
           </div>
           <details style="margin-bottom:16px;">

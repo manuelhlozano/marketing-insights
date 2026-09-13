@@ -39,10 +39,15 @@ function mkt_save_logo(string $fieldName, string $slug, string $kind): ?string {
     if ($file['size'] > 3 * 1024 * 1024) {
         jsonOut(["status" => "error", "message" => "El logo ($kind) supera el límite de 3MB."], 400);
     }
-    $allowed = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/svg+xml' => 'svg', 'image/webp' => 'webp'];
+    // Sin SVG a propósito. Un SVG es un documento que puede traer <script>
+    // dentro, y se guarda en nuestro propio dominio: bastaba con subir uno y
+    // pasarle el enlace directo a un compañero con más permisos para
+    // ejecutarle código con su sesión abierta. Los formatos de imagen
+    // rasterizada no tienen esa capacidad.
+    $allowed = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'];
     $mime = mime_content_type($file['tmp_name']);
     if (!isset($allowed[$mime])) {
-        jsonOut(["status" => "error", "message" => "Formato de logo ($kind) no soportado. Usa PNG, JPG, SVG o WEBP."], 400);
+        jsonOut(["status" => "error", "message" => "Formato de logo ($kind) no soportado. Usa PNG, JPG o WEBP."], 400);
     }
     $ext = $allowed[$mime];
     $dir = __DIR__ . '/../assets/images/empresas';

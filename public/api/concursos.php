@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ratelimit.php';
 require_once __DIR__ . '/concursos-metrics.php';
 
 function jsonOut($data, int $code = 200): void {
@@ -95,6 +96,13 @@ if ($action === 'detalle_publico' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 // PÚBLICO: ejecutar un sorteo (CSPRNG en servidor, bloqueo de una sola vez)
 // ─────────────────────────────────────────────────────────────────
 if ($action === 'draw' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Ejecutar el sorteo es irreversible y el slug del concurso es público
+    // (va en la URL de la landing). Sin una credencial aparte, cualquiera que
+    // viera esa dirección podía adjudicar los premios antes del evento en
+    // vivo. Se exige el draw_token del concurso —el enlace privado que usa
+    // quien presenta el sorteo— o una sesión de administrador.
+    mkt_rate_limit('draw:' . mkt_ip_cliente(), 20, 60);
+
     $slug = $_POST['slug'] ?? '';
     $kit = (string) ($_POST['kit'] ?? '');
 
@@ -103,6 +111,14 @@ if ($action === 'draw' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $concurso = $stmt->fetch();
     if (!$concurso) jsonOut(["status" => "error", "message" => "Concurso no encontrado."], 404);
     $concursoId = (int) $concurso['id'];
+
+    $tokenRecibido = (string) ($_POST['draw_token'] ?? '');
+    $tokenEsperado = (string) ($concurso['draw_token'] ?? '');
+    $autorizado = mkt_is_authenticated()
+        || ($tokenEsperado !== '' && hash_equals($tokenEsperado, $tokenRecibido));
+    if (!$autorizado) {
+        jsonOut(["status" => "error", "message" => "No estás autorizado para ejecutar este sorteo."], 403);
+    }
 
     $premioStmt = $pdo->prepare("SELECT * FROM concurso_premios WHERE concurso_id = ? AND kit = ?");
     $premioStmt->execute([$concursoId, $kit]);
@@ -299,12 +315,16 @@ if ($action === 'crear_concurso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $webhookToken = bin2hex(random_bytes(20));
+    // Credencial para ejecutar el sorteo. Es distinta del webhook_token, que
+    // se le entrega a la landing del cliente: quien puede enviar inscritos no
+    // tiene por qué poder adjudicar los premios.
+    $drawToken = bin2hex(random_bytes(20));
 
     $pdo->beginTransaction();
     try {
-        $ins = $pdo->prepare("INSERT INTO concursos (empresa_id, dashboard_id, nombre, slug, metodologia, claim_hours, webhook_token, estado)
-                               VALUES (?, ?, ?, ?, ?, ?, ?, 'activo')");
-        $ins->execute([$empresaId, $dashboardId, $nombre, $slug, $metodologia, $claimHours, $webhookToken]);
+        $ins = $pdo->prepare("INSERT INTO concursos (empresa_id, dashboard_id, nombre, slug, metodologia, claim_hours, webhook_token, draw_token, estado)
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activo')");
+        $ins->execute([$empresaId, $dashboardId, $nombre, $slug, $metodologia, $claimHours, $webhookToken, $drawToken]);
         $concursoId = (int) $pdo->lastInsertId();
 
         $orden = 1;
@@ -437,6 +457,11 @@ if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
             "claim_hours" => $claimHours,
             "premios" => $premios,
             "public_url" => "/concursos/index.html?slug=" . urlencode($concurso['slug']),
+            // Enlace privado del presentador: igual que el público pero con la
+            // credencial que habilita el botón de sortear. No se comparte con
+            // la audiencia.
+            "draw_url" => "/concursos/index.html?slug=" . urlencode($concurso['slug'])
+                          . "&k=" . urlencode((string) $concurso['draw_token']),
             "webhook_token" => $concurso['webhook_token'],
             "empresa_id" => (int) $concurso['empresa_id'],
             "empresa_nombre" => $concurso['empresa_nombre'],

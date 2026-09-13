@@ -28,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ratelimit.php';
 
 $action       = $_GET['action']    ?? 'dashboard';
 $empresaSlug  = $_GET['empresa']   ?? '';
@@ -50,12 +51,30 @@ function numRows(PDO $pdo, string $table, int $dashId): int {
 try {
 
 // ─── Acción: lista de empresas (para admin) ──────────────────────────────────
+// Estas dos acciones decían "para admin" pero no lo comprobaban: devolvían la
+// cartera completa de clientes de la agencia a cualquiera que pidiera la URL.
+if ($action === 'empresas' || $action === 'modulos') {
+    if (!mkt_is_authenticated()) jsonError(401, 'No autenticado.');
+}
+
 if ($action === 'empresas') {
-    $stmt = $pdo->query("SELECT id, nombre, slug, sector, ciudad, pais,
-                                logo_light_url, logo_dark_url, activo
-                         FROM empresas ORDER BY nombre");
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode($rows);
+    // Cada quien ve solo las empresas que tiene asignadas; null = todas
+    // (superadmin), que no es lo mismo que la lista vacía de quien no tiene
+    // ninguna.
+    $permitidas = mkt_empresas_permitidas($pdo);
+    $sql = "SELECT id, nombre, slug, sector, ciudad, pais,
+                   logo_light_url, logo_dark_url, activo FROM empresas";
+    if ($permitidas === null) {
+        $stmt = $pdo->query($sql . " ORDER BY nombre");
+    } elseif (empty($permitidas)) {
+        echo json_encode([]);
+        exit;
+    } else {
+        $marcas = implode(',', array_fill(0, count($permitidas), '?'));
+        $stmt = $pdo->prepare($sql . " WHERE id IN ($marcas) ORDER BY nombre");
+        $stmt->execute($permitidas);
+    }
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
     exit;
 }
 
@@ -97,6 +116,11 @@ if ($action === 'dashboard') {
     // desde el panel. Cualquier otro caso necesita el public_token exacto.
     $tokenValido = hash_equals((string) $dashboard['public_token'], (string) $token);
     if (!$tokenValido && !mkt_is_authenticated()) {
+        // Solo se cuentan los intentos fallidos: un cliente con su enlace
+        // correcto puede recargar el informe las veces que quiera, pero
+        // probar tokens al azar se agota rápido.
+        mkt_rate_limit('dash_token:' . mkt_ip_cliente(), 20, 300,
+                       'Demasiados intentos. Espera unos minutos.');
         jsonError(403, 'Token inválido o expirado.');
     }
     if ((int) $dashboard['es_publico'] !== 1 && !mkt_is_authenticated()) {

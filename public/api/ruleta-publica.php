@@ -14,6 +14,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/ratelimit.php';
 require_once __DIR__ . '/ruleta-metrics.php';
 
 function jsonOut($data, int $code = 200): void {
@@ -42,6 +43,10 @@ try {
 if ($action === 'detalle' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $token = trim($_GET['token'] ?? '');
     if (!$token) jsonOut(["status" => "error", "message" => "Falta el token de la estación."], 400);
+
+    // Frena la prueba de tokens al azar. Un kiosko real pide el detalle una
+    // vez al abrir la página.
+    mkt_rate_limit('ruleta_detalle:' . mkt_ip_cliente(), 60, 60);
 
     $info = mkt_estacion_por_token($pdo, $token);
     if (!$info) jsonOut(["status" => "error", "message" => "Estación no encontrada."], 404);
@@ -87,6 +92,16 @@ if ($action === 'detalle' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($action === 'girar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = trim($_POST['token'] ?? '');
     if (!$token) jsonOut(["status" => "error", "message" => "Falta el token de la estación."], 400);
+
+    // El token de la estación está a la vista en la barra de direcciones del
+    // punto de venta: cualquiera puede fotografiarlo y girar desde su casa.
+    // Un giro por cada dos segundos sostenidos ya es más de lo que da una
+    // taquilla real, y corta el guion que inflaría la analítica del cliente o
+    // fabricaría fichas de premio en serie.
+    mkt_rate_limit('ruleta_girar:' . $token, 30, 60,
+                   'Demasiados giros seguidos. Espera un momento.');
+    mkt_rate_limit('ruleta_girar_ip:' . mkt_ip_cliente(), 60, 60,
+                   'Demasiados giros seguidos. Espera un momento.');
 
     $info = mkt_estacion_por_token($pdo, $token);
     if (!$info) jsonOut(["status" => "error", "message" => "Estación no encontrada."], 404);
@@ -140,7 +155,10 @@ if ($action === 'ticket' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $info = mkt_estacion_por_token($pdo, $token);
     if (!$info) jsonOut(["status" => "error", "message" => "Estación no encontrada."], 404);
 
-    $stmt = $pdo->prepare("SELECT g.id, g.fecha_hora, p.nombre AS premio_nombre, p.es_perdedor
+    mkt_rate_limit('ruleta_ticket:' . $token, 60, 60);
+
+    $stmt = $pdo->prepare("SELECT g.id, g.fecha_hora, p.nombre AS premio_nombre, p.es_perdedor,
+                                  TIMESTAMPDIFF(MINUTE, g.fecha_hora, NOW()) AS minutos
                             FROM ruleta_giros g JOIN ruleta_premios p ON p.id = g.premio_id
                             WHERE g.id = ? AND g.estacion_id = ?");
     $stmt->execute([$giroId, $info['estacion_id']]);
@@ -148,6 +166,13 @@ if ($action === 'ticket' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     if (!$giro) jsonOut(["status" => "error", "message" => "Giro no encontrado."], 404);
     if ((int) $giro['es_perdedor'] === 1) {
         jsonOut(["status" => "error", "message" => "Este giro no tuvo premio; no hay ficha para imprimir."], 409);
+    }
+    // Los id de giro son consecutivos: sin esta ventana, cualquiera con el
+    // token de la estación podía recorrerlos hacia atrás y reimprimir fichas
+    // de premios ya entregados. Media hora deja margen para un atasco de papel
+    // sin dejar abierta la reimpresión indefinida.
+    if ((int) $giro['minutos'] > 30) {
+        jsonOut(["status" => "error", "message" => "Esta ficha ya no se puede reimprimir. Pide el premio en taquilla."], 409);
     }
 
     $pdo->prepare("UPDATE ruleta_giros SET ticket_impreso = 1 WHERE id = ?")->execute([$giroId]);

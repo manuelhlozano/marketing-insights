@@ -61,6 +61,11 @@
 <script>
   const params = new URLSearchParams(window.location.search);
   const slug = params.get('slug') || '';
+  // Credencial del presentador. Sin ella la página sigue mostrando premios y
+  // ganadores —es una página de transparencia— pero no ofrece sortear: el
+  // servidor rechaza el sorteo de todos modos, esto solo evita enseñar un
+  // botón que no va a funcionar.
+  const drawToken = params.get('k') || '';
   const API = '/api/concursos.php';
 
   let concurso = null;
@@ -85,17 +90,35 @@
       const reveal = document.createElement('div');
       reveal.className = 'reveal' + (isDone ? ' winner' : '');
       reveal.id = `reveal-${p.kit}`;
-      reveal.innerHTML = isDone ? draw.ganador : `<span class="placeholder">Aún sin sortear</span>`;
+      // textContent y no innerHTML: el nombre del ganador llega de un
+      // formulario público, así que nunca se interpreta como HTML.
+      if (isDone) {
+        reveal.textContent = draw.ganador;
+      } else {
+        const ph = document.createElement('span');
+        ph.className = 'placeholder';
+        ph.textContent = 'Aún sin sortear';
+        reveal.appendChild(ph);
+      }
 
-      const btn = document.createElement('button');
-      btn.className = 'draw-btn';
-      btn.textContent = isDone ? 'Premio entregado' : `Sortear ${p.nombre}`;
-      btn.disabled = isDone || !canDraw;
-      btn.onclick = () => runDraw(p.kit, reveal, btn);
-
-      card.innerHTML = `<h3 class="card-title-inner">${p.nombre}</h3><p style="font-size:13px;color:var(--text-muted);">${p.detalle || ''}</p>`;
+      const titulo = document.createElement('h3');
+      titulo.className = 'card-title-inner';
+      titulo.textContent = p.nombre;
+      const detalle = document.createElement('p');
+      detalle.style.cssText = 'font-size:13px;color:var(--text-muted);';
+      detalle.textContent = p.detalle || '';
+      card.appendChild(titulo);
+      card.appendChild(detalle);
       card.appendChild(reveal);
-      card.appendChild(btn);
+
+      if (drawToken || isDone) {
+        const btn = document.createElement('button');
+        btn.className = 'draw-btn';
+        btn.textContent = isDone ? 'Premio entregado' : `Sortear ${p.nombre}`;
+        btn.disabled = isDone || !canDraw;
+        btn.onclick = () => runDraw(p.kit, reveal, btn);
+        card.appendChild(btn);
+      }
       kitsEl.appendChild(card);
     });
 
@@ -108,11 +131,20 @@
     }
   }
 
+  // Escapa antes de interpolar: el nombre del ganador viene de un formulario
+  // público y el del premio lo escribe el admin. Ninguno debe poder inyectar
+  // etiquetas en esta página.
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, ch => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+    ));
+  }
+
   function renderFinalTable() {
     let rows = '';
     premios.forEach(p => {
       const d = draws.find(x => x.kit === p.kit);
-      rows += `<tr><td>${p.nombre}</td><td>${p.detalle || ''}</td><td><strong>${d ? d.ganador : '-'}</strong></td></tr>`;
+      rows += `<tr><td>${esc(p.nombre)}</td><td>${esc(p.detalle || '')}</td><td><strong>${esc(d ? d.ganador : '-')}</strong></td></tr>`;
     });
     finalTableEl.innerHTML = `
       <div class="final-table content-card">
@@ -138,6 +170,7 @@
       form.set('action', 'draw');
       form.set('slug', slug);
       form.set('kit', kit);
+      form.set('draw_token', drawToken);
       const res = await fetch(API, { method: 'POST', body: form });
       const data = await res.json();
 
