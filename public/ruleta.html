@@ -6,6 +6,9 @@
 <title>Ruleta de Premios</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"
+        integrity="sha384-sPwMflxqfAN+Q5mvlkLmHiX3PORGbZSXHiSGPTXT9VHCD/AB+b+r+vJWsqprv+7k"
+        crossorigin="anonymous"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -85,18 +88,18 @@
      de forma pareja sin importar qué tan largo sea el nombre del premio. */
   .segment-label {
     position: absolute; top: 50%; left: 50%; transform-origin: 0 0;
-    padding-left: 21%; white-space: nowrap;
+    padding-left: 17%; white-space: nowrap;
   }
   .segment-label .chip {
-    display: flex; flex-direction: row; align-items: center; gap: 4px;
+    display: flex; flex-direction: row; align-items: center; gap: 3px;
     background: transparent;
   }
   .segment-label .chip i {
-    font-size: 20px; color: #fff; flex-shrink: 0;
+    font-size: 40px; color: #fff; flex-shrink: 0;
     text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 0 6px rgba(0,0,0,.35);
   }
   .segment-label .chip .txt {
-    font-size: 11.5px; font-weight: 800; color: #fff; letter-spacing: -.015em;
+    font-size: 10.5px; font-weight: 800; color: #fff; letter-spacing: -.02em;
     text-shadow: 0 1px 3px rgba(0,0,0,.65), 0 0 6px rgba(0,0,0,.4);
   }
   #girarBtn {
@@ -206,6 +209,106 @@
   function safeIcono(i) {
     // Solo slugs válidos de Tabler Icons (letras, números y guiones) — nunca se usa texto libre en la clase CSS.
     return /^[a-z0-9-]{1,60}$/.test(i || '') ? i : '';
+  }
+
+  // ─── SONIDO ────────────────────────────────────────────────────────────
+  // Los sonidos se sintetizan con Web Audio API en vez de cargar archivos de
+  // audio: así el kiosko no depende de la red del punto de venta ni de que
+  // alguien suba assets al servidor. El AudioContext se crea recién en el
+  // primer giro, porque los navegadores bloquean el audio hasta que hay una
+  // interacción real del usuario.
+  let audioCtx = null;
+  function getAudio() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function sonarTic() {
+    const ctx = getAudio();
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1150, t0);
+    gain.gain.setValueAtTime(0.10, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0008, t0 + 0.05);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + 0.06);
+  }
+
+  function sonarGanador() {
+    const ctx = getAudio();
+    if (!ctx) return;
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+      const t0 = ctx.currentTime + i * 0.11;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t0);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.22, t0 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t0); osc.stop(t0 + 0.55);
+    });
+  }
+
+  function sonarPerdedor() {
+    const ctx = getAudio();
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(340, t0);
+    osc.frequency.exponentialRampToValueAtTime(130, t0 + 0.4);
+    gain.gain.setValueAtTime(0.16, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.45);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + 0.5);
+  }
+
+  // Suena un "tic" cada vez que una tajada pasa por debajo del puntero. Se lee
+  // la rotación REAL renderizada en cada frame, así los tics se desaceleran
+  // solos junto con la animación en vez de seguir un tiempo calculado aparte.
+  function iniciarTicsDeGiro() {
+    const wheel = document.getElementById('wheel');
+    const anguloTajada = 360 / TOTAL_TAJADAS;
+    let ultimaTajada = null;
+    let activo = true;
+    function frame() {
+      if (!activo) return;
+      try {
+        const m = new DOMMatrixReadOnly(getComputedStyle(wheel).transform);
+        let deg = Math.atan2(m.b, m.a) * 180 / Math.PI;
+        if (deg < 0) deg += 360;
+        const idx = Math.floor(deg / anguloTajada);
+        if (ultimaTajada !== null && idx !== ultimaTajada) sonarTic();
+        ultimaTajada = idx;
+      } catch (e) { /* si el navegador no soporta DOMMatrix, simplemente no hay tics */ }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+    return () => { activo = false; };
+  }
+
+  // ─── CELEBRACIÓN ───────────────────────────────────────────────────────
+  const CONFETI_COLORES = ['#F97316', '#1D4ED8', '#FDE047', '#FFFFFF', '#EF4444'];
+  function lanzarConfeti() {
+    if (typeof confetti !== 'function') return; // si el CDN no cargó, no rompe nada
+    confetti({ particleCount: 140, spread: 95, startVelocity: 45, origin: { y: 0.5 }, colors: CONFETI_COLORES });
+    const fin = Date.now() + 2200;
+    (function lluvia() {
+      confetti({ particleCount: 5, angle: 60, spread: 70, origin: { x: 0, y: 0.7 }, colors: CONFETI_COLORES });
+      confetti({ particleCount: 5, angle: 120, spread: 70, origin: { x: 1, y: 0.7 }, colors: CONFETI_COLORES });
+      if (Date.now() < fin) requestAnimationFrame(lluvia);
+    })();
   }
 
   function showError(msg) {
@@ -401,10 +504,13 @@
     // es justo lo que causaba que el resultado mostrado no coincidiera con
     // donde realmente quedó la rueda. Se deja un respaldo por si el evento no
     // llega a disparar por alguna razón.
+    const detenerTics = iniciarTicsDeGiro();
+
     let yaResuelto = false;
     const resolverUnaVez = () => {
       if (yaResuelto) return;
       yaResuelto = true;
+      detenerTics();
       wheel.removeEventListener('transitionend', onTransitionEnd);
       onDone();
     };
@@ -429,11 +535,14 @@
       titleEl.className = 'lose';
       premioEl.textContent = 'Gracias por participar. ¡Vuelve a intentarlo en tu próxima compra!';
       btnImprimir.style.display = 'none';
+      sonarPerdedor();
     } else {
       titleEl.textContent = '¡ERES GANADOR!';
       titleEl.className = 'win';
       premioEl.textContent = data.premio.nombre;
       btnImprimir.style.display = 'inline-block';
+      sonarGanador();
+      lanzarConfeti();
     }
 
     document.getElementById('resultOverlay').style.display = 'flex';
