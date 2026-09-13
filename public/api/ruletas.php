@@ -121,8 +121,14 @@ if ($action === 'premio_save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = trim($_POST['nombre'] ?? '');
     $color = trim($_POST['color'] ?? '');
     $color = preg_match('/^#[0-9a-fA-F]{6}$/', $color) ? $color : '#0284C7';
+    // El icono puede ser un slug de Tabler Icons (ej. "ticket") o la ruta de una
+    // imagen propia del sitio (ej. "assets/images/icono-crispetas.svg"). Se
+    // rechaza cualquier otra cosa para que nunca entre texto libre ni una URL
+    // externa a la clase CSS / al src del <img>.
     $icono = trim($_POST['icono'] ?? '');
-    $icono = preg_match('/^[a-z0-9-]{1,60}$/', $icono) ? $icono : null;
+    $esSlugTabler = preg_match('/^[a-z0-9-]{1,60}$/', $icono);
+    $esRutaImagen = preg_match('#^assets/[A-Za-z0-9/_-]+\.(svg|png|webp)$#', $icono);
+    $icono = ($esSlugTabler || $esRutaImagen) ? $icono : null;
     $probabilidad = (float) ($_POST['probabilidad'] ?? 0);
     $esPerdedor = !empty($_POST['es_perdedor']) ? 1 : 0;
 

@@ -98,6 +98,13 @@
     font-size: 30px; color: #fff; flex-shrink: 0;
     text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 0 6px rgba(0,0,0,.35);
   }
+  /* Iconos propios en SVG: el filtro los fuerza a blanco puro para que se vean
+     igual que los de Tabler sobre el color de la tajada, sin tener que editar
+     el fill del archivo. */
+  .segment-label .chip .icono-img {
+    width: 30px; height: 30px; flex-shrink: 0; object-fit: contain;
+    filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,.55));
+  }
   .segment-label .chip .txt {
     font-family: 'Barlow Semi Condensed', 'Inter', Arial, sans-serif;
     font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0;
@@ -208,9 +215,18 @@
     const rel = safeRelativePath(p);
     return rel ? '/' + rel : '';
   }
-  function safeIcono(i) {
-    // Solo slugs válidos de Tabler Icons (letras, números y guiones) — nunca se usa texto libre en la clase CSS.
-    return /^[a-z0-9-]{1,60}$/.test(i || '') ? i : '';
+  // El icono de un premio puede ser un slug de Tabler Icons o una imagen
+  // propia del sitio (assets/...). Devuelve el HTML ya validado, o '' si el
+  // valor no es ninguna de las dos cosas: nunca se inyecta texto libre.
+  function iconoHtml(i) {
+    const v = String(i || '');
+    if (/^assets\/[A-Za-z0-9/_-]+\.(svg|png|webp)$/.test(v)) {
+      return `<img class="icono-img" src="/${escHtml(v)}" alt="">`;
+    }
+    if (/^[a-z0-9-]{1,60}$/.test(v)) {
+      return `<i class="ti ti-${v}"></i>`;
+    }
+    return '';
   }
 
   // ─── SONIDO ────────────────────────────────────────────────────────────
@@ -304,11 +320,11 @@
   const CONFETI_COLORES = ['#F97316', '#1D4ED8', '#FDE047', '#FFFFFF', '#EF4444'];
   function lanzarConfeti() {
     if (typeof confetti !== 'function') return; // si el CDN no cargó, no rompe nada
-    confetti({ particleCount: 140, spread: 95, startVelocity: 45, origin: { y: 0.5 }, colors: CONFETI_COLORES });
+    confetti({ particleCount: 70, spread: 95, startVelocity: 45, origin: { y: 0.5 }, colors: CONFETI_COLORES });
     const fin = Date.now() + 2200;
     (function lluvia() {
-      confetti({ particleCount: 5, angle: 60, spread: 70, origin: { x: 0, y: 0.7 }, colors: CONFETI_COLORES });
-      confetti({ particleCount: 5, angle: 120, spread: 70, origin: { x: 1, y: 0.7 }, colors: CONFETI_COLORES });
+      confetti({ particleCount: 3, angle: 60, spread: 70, origin: { x: 0, y: 0.7 }, colors: CONFETI_COLORES });
+      confetti({ particleCount: 3, angle: 120, spread: 70, origin: { x: 1, y: 0.7 }, colors: CONFETI_COLORES });
       if (Date.now() < fin) requestAnimationFrame(lluvia);
     })();
   }
@@ -433,8 +449,7 @@
     tajadas.forEach(t => {
       const label = document.createElement('div');
       label.className = 'segment-label';
-      const icono = safeIcono(t.premio.icono);
-      label.innerHTML = `<span class="chip">${icono ? `<i class="ti ti-${icono}"></i>` : ''}<span class="txt">${escHtml(t.premio.nombre)}</span></span>`;
+      label.innerHTML = `<span class="chip">${iconoHtml(t.premio.icono)}<span class="txt">${escHtml(t.premio.nombre)}</span></span>`;
       // -90: rotate() de CSS mide desde las 3 en punto, pero conic-gradient
       // (los colores de las tajadas) mide desde las 12. Sin ese ajuste cada
       // etiqueta quedaba 90 grados (3 tajadas) corrida de su propio color, y
