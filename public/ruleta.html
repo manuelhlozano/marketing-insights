@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Ruleta de Premios</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Barlow+Semi+Condensed:wght@600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"
         integrity="sha384-sPwMflxqfAN+Q5mvlkLmHiX3PORGbZSXHiSGPTXT9VHCD/AB+b+r+vJWsqprv+7k"
@@ -88,19 +88,21 @@
      de forma pareja sin importar qué tan largo sea el nombre del premio. */
   .segment-label {
     position: absolute; top: 50%; left: 50%; transform-origin: 0 0;
-    padding-left: 17%; white-space: nowrap;
+    padding-left: 20%;
   }
   .segment-label .chip {
-    display: flex; flex-direction: row; align-items: center; gap: 3px;
+    display: flex; flex-direction: row; align-items: center; gap: 5px;
     background: transparent;
   }
   .segment-label .chip i {
-    font-size: 40px; color: #fff; flex-shrink: 0;
+    font-size: 30px; color: #fff; flex-shrink: 0;
     text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 0 6px rgba(0,0,0,.35);
   }
   .segment-label .chip .txt {
-    font-size: 10.5px; font-weight: 800; color: #fff; letter-spacing: -.02em;
-    text-shadow: 0 1px 3px rgba(0,0,0,.65), 0 0 6px rgba(0,0,0,.4);
+    font-family: 'Barlow Semi Condensed', 'Inter', Arial, sans-serif;
+    font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0;
+    line-height: 1.02; text-shadow: 0 1px 3px rgba(0,0,0,.65), 0 0 6px rgba(0,0,0,.4);
+    max-width: 68px; white-space: normal; /* permite partir el nombre en 2 líneas */
   }
   #girarBtn {
     background: #0F172A; color: #fff; border: none; border-radius: 999px;
@@ -432,7 +434,7 @@
       const label = document.createElement('div');
       label.className = 'segment-label';
       const icono = safeIcono(t.premio.icono);
-      label.innerHTML = `<span class="chip"><span class="txt">${escHtml(t.premio.nombre)}</span>${icono ? `<i class="ti ti-${icono}"></i>` : ''}</span>`;
+      label.innerHTML = `<span class="chip">${icono ? `<i class="ti ti-${icono}"></i>` : ''}<span class="txt">${escHtml(t.premio.nombre)}</span></span>`;
       // -90: rotate() de CSS mide desde las 3 en punto, pero conic-gradient
       // (los colores de las tajadas) mide desde las 12. Sin ese ajuste cada
       // etiqueta quedaba 90 grados (3 tajadas) corrida de su propio color, y
