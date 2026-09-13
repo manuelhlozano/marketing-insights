@@ -181,6 +181,19 @@ function mkt_guard_concurso(PDO $pdo, int $concursoId): void {
     mkt_require_empresa_de($pdo, 'concursos', $concursoId);
 }
 
+// Un concurso solo puede vincularse a un dashboard de SU MISMA empresa.
+// No basta con comprobar que el usuario tenga acceso al dashboard: al
+// vincularlo, mkt_sync_concurso_metricas() escribe los KPIs del concurso
+// dentro de ese dashboard, así que apuntar al de otro cliente inyectaría
+// datos ajenos en su informe mensual público.
+function mkt_guard_dashboard_de_empresa(PDO $pdo, ?int $dashboardId, int $empresaId): void {
+    if (!$dashboardId) return;
+    mkt_require_empresa_de($pdo, 'dashboards', $dashboardId);
+    if (mkt_empresa_de($pdo, 'dashboards', $dashboardId) !== $empresaId) {
+        mkt_json_error(400, 'El periodo seleccionado pertenece a otra empresa.');
+    }
+}
+
 mkt_require_auth();
 
 if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -242,7 +255,7 @@ if ($action === 'asignar_dashboard' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     mkt_require_modulo($pdo, 'sorteos');
     mkt_require_escritura($pdo);
     mkt_guard_concurso($pdo, $concursoId);
-    if ($dashboardId) mkt_require_empresa_de($pdo, 'dashboards', $dashboardId);
+    mkt_guard_dashboard_de_empresa($pdo, $dashboardId, (int) mkt_empresa_de($pdo, 'concursos', $concursoId));
 
     $prevStmt = $pdo->prepare("SELECT dashboard_id FROM concursos WHERE id = ?");
     $prevStmt->execute([$concursoId]);
@@ -274,6 +287,7 @@ if ($action === 'crear_concurso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $empresaId = (int) ($_POST['empresa_id'] ?? 0);
     mkt_require_empresa($pdo, $empresaId);
     $dashboardId = ($_POST['dashboard_id'] ?? '') !== '' ? (int) $_POST['dashboard_id'] : null;
+    mkt_guard_dashboard_de_empresa($pdo, $dashboardId, $empresaId);
     $nombre = trim($_POST['nombre'] ?? '');
     $slug = trim($_POST['slug'] ?? '');
     $metodologia = trim($_POST['metodologia'] ?? '');
