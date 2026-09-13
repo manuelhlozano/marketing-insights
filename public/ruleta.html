@@ -330,7 +330,12 @@
       label.className = 'segment-label';
       const icono = safeIcono(t.premio.icono);
       label.innerHTML = `<span class="chip"><span class="txt">${escHtml(t.premio.nombre)}</span>${icono ? `<i class="ti ti-${icono}"></i>` : ''}</span>`;
-      label.style.transform = `rotate(${t.anguloMedio}deg)`;
+      // -90: rotate() de CSS mide desde las 3 en punto, pero conic-gradient
+      // (los colores de las tajadas) mide desde las 12. Sin ese ajuste cada
+      // etiqueta quedaba 90 grados (3 tajadas) corrida de su propio color, y
+      // el cliente leía un premio distinto al que realmente salió.
+      // translateY(-50%) centra el texto sobre el radio de la tajada.
+      label.style.transform = `rotate(${t.anguloMedio - 90}deg) translateY(-50%)`;
       wheel.appendChild(label);
     });
   }
