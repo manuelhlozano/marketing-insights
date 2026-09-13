@@ -24,6 +24,11 @@
     # /admin -> admin/index.html (sin exponer la ruta del archivo)
     RewriteRule ^admin/?$ admin/index.html [L]
 
+    # /admin/{vista} -> admin/index.html (URL propia por vista: /admin/sorteos,
+    # /admin/ruletas...). Debe ir antes de las reglas de {empresa}/{dashboard},
+    # que si no se tragarían estas rutas como si fueran de un cliente.
+    RewriteRule ^admin/[a-z-]+/?$ admin/index.html [L]
+
     # /api/* -> PHP handler
     RewriteRule ^api/(.+)$ api/$1 [L]
 

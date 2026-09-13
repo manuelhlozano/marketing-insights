@@ -43,7 +43,11 @@
           if (!d.authenticated) { window.location.replace('/login'); }
           else {
             window.__mktAdminUser = d.user;
-            document.addEventListener('DOMContentLoaded', function() {
+            // Si esta consulta tarda más que el resto de la carga, DOMContentLoaded
+            // ya pasó y un listener nuevo no se dispararía nunca: el menú se
+            // quedaría mostrando módulos que el usuario no tiene. Por eso se
+            // ejecuta de una vez cuando el DOM ya está listo.
+            function aplicarPermisos() {
               document.getElementById('userLoggedLabel').textContent = d.user.email;
               const initial = (d.user.nombre || d.user.email || '?').trim().charAt(0).toUpperCase();
               document.getElementById('userAvatarInitials').textContent = initial;
@@ -68,7 +72,17 @@
                 const panel = document.getElementById(tabId);
                 if (panel) panel.remove();
               });
-            });
+
+              // Si la URL apuntaba a un módulo que este usuario no tiene, su
+              // panel se acaba de eliminar: se vuelve a resolver la ruta para
+              // caer en Inicio en lugar de quedar en una vista vacía.
+              if (typeof aplicarRutaActual === 'function') aplicarRutaActual();
+            }
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', aplicarPermisos);
+            } else {
+              aplicarPermisos();
+            }
           }
         })
         .catch(() => window.location.replace('/login'));
@@ -1041,7 +1055,53 @@
       tabUsuarios:    { title: 'Usuarios',                 subtitle: 'Administra quién puede entrar al panel de control.' },
     };
 
-    function switchAdminTab(tabId) {
+    // Cada vista tiene su propia URL (/admin/sorteos) para poder compartir el
+    // enlace y que abra directo en esa vista, y para que atrás/adelante del
+    // navegador funcionen como en cualquier otra página.
+    const ADMIN_RUTAS = {
+      inicio: 'tabHome', empresas: 'tabEmpresas', dashboards: 'tabDashboards',
+      indicadores: 'tabIndicadores', concursos: 'tabConcursos', leads: 'tabLeads',
+      sorteos: 'tabSorteos', ruletas: 'tabRuletas', ajustes: 'tabAjustes',
+      usuarios: 'tabUsuarios',
+    };
+    const ADMIN_SLUGS = {};
+    Object.entries(ADMIN_RUTAS).forEach(([slug, tabId]) => { ADMIN_SLUGS[tabId] = slug; });
+
+    function rutaDesdeUrl() {
+      // Acepta /admin/sorteos y también /admin#sorteos, por si algún enlace
+      // viejo o algún marcador quedó guardado con almohadilla.
+      const m = window.location.pathname.match(/\/admin(?:\.html)?\/([a-z-]+)\/?$/i);
+      const slug = (m ? m[1] : window.location.hash.replace('#', '')).toLowerCase();
+      return ADMIN_RUTAS[slug] || null;
+    }
+
+    // Si el módulo no está habilitado para este usuario su panel ya no existe
+    // en el DOM, así que un enlace compartido a esa vista cae en Inicio en vez
+    // de dejar la pantalla en blanco.
+    function tabExistente(tabId) {
+      return document.getElementById(tabId) ? tabId : 'tabHome';
+    }
+
+    function aplicarRutaActual() {
+      switchAdminTab(tabExistente(rutaDesdeUrl() || 'tabHome'), { historial: 'reemplazar' });
+    }
+
+    window.addEventListener('popstate', () => {
+      switchAdminTab(tabExistente(rutaDesdeUrl() || 'tabHome'), { historial: 'ninguno' });
+    });
+
+    function switchAdminTab(tabId, opciones) {
+      opciones = opciones || {};
+      const slug = ADMIN_SLUGS[tabId];
+      if (slug) {
+        const url = '/admin/' + slug;
+        if (opciones.historial === 'reemplazar') {
+          history.replaceState({ tabId: tabId }, '', url);
+        } else if (opciones.historial !== 'ninguno' && window.location.pathname !== url) {
+          history.pushState({ tabId: tabId }, '', url);
+        }
+      }
+
       document.querySelectorAll('.admin-tab-content').forEach(t => t.style.display = 'none');
       document.querySelectorAll('.admin-sb-nav-item').forEach(b => b.classList.remove('active'));
 
@@ -1880,8 +1940,11 @@
       }
     }
 
-    // Inicializar lista
-    cargarHome();
+    // Abre la vista que pida la URL (o Inicio si no pide ninguna). Se hace en
+    // DOMContentLoaded y no aquí mismo porque cada vista carga sus datos al
+    // abrirse, y varias de esas funciones usan variables declaradas más abajo
+    // en este mismo script.
+    document.addEventListener('DOMContentLoaded', aplicarRutaActual);
 
     // ─────────────────────────────────────────────────────────────────
     // CONCURSOS / LEADS / SORTEOS (3 vistas separadas, mismo backend)
