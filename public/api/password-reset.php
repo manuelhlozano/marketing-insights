@@ -17,6 +17,7 @@ header('X-Content-Type-Options: nosniff');
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/ratelimit.php';
 
 function jsonOut($data, int $code = 200): void {
     http_response_code($code);
@@ -81,6 +82,13 @@ if ($action === 'request' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Pedir el enlace tenía límite, pero canjearlo no: se podían probar
+    // enlaces sin tope. El token son 32 bytes aleatorios, así que acertarlo a
+    // ciegas no es realista, pero un endpoint que cambia contraseñas no debe
+    // aceptar intentos ilimitados por si algún día ese token se acorta.
+    mkt_rate_limit('pwreset_confirm:' . mkt_ip_cliente(), 10, 600,
+                   'Demasiados intentos. Solicita un enlace nuevo.');
+
     $token = trim($_POST['token'] ?? '');
     $newPass = (string) ($_POST['password'] ?? '');
 
