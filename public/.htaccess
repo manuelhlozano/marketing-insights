@@ -32,11 +32,13 @@
     # /api/* -> PHP handler
     RewriteRule ^api/(.+)$ api/$1 [L]
 
-    # /{empresa}/{dashboard} con token -> index.html
-    RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ index.html?empresa=$1&dashboard=$2 [QSA,L]
-
-    # /{empresa} solo -> index.html
-    RewriteRule ^([a-zA-Z0-9_-]+)/?$ index.html?empresa=$1 [QSA,L]
+    # /{empresa}/{informe} y /{empresa} -> ruta.php
+    # Van a un PHP y no directo a index.html porque Apache no sabe qué empresas
+    # existen: antes CUALQUIER ruta de uno o dos tramos (/wp-admin,
+    # /server-status...) devolvía 200 con la página del panel y el sitio no
+    # daba un 404 nunca. ruta.php lo comprueba contra la base de datos.
+    RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/?$ ruta.php?empresa=$1&dashboard=$2 [QSA,L]
+    RewriteRule ^([a-zA-Z0-9_-]+)/?$ ruta.php?empresa=$1 [QSA,L]
 </IfModule>
 
 # Cache de archivos estáticos
