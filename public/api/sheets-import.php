@@ -10,6 +10,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/concursos-metrics.php';
 mkt_require_auth();
+mkt_require_modulo($pdo, 'leads');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -18,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $concursoId = (int) ($_POST['concurso_id'] ?? 0);
+mkt_require_empresa_de($pdo, 'concursos', $concursoId);
 $csvUrl = trim($_POST['sheet_csv_url'] ?? '');
 
 if (!$concursoId || !$csvUrl || !filter_var($csvUrl, FILTER_VALIDATE_URL)) {

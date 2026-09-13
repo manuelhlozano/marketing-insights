@@ -20,6 +20,7 @@ function jsonOut($data, int $code = 200): void {
 }
 
 mkt_require_auth();
+mkt_require_modulo($pdo, 'indicadores');
 
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
 
@@ -28,6 +29,7 @@ try {
 if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $dashboardId = (int) ($_GET['dashboard_id'] ?? 0);
     if (!$dashboardId) jsonOut(["status" => "error", "message" => "Falta el dashboard."], 400);
+    mkt_require_empresa_de($pdo, 'dashboards', $dashboardId);
 
     $stmt = $pdo->prepare("SELECT id, nombre, codigo, tipo_visualizacion, orden, activo
                             FROM modulos_indicadores WHERE dashboard_id = ? ORDER BY orden");
@@ -45,11 +47,13 @@ if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($action === 'toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     if (!$id) jsonOut(["status" => "error", "message" => "Módulo inválido."], 400);
+    mkt_require_escritura($pdo);
 
-    $stmt = $pdo->prepare("SELECT activo FROM modulos_indicadores WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT activo, dashboard_id FROM modulos_indicadores WHERE id = ?");
     $stmt->execute([$id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) jsonOut(["status" => "error", "message" => "Módulo no encontrado."], 404);
+    mkt_require_empresa_de($pdo, 'dashboards', (int) $row['dashboard_id']);
 
     $newState = (int) $row['activo'] === 1 ? 0 : 1;
     $pdo->prepare("UPDATE modulos_indicadores SET activo = ? WHERE id = ?")->execute([$newState, $id]);
@@ -63,6 +67,8 @@ if ($action === 'reorder' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$dashboardId || !is_array($ids) || empty($ids)) {
         jsonOut(["status" => "error", "message" => "Datos de reordenamiento inválidos."], 400);
     }
+    mkt_require_escritura($pdo);
+    mkt_require_empresa_de($pdo, 'dashboards', $dashboardId);
 
     $upd = $pdo->prepare("UPDATE modulos_indicadores SET orden = ? WHERE id = ? AND dashboard_id = ?");
     $orden = 1;

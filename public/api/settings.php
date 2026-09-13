@@ -47,6 +47,8 @@ if ($action === 'public_recaptcha' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 // A PARTIR DE AQUÍ: requiere sesión de administrador
 // ─────────────────────────────────────────────────────────────────
 mkt_require_auth();
+// Los ajustes (reCAPTCHA del login) son globales del sistema, no de un cliente.
+mkt_require_superadmin($pdo);
 
 if ($action === 'get' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $s = mkt_get_settings($pdo, ['recaptcha_enabled', 'recaptcha_site_key', 'recaptcha_secret_key']);

@@ -57,16 +57,29 @@ function mkt_save_logo(string $fieldName, string $slug, string $kind): ?string {
 }
 
 mkt_require_auth();
+mkt_require_modulo($pdo, 'empresas');
 
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
 
 try {
 
 if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stmt = $pdo->query("SELECT e.id, e.nombre, e.slug, e.sector, e.ciudad, e.pais,
-                                 e.logo_light_url, e.logo_dark_url, e.activo, e.created_at,
-                                 (SELECT COUNT(*) FROM dashboards d WHERE d.empresa_id = e.id) AS total_dashboards
-                          FROM empresas e ORDER BY e.nombre");
+    // El listado se filtra en la consulta, no en el cliente: un usuario sin
+    // acceso a una empresa nunca recibe sus datos.
+    $permitidas = mkt_empresas_permitidas($pdo);
+    $sqlBase = "SELECT e.id, e.nombre, e.slug, e.sector, e.ciudad, e.pais,
+                       e.logo_light_url, e.logo_dark_url, e.activo, e.created_at,
+                       (SELECT COUNT(*) FROM dashboards d WHERE d.empresa_id = e.id) AS total_dashboards
+                FROM empresas e";
+    if ($permitidas === null) {
+        $stmt = $pdo->query($sqlBase . " ORDER BY e.nombre");
+    } elseif (empty($permitidas)) {
+        jsonOut(["status" => "success", "empresas" => []]);
+    } else {
+        $ph = implode(',', array_fill(0, count($permitidas), '?'));
+        $stmt = $pdo->prepare($sqlBase . " WHERE e.id IN ($ph) ORDER BY e.nombre");
+        $stmt->execute($permitidas);
+    }
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($rows as &$r) {
         $r['activo'] = (bool) $r['activo'];
@@ -77,6 +90,9 @@ if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Dar de alta un cliente nuevo es de la agencia: un admin_cliente solo
+    // administra las empresas que ya le asignaron.
+    mkt_require_superadmin($pdo);
     $nombre = trim($_POST['nombre'] ?? '');
     $slug = trim($_POST['slug'] ?? '') ?: mkt_slugify($nombre);
     $sector = trim($_POST['sector'] ?? '');
@@ -116,6 +132,8 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$id || !$nombre || !$slug) {
         jsonOut(["status" => "error", "message" => "Nombre y slug son obligatorios."], 400);
     }
+    mkt_require_escritura($pdo);
+    mkt_require_empresa($pdo, $id);
     $slug = mkt_slugify($slug);
 
     $dup = $pdo->prepare("SELECT id FROM empresas WHERE slug = ? AND id != ?");
@@ -142,6 +160,8 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'toggle_active' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     if (!$id) jsonOut(["status" => "error", "message" => "Empresa inválida."], 400);
+    mkt_require_escritura($pdo);
+    mkt_require_empresa($pdo, $id);
 
     $stmt = $pdo->prepare("SELECT activo FROM empresas WHERE id = ?");
     $stmt->execute([$id]);

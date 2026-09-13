@@ -21,19 +21,43 @@ function jsonOut($data, int $code = 200): void {
     exit;
 }
 
+// Valida que el premio/estación pertenezca a una ruleta de una empresa a la
+// que el usuario tiene acceso. Se resuelve en el servidor a partir del id
+// recibido: el cliente nunca decide de qué empresa es lo que está tocando.
+function mkt_guard_hijo_de_ruleta(PDO $pdo, string $tabla, int $id): void {
+    $tablasPermitidas = ['ruleta_premios', 'ruleta_estaciones'];
+    if (!in_array($tabla, $tablasPermitidas, true)) mkt_json_error(400, 'Recurso inválido.');
+    $stmt = $pdo->prepare("SELECT ruleta_id FROM `$tabla` WHERE id = ?");
+    $stmt->execute([$id]);
+    $ruletaId = $stmt->fetchColumn();
+    if ($ruletaId === false) mkt_json_error(404, 'Recurso no encontrado.');
+    mkt_require_empresa_de($pdo, 'ruletas', (int) $ruletaId);
+}
+
 mkt_require_auth();
+mkt_require_modulo($pdo, 'ruletas');
 
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
 
 try {
 
 if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stmt = $pdo->query("SELECT r.id, r.empresa_id, r.nombre, r.slug, r.titulo_publico, r.duracion_segundos,
-                                 r.imagen_fondo_url, r.imagen_centro_url, r.activa, e.nombre AS empresa_nombre,
-                                 (SELECT COUNT(*) FROM ruleta_premios WHERE ruleta_id = r.id) AS total_premios,
-                                 (SELECT COUNT(*) FROM ruleta_estaciones WHERE ruleta_id = r.id) AS total_estaciones
-                          FROM ruletas r JOIN empresas e ON e.id = r.empresa_id
-                          ORDER BY e.nombre, r.nombre");
+    $permitidas = mkt_empresas_permitidas($pdo);
+    $sqlBase = "SELECT r.id, r.empresa_id, r.nombre, r.slug, r.titulo_publico, r.duracion_segundos,
+                       r.imagen_fondo_url, r.imagen_centro_url, r.activa, e.nombre AS empresa_nombre,
+                       (SELECT COUNT(*) FROM ruleta_premios WHERE ruleta_id = r.id) AS total_premios,
+                       (SELECT COUNT(*) FROM ruleta_estaciones WHERE ruleta_id = r.id) AS total_estaciones
+                FROM ruletas r JOIN empresas e ON e.id = r.empresa_id";
+    $orden = " ORDER BY e.nombre, r.nombre";
+    if ($permitidas === null) {
+        $stmt = $pdo->query($sqlBase . $orden);
+    } elseif (empty($permitidas)) {
+        jsonOut(["status" => "success", "ruletas" => []]);
+    } else {
+        $ph = implode(',', array_fill(0, count($permitidas), '?'));
+        $stmt = $pdo->prepare($sqlBase . " WHERE r.empresa_id IN ($ph)" . $orden);
+        $stmt->execute($permitidas);
+    }
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($rows as &$r) {
         $r['activa'] = (bool) $r['activa'];
@@ -57,6 +81,8 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$empresaId || !$nombre || !$slug) {
         jsonOut(["status" => "error", "message" => "Empresa, nombre y slug son obligatorios."], 400);
     }
+    mkt_require_escritura($pdo);
+    mkt_require_empresa($pdo, $empresaId);
 
     $dup = $pdo->prepare("SELECT id FROM ruletas WHERE empresa_id = ? AND slug = ?");
     $dup->execute([$empresaId, $slug]);
@@ -82,6 +108,8 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$id || !$nombre || !$slug) {
         jsonOut(["status" => "error", "message" => "Datos incompletos."], 400);
     }
+    mkt_require_escritura($pdo);
+    mkt_require_empresa_de($pdo, 'ruletas', $id);
 
     $upd = $pdo->prepare("UPDATE ruletas SET nombre = ?, slug = ?, titulo_publico = ?, duracion_segundos = ?, imagen_fondo_url = ?, imagen_centro_url = ? WHERE id = ?");
     $upd->execute([$nombre, $slug, $tituloPublico, $duracion, $imagenFondo, $imagenCentro, $id]);
@@ -91,6 +119,8 @@ if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'toggle_active' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     if (!$id) jsonOut(["status" => "error", "message" => "Ruleta inválida."], 400);
+    mkt_require_escritura($pdo);
+    mkt_require_empresa_de($pdo, 'ruletas', $id);
     $stmt = $pdo->prepare("SELECT activa FROM ruletas WHERE id = ?");
     $stmt->execute([$id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -104,6 +134,7 @@ if ($action === 'toggle_active' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'premios_list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $ruletaId = (int) ($_GET['ruleta_id'] ?? 0);
     if (!$ruletaId) jsonOut(["status" => "error", "message" => "Falta la ruleta."], 400);
+    mkt_require_empresa_de($pdo, 'ruletas', $ruletaId);
     $stmt = $pdo->prepare("SELECT id, nombre, color, icono, probabilidad, es_perdedor, orden FROM ruleta_premios WHERE ruleta_id = ? ORDER BY orden, id");
     $stmt->execute([$ruletaId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -133,6 +164,8 @@ if ($action === 'premio_save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $esPerdedor = !empty($_POST['es_perdedor']) ? 1 : 0;
 
     if (!$ruletaId || !$nombre) jsonOut(["status" => "error", "message" => "Nombre del premio obligatorio."], 400);
+    mkt_require_escritura($pdo);
+    mkt_require_empresa_de($pdo, 'ruletas', $ruletaId);
 
     if ($id) {
         $upd = $pdo->prepare("UPDATE ruleta_premios SET nombre = ?, color = ?, icono = ?, probabilidad = ?, es_perdedor = ? WHERE id = ? AND ruleta_id = ?");
@@ -151,6 +184,8 @@ if ($action === 'premio_save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'premio_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     if (!$id) jsonOut(["status" => "error", "message" => "Premio inválido."], 400);
+    mkt_require_escritura($pdo);
+    mkt_guard_hijo_de_ruleta($pdo, 'ruleta_premios', $id);
     $pdo->prepare("DELETE FROM ruleta_premios WHERE id = ?")->execute([$id]);
     jsonOut(["status" => "success"]);
 }
@@ -159,6 +194,7 @@ if ($action === 'premio_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'estaciones_list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $ruletaId = (int) ($_GET['ruleta_id'] ?? 0);
     if (!$ruletaId) jsonOut(["status" => "error", "message" => "Falta la ruleta."], 400);
+    mkt_require_empresa_de($pdo, 'ruletas', $ruletaId);
     $stmt = $pdo->prepare("SELECT id, nombre, tipo, token, ancho_ticket, activa FROM ruleta_estaciones WHERE ruleta_id = ? ORDER BY tipo, nombre");
     $stmt->execute([$ruletaId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -177,6 +213,8 @@ if ($action === 'estacion_create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $anchoTicket = ($_POST['ancho_ticket'] ?? '80mm') === '58mm' ? '58mm' : '80mm';
 
     if (!$ruletaId || !$nombre) jsonOut(["status" => "error", "message" => "Nombre de la estación obligatorio."], 400);
+    mkt_require_escritura($pdo);
+    mkt_require_empresa_de($pdo, 'ruletas', $ruletaId);
 
     $token = bin2hex(random_bytes(20));
     $ins = $pdo->prepare("INSERT INTO ruleta_estaciones (ruleta_id, nombre, tipo, token, ancho_ticket, activa) VALUES (?, ?, ?, ?, ?, 1)");
@@ -187,6 +225,8 @@ if ($action === 'estacion_create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'estacion_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     if (!$id) jsonOut(["status" => "error", "message" => "Estación inválida."], 400);
+    mkt_require_escritura($pdo);
+    mkt_guard_hijo_de_ruleta($pdo, 'ruleta_estaciones', $id);
     $stmt = $pdo->prepare("SELECT activa FROM ruleta_estaciones WHERE id = ?");
     $stmt->execute([$id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -199,6 +239,8 @@ if ($action === 'estacion_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'estacion_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     if (!$id) jsonOut(["status" => "error", "message" => "Estación inválida."], 400);
+    mkt_require_escritura($pdo);
+    mkt_guard_hijo_de_ruleta($pdo, 'ruleta_estaciones', $id);
     $pdo->prepare("DELETE FROM ruleta_estaciones WHERE id = ?")->execute([$id]);
     jsonOut(["status" => "success"]);
 }
@@ -207,6 +249,7 @@ if ($action === 'estacion_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'analitica' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $ruletaId = (int) ($_GET['ruleta_id'] ?? 0);
     if (!$ruletaId) jsonOut(["status" => "error", "message" => "Falta la ruleta."], 400);
+    mkt_require_empresa_de($pdo, 'ruletas', $ruletaId);
 
     $desde = trim($_GET['desde'] ?? '') ?: date('Y-m-01');
     $hasta = trim($_GET['hasta'] ?? '') ?: date('Y-m-t');

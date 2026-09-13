@@ -47,6 +47,27 @@
               document.getElementById('userLoggedLabel').textContent = d.user.email;
               const initial = (d.user.nombre || d.user.email || '?').trim().charAt(0).toUpperCase();
               document.getElementById('userAvatarInitials').textContent = initial;
+
+              const rolesLabel = { superadmin: 'Superadmin', admin_cliente: 'Admin de cliente', operador: 'Operador' };
+              const rolEl = document.querySelector('.admin-sb-user-info span');
+              if (rolEl) rolEl.textContent = rolesLabel[d.user.rol] || 'Usuario';
+
+              // Se ocultan del menú los módulos sin acceso. Esto es solo
+              // presentación: cada API valida el permiso por su cuenta, así que
+              // entrar por URL directa tampoco funciona.
+              const permitidos = d.user.modulos || [];
+              const tabPorModulo = {
+                tabEmpresas: 'empresas', tabDashboards: 'dashboards', tabIndicadores: 'indicadores',
+                tabConcursos: 'concursos', tabLeads: 'leads', tabSorteos: 'sorteos',
+                tabRuletas: 'ruletas', tabAjustes: 'ajustes', tabUsuarios: 'usuarios',
+              };
+              Object.entries(tabPorModulo).forEach(([tabId, modulo]) => {
+                if (permitidos.includes(modulo)) return;
+                const btn = document.querySelector(`.admin-sb-nav-item[data-tab="${tabId}"]`);
+                if (btn) btn.style.display = 'none';
+                const panel = document.getElementById(tabId);
+                if (panel) panel.remove();
+              });
             });
           }
         })
@@ -461,8 +482,8 @@
         </div>
         <div class="table-responsive" style="margin-top: 10px;">
           <table class="custom-table">
-            <thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Acciones</th></tr></thead>
-            <tbody id="usuariosTableBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
+            <thead><tr><th>Nombre</th><th>Correo</th><th>Rol y alcance</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="usuariosTableBody"><tr><td colspan="5">Cargando…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -936,6 +957,30 @@
             <button type="button" class="pass-toggle" data-target="nuPassword" aria-label="Mostrar contraseña">
               <i data-lucide="eye"></i>
             </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Rol</label>
+          <select id="nuRol" class="form-input" onchange="cambiarRolUsuario()">
+            <option value="operador">Operador — solo opera el día a día (registrar leads, ganadores, ver analítica)</option>
+            <option value="admin_cliente">Administrador de cliente — además puede crear y editar dentro de sus empresas</option>
+            <option value="superadmin">Superadministrador — acceso total a todo el sistema</option>
+          </select>
+          <small id="nuRolAviso" style="font-size: 11px; color: var(--text-dim); display: block; margin-top: 6px;"></small>
+        </div>
+
+        <div id="nuPermisosBox">
+          <div class="form-group">
+            <label class="form-label">Empresas a las que tendrá acceso</label>
+            <div id="nuEmpresasBox" style="display:flex;flex-direction:column;gap:6px;max-height:150px;overflow-y:auto;background:var(--bg-card-alt);border:1px solid var(--border-card);border-radius:var(--radius-sm);padding:10px;">
+              <p style="font-size:12px;color:var(--text-muted);">Cargando…</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Módulos habilitados</label>
+            <div id="nuModulosBox" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg-card-alt);border:1px solid var(--border-card);border-radius:var(--radius-sm);padding:10px;"></div>
           </div>
         </div>
         <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
@@ -1611,24 +1656,105 @@
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // TAB 6: USUARIOS DEL PANEL
+    // TAB 6: USUARIOS DEL PANEL (rol + empresas + módulos)
     // ─────────────────────────────────────────────────────────────────
     let usuariosCargados = false;
+
+    const MODULOS_LABEL = {
+      empresas:    'Empresas & Clientes',
+      dashboards:  'Dashboards',
+      indicadores: 'Indicadores & Toggles',
+      concursos:   'Concursos',
+      leads:       'Leads',
+      sorteos:     'Sorteos',
+      ruletas:     'Ruletas',
+      ajustes:     'Ajustes',
+      usuarios:    'Usuarios',
+    };
+    const ROLES_LABEL = {
+      superadmin:    'Superadministrador',
+      admin_cliente: 'Admin de cliente',
+      operador:      'Operador',
+    };
+    // Módulos que son de la agencia, no de un cliente: aunque se marquen para
+    // un rol no-superadmin, el servidor los rechaza igual.
+    const MODULOS_SOLO_AGENCIA = ['ajustes', 'usuarios'];
+
+    function badgeRol(rol) {
+      const clase = rol === 'superadmin' ? 'badge-negative' : (rol === 'admin_cliente' ? 'badge-warning' : 'badge-info');
+      return `<span class="kpi-badge ${clase}">${ROLES_LABEL[rol] || rol}</span>`;
+    }
+
+    function alcanceTexto(u) {
+      if (u.rol === 'superadmin') return 'Todas las empresas · todos los módulos';
+      const empresas = (window.__empresasParaPermisos || []);
+      const nombres = (u.empresas || []).map(id => {
+        const e = empresas.find(x => x.id === id);
+        return e ? e.nombre : `#${id}`;
+      });
+      const emp = nombres.length ? nombres.join(', ') : 'sin empresas';
+      const mods = (u.modulos || []).length ? `${u.modulos.length} módulo${u.modulos.length === 1 ? '' : 's'}` : 'sin módulos';
+      return `${escHtml(emp)} · ${mods}`;
+    }
+
+    // Pinta las casillas de empresas y módulos dentro del modal de usuario.
+    async function poblarPermisosUsuario(seleccionEmpresas, seleccionModulos) {
+      const boxEmp = document.getElementById('nuEmpresasBox');
+      const boxMod = document.getElementById('nuModulosBox');
+
+      if (!window.__empresasParaPermisos || !window.__empresasParaPermisos.length) {
+        try {
+          const res = await fetch('/api/empresas.php?action=list', { credentials: 'same-origin' });
+          const data = await res.json();
+          window.__empresasParaPermisos = data.status === 'success' ? data.empresas : [];
+        } catch (e) {
+          window.__empresasParaPermisos = [];
+        }
+      }
+      const empresas = window.__empresasParaPermisos;
+      boxEmp.innerHTML = empresas.length
+        ? empresas.map(e => `
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;">
+              <input type="checkbox" class="nu-empresa" value="${e.id}" ${seleccionEmpresas.includes(e.id) ? 'checked' : ''}>
+              <span>${escHtml(e.nombre)}</span>
+            </label>`).join('')
+        : '<p style="font-size:12px;color:var(--text-muted);">No hay empresas registradas todavía.</p>';
+
+      boxMod.innerHTML = Object.entries(MODULOS_LABEL).map(([codigo, label]) => `
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;" title="${MODULOS_SOLO_AGENCIA.includes(codigo) ? 'Solo disponible para superadministradores' : ''}">
+          <input type="checkbox" class="nu-modulo" value="${codigo}" ${seleccionModulos.includes(codigo) ? 'checked' : ''} ${MODULOS_SOLO_AGENCIA.includes(codigo) ? 'disabled' : ''}>
+          <span style="${MODULOS_SOLO_AGENCIA.includes(codigo) ? 'color:var(--text-dim);' : ''}">${label}</span>
+        </label>`).join('');
+    }
+
+    // El superadmin no lleva asignaciones: tiene todo por definición.
+    function cambiarRolUsuario() {
+      const rol = document.getElementById('nuRol').value;
+      const esSuper = rol === 'superadmin';
+      document.getElementById('nuPermisosBox').style.display = esSuper ? 'none' : 'block';
+      document.getElementById('nuRolAviso').textContent = esSuper
+        ? 'Acceso total: todas las empresas y todos los módulos, incluido gestionar usuarios y ajustes del sistema.'
+        : (rol === 'admin_cliente'
+            ? 'Puede crear, editar y desactivar dentro de las empresas y módulos que le marques abajo.'
+            : 'Solo opera el día a día (registrar leads, ganadores, imprimir fichas y ver analítica). No puede crear ni borrar.');
+    }
 
     async function cargarUsuarios() {
       const tbody = document.getElementById('usuariosTableBody');
       const res = await fetch('/api/users.php?action=list', { credentials: 'same-origin' });
       const data = await res.json();
       if (data.status !== 'success') {
-        tbody.innerHTML = `<tr><td colspan="4" style="color:var(--danger-red-text);">${data.message || 'Error al cargar usuarios.'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger-red-text);">${data.message || 'Error al cargar usuarios.'}</td></tr>`;
         return;
       }
       window.__usuariosCache = data.users;
       const propioId = window.__mktAdminUser ? window.__mktAdminUser.id : null;
+      window.__empresasParaPermisos = data.empresas_disponibles || window.__empresasParaPermisos || [];
       tbody.innerHTML = data.users.map(u => `
         <tr>
-          <td>${u.nombre}${u.id === propioId ? ' <span class="kpi-badge badge-info">Tú</span>' : ''}</td>
-          <td>${u.email}</td>
+          <td>${escHtml(u.nombre)}${u.id === propioId ? ' <span class="kpi-badge badge-info">Tú</span>' : ''}</td>
+          <td>${escHtml(u.email)}</td>
+          <td>${badgeRol(u.rol)}<div style="font-size:11px;color:var(--text-muted);margin-top:3px;">${alcanceTexto(u)}</div></td>
           <td>${u.activo ? '<span class="kpi-badge badge-positive">Activo</span>' : '<span class="kpi-badge badge-negative">Inactivo</span>'}</td>
           <td style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="abrirUsuarioModal(${u.id})">Editar</button>
@@ -1636,11 +1762,11 @@
             <button class="btn-action" style="padding:5px 8px;font-size:11px;" onclick="toggleUsuarioActivo(${u.id})">${u.activo ? 'Desactivar' : 'Activar'}</button>
           </td>
         </tr>
-      `).join('') || '<tr><td colspan="4" style="color:var(--text-muted);">Sin usuarios.</td></tr>';
+      `).join('') || '<tr><td colspan="5" style="color:var(--text-muted);">Sin usuarios.</td></tr>';
       usuariosCargados = true;
     }
 
-    function abrirUsuarioModal(id) {
+    async function abrirUsuarioModal(id) {
       const form = document.getElementById('formUsuario');
       form.reset();
       document.getElementById('usuarioId').value = '';
@@ -1654,13 +1780,18 @@
         document.getElementById('usuarioId').value = u.id;
         document.getElementById('nuNombre').value = u.nombre;
         document.getElementById('nuEmail').value = u.email;
+        document.getElementById('nuRol').value = u.rol || 'operador';
         document.getElementById('nuPassword').required = false;
         document.getElementById('nuPasswordGroup').style.display = 'none';
+        await poblarPermisosUsuario(u.empresas || [], u.modulos || []);
       } else {
         document.getElementById('usuarioModalTitle').textContent = 'Añadir Usuario';
         document.getElementById('usuarioModalSubmitLabel').textContent = 'Crear Usuario';
+        document.getElementById('nuRol').value = 'operador';
         document.getElementById('nuPasswordGroup').style.display = 'block';
+        await poblarPermisosUsuario([], []);
       }
+      cambiarRolUsuario();
       ocultarPasswords('usuarioModal');
       document.getElementById('usuarioModal').style.display = 'flex';
     }
@@ -1678,6 +1809,22 @@
       form.set('nombre', document.getElementById('nuNombre').value.trim());
       form.set('email', document.getElementById('nuEmail').value.trim());
       if (!id) form.set('password', document.getElementById('nuPassword').value);
+
+      const rol = document.getElementById('nuRol').value;
+      form.set('rol', rol);
+      const empresas = [...document.querySelectorAll('.nu-empresa:checked')].map(c => parseInt(c.value, 10));
+      const modulos = [...document.querySelectorAll('.nu-modulo:checked')].map(c => c.value);
+      form.set('empresas', JSON.stringify(empresas));
+      form.set('modulos', JSON.stringify(modulos));
+
+      if (rol !== 'superadmin' && empresas.length === 0) {
+        alert('Asigna al menos una empresa a este usuario, o hazlo superadministrador.');
+        return;
+      }
+      if (rol !== 'superadmin' && modulos.length === 0) {
+        alert('Habilita al menos un módulo para este usuario.');
+        return;
+      }
 
       const res = await fetch('/api/users.php', { method: 'POST', body: form, credentials: 'same-origin' });
       const data = await res.json();

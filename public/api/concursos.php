@@ -175,30 +175,61 @@ if ($action === 'draw' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 // ─────────────────────────────────────────────────────────────────
 // A PARTIR DE AQUÍ: requiere sesión de administrador
 // ─────────────────────────────────────────────────────────────────
+// Valida que el concurso pertenezca a una empresa habilitada para el usuario.
+// Se resuelve siempre en el servidor a partir del concurso_id recibido.
+function mkt_guard_concurso(PDO $pdo, int $concursoId): void {
+    mkt_require_empresa_de($pdo, 'concursos', $concursoId);
+}
+
 mkt_require_auth();
 
 if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stmt = $pdo->query("SELECT c.id, c.nombre, c.slug, c.estado, c.created_at, c.empresa_id, c.dashboard_id,
-                                 e.nombre AS empresa_nombre,
-                                 d.titulo AS dashboard_titulo, d.periodo AS dashboard_periodo,
-                                 (SELECT COUNT(*) FROM concurso_premios p WHERE p.concurso_id = c.id) AS total_premios,
-                                 (SELECT COUNT(*) FROM concurso_sorteos s WHERE s.concurso_id = c.id) AS premios_sorteados,
-                                 (SELECT COUNT(*) FROM concurso_leads l WHERE l.concurso_id = c.id) AS total_leads
-                          FROM concursos c
-                          JOIN empresas e ON e.id = c.empresa_id
-                          LEFT JOIN dashboards d ON d.id = c.dashboard_id
-                          ORDER BY c.created_at DESC");
-    $rows = $stmt->fetchAll();
-    jsonOut(["status" => "success", "concursos" => $rows]);
+    // Lo usan las tres vistas (Concursos, Leads y Sorteos) para poblar sus
+    // selectores, así que basta con tener alguno de esos módulos.
+    $modulos = mkt_modulos_permitidos($pdo);
+    if (!array_intersect(['concursos', 'leads', 'sorteos'], $modulos)) {
+        mkt_json_error(403, 'No tienes acceso a este módulo.');
+    }
+    $permitidas = mkt_empresas_permitidas($pdo);
+    $sqlBase = "SELECT c.id, c.nombre, c.slug, c.estado, c.created_at, c.empresa_id, c.dashboard_id,
+                       e.nombre AS empresa_nombre,
+                       d.titulo AS dashboard_titulo, d.periodo AS dashboard_periodo,
+                       (SELECT COUNT(*) FROM concurso_premios p WHERE p.concurso_id = c.id) AS total_premios,
+                       (SELECT COUNT(*) FROM concurso_sorteos s WHERE s.concurso_id = c.id) AS premios_sorteados,
+                       (SELECT COUNT(*) FROM concurso_leads l WHERE l.concurso_id = c.id) AS total_leads
+                FROM concursos c
+                JOIN empresas e ON e.id = c.empresa_id
+                LEFT JOIN dashboards d ON d.id = c.dashboard_id";
+    $orden = " ORDER BY c.created_at DESC";
+    if ($permitidas === null) {
+        $stmt = $pdo->query($sqlBase . $orden);
+    } elseif (empty($permitidas)) {
+        jsonOut(["status" => "success", "concursos" => []]);
+    } else {
+        $ph = implode(',', array_fill(0, count($permitidas), '?'));
+        $stmt = $pdo->prepare($sqlBase . " WHERE c.empresa_id IN ($ph)" . $orden);
+        $stmt->execute($permitidas);
+    }
+    jsonOut(["status" => "success", "concursos" => $stmt->fetchAll()]);
 }
 
 if ($action === 'empresas' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stmt = $pdo->query("SELECT id, nombre, slug FROM empresas WHERE activo = 1 ORDER BY nombre");
+    $permitidas = mkt_empresas_permitidas($pdo);
+    if ($permitidas === null) {
+        $stmt = $pdo->query("SELECT id, nombre, slug FROM empresas WHERE activo = 1 ORDER BY nombre");
+    } elseif (empty($permitidas)) {
+        jsonOut(["status" => "success", "empresas" => []]);
+    } else {
+        $ph = implode(',', array_fill(0, count($permitidas), '?'));
+        $stmt = $pdo->prepare("SELECT id, nombre, slug FROM empresas WHERE activo = 1 AND id IN ($ph) ORDER BY nombre");
+        $stmt->execute($permitidas);
+    }
     jsonOut(["status" => "success", "empresas" => $stmt->fetchAll()]);
 }
 
 if ($action === 'dashboards_by_empresa' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $empresaId = (int) ($_GET['empresa_id'] ?? 0);
+    mkt_require_empresa($pdo, $empresaId);
     $stmt = $pdo->prepare("SELECT id, titulo, periodo, slug FROM dashboards WHERE empresa_id = ? ORDER BY fecha_inicio DESC, id DESC");
     $stmt->execute([$empresaId]);
     jsonOut(["status" => "success", "dashboards" => $stmt->fetchAll()]);
@@ -208,6 +239,10 @@ if ($action === 'asignar_dashboard' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $concursoId = (int) ($_POST['concurso_id'] ?? 0);
     $dashboardId = $_POST['dashboard_id'] ?? '';
     $dashboardId = $dashboardId === '' ? null : (int) $dashboardId;
+    mkt_require_modulo($pdo, 'sorteos');
+    mkt_require_escritura($pdo);
+    mkt_guard_concurso($pdo, $concursoId);
+    if ($dashboardId) mkt_require_empresa_de($pdo, 'dashboards', $dashboardId);
 
     $prevStmt = $pdo->prepare("SELECT dashboard_id FROM concursos WHERE id = ?");
     $prevStmt->execute([$concursoId]);
@@ -234,7 +269,10 @@ if ($action === 'asignar_dashboard' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'crear_concurso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    mkt_require_modulo($pdo, 'concursos');
+    mkt_require_escritura($pdo);
     $empresaId = (int) ($_POST['empresa_id'] ?? 0);
+    mkt_require_empresa($pdo, $empresaId);
     $dashboardId = ($_POST['dashboard_id'] ?? '') !== '' ? (int) $_POST['dashboard_id'] : null;
     $nombre = trim($_POST['nombre'] ?? '');
     $slug = trim($_POST['slug'] ?? '');
@@ -271,7 +309,9 @@ if ($action === 'crear_concurso' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'leads' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    mkt_require_modulo($pdo, 'leads');
     $concursoId = (int) ($_GET['concurso_id'] ?? 0);
+    mkt_guard_concurso($pdo, $concursoId);
     $stmt = $pdo->prepare("SELECT l.id, l.nombre, l.apellido, l.documento, l.telefono, l.correo, l.origen, l.created_at,
                                    (SELECT COUNT(*) FROM concurso_sorteos s
                                     JOIN concurso_leads l2 ON l2.id = s.lead_id
@@ -285,7 +325,9 @@ if ($action === 'leads' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 if ($action === 'lead_manual' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    mkt_require_modulo($pdo, 'leads');
     $concursoId = (int) ($_POST['concurso_id'] ?? 0);
+    mkt_guard_concurso($pdo, $concursoId);
     $nombre = trim($_POST['nombre'] ?? '');
     $apellido = trim($_POST['apellido'] ?? '');
     $documento = trim($_POST['documento'] ?? '');
@@ -306,7 +348,9 @@ if ($action === 'lead_manual' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    mkt_require_modulo($pdo, 'sorteos');
     $concursoId = (int) ($_GET['concurso_id'] ?? 0);
+    mkt_guard_concurso($pdo, $concursoId);
 
     $cStmt = $pdo->prepare("SELECT c.*, e.nombre AS empresa_nombre, d.titulo AS dashboard_titulo, d.periodo AS dashboard_periodo
                              FROM concursos c
@@ -391,7 +435,9 @@ if ($action === 'auditoria' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 if ($action === 'pick_backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    mkt_require_modulo($pdo, 'sorteos');
     $concursoId = (int) ($_POST['concurso_id'] ?? 0);
+    mkt_guard_concurso($pdo, $concursoId);
     $kit = (string) ($_POST['kit'] ?? '');
 
     $pdo->beginTransaction();
@@ -434,11 +480,13 @@ if ($action === 'pick_backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'registrar_ganador_manual' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    mkt_require_modulo($pdo, 'sorteos');
     // Para mecánicas oficiales externas (ej. sorteo por comentarios de Instagram/Facebook):
     // el equipo de marketing registra aquí al ganador ya anunciado en redes, para que quede
     // en la auditoría, el conteo de premios entregados y el PDF, aunque la selección aleatoria
     // no haya ocurrido dentro de este sistema.
     $concursoId = (int) ($_POST['concurso_id'] ?? 0);
+    mkt_guard_concurso($pdo, $concursoId);
     $kit = (string) ($_POST['kit'] ?? '');
     $documento = trim($_POST['documento'] ?? '');
     $nombre = trim($_POST['nombre'] ?? '');
@@ -493,7 +541,9 @@ if ($action === 'registrar_ganador_manual' && $_SERVER['REQUEST_METHOD'] === 'PO
 }
 
 if ($action === 'reset' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    mkt_require_superadmin($pdo);
     $concursoId = (int) ($_POST['concurso_id'] ?? 0);
+    mkt_guard_concurso($pdo, $concursoId);
     $pdo->prepare("DELETE FROM concurso_suplentes WHERE concurso_id = ?")->execute([$concursoId]);
     $pdo->prepare("DELETE FROM concurso_sorteos WHERE concurso_id = ?")->execute([$concursoId]);
     jsonOut(["status" => "success", "message" => "El sorteo fue reiniciado."]);

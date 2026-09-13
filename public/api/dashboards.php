@@ -20,17 +20,30 @@ function jsonOut($data, int $code = 200): void {
 }
 
 mkt_require_auth();
+mkt_require_modulo($pdo, 'dashboards');
 
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
 
 try {
 
 if ($action === 'list' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stmt = $pdo->query("SELECT d.id, d.titulo, d.slug, d.periodo, d.public_token, d.es_publico,
-                                 d.empresa_id, e.nombre AS empresa_nombre, e.slug AS empresa_slug
-                          FROM dashboards d
-                          JOIN empresas e ON e.id = d.empresa_id
-                          ORDER BY e.nombre, d.fecha_inicio DESC, d.id DESC");
+    // Filtrado en la consulta: un usuario nunca recibe dashboards de empresas
+    // que no tiene asignadas.
+    $permitidas = mkt_empresas_permitidas($pdo);
+    $sqlBase = "SELECT d.id, d.titulo, d.slug, d.periodo, d.public_token, d.es_publico,
+                       d.empresa_id, e.nombre AS empresa_nombre, e.slug AS empresa_slug
+                FROM dashboards d
+                JOIN empresas e ON e.id = d.empresa_id";
+    $orden = " ORDER BY e.nombre, d.fecha_inicio DESC, d.id DESC";
+    if ($permitidas === null) {
+        $stmt = $pdo->query($sqlBase . $orden);
+    } elseif (empty($permitidas)) {
+        jsonOut(["status" => "success", "dashboards" => []]);
+    } else {
+        $ph = implode(',', array_fill(0, count($permitidas), '?'));
+        $stmt = $pdo->prepare($sqlBase . " WHERE d.empresa_id IN ($ph)" . $orden);
+        $stmt->execute($permitidas);
+    }
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($rows as &$r) {
         $r['es_publico'] = (bool) $r['es_publico'];
@@ -51,6 +64,8 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$empresaId || !$titulo || !$periodo || !$slug) {
         jsonOut(["status" => "error", "message" => "Empresa, título, periodo y slug son obligatorios."], 400);
     }
+    mkt_require_escritura($pdo);
+    mkt_require_empresa($pdo, $empresaId);
 
     $dup = $pdo->prepare("SELECT id FROM dashboards WHERE empresa_id = ? AND slug = ?");
     $dup->execute([$empresaId, $slug]);
@@ -69,6 +84,8 @@ if ($action === 'create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'toggle_visibility' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
     if (!$id) jsonOut(["status" => "error", "message" => "Dashboard inválido."], 400);
+    mkt_require_escritura($pdo);
+    mkt_require_empresa_de($pdo, 'dashboards', $id);
 
     $stmt = $pdo->prepare("SELECT es_publico FROM dashboards WHERE id = ?");
     $stmt->execute([$id]);
