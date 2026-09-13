@@ -23,6 +23,15 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="/css/executive-dashboard.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3/dist/tabler-icons.min.css">
+  <style>
+    .pass-toggle {
+      position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 8px;
+      display: flex; color: var(--text-muted);
+    }
+    .pass-toggle:hover { color: var(--text-primary); }
+    .pass-toggle i { width: 17px; height: 17px; }
+  </style>
 
 
   <!-- AUTH GUARD: verificación real de sesión de servidor (no localStorage) -->
@@ -879,11 +888,21 @@
       <form onsubmit="cambiarMiPassword(event)">
         <div class="form-group">
           <label class="form-label">Contraseña Actual</label>
-          <input type="password" id="mcPassActual" class="form-input" required>
+          <div style="position: relative;">
+            <input type="password" id="mcPassActual" class="form-input" required style="padding-right: 40px;">
+            <button type="button" class="pass-toggle" data-target="mcPassActual" aria-label="Mostrar contraseña">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Contraseña Nueva</label>
-          <input type="password" id="mcPassNueva" class="form-input" required minlength="8" placeholder="Mínimo 8 caracteres">
+          <div style="position: relative;">
+            <input type="password" id="mcPassNueva" class="form-input" required minlength="8" placeholder="Mínimo 8 caracteres" style="padding-right: 40px;">
+            <button type="button" class="pass-toggle" data-target="mcPassNueva" aria-label="Mostrar contraseña">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn-action btn-primary" style="padding: 10px 20px;">
           <i data-lucide="key" style="width: 15px; height: 15px;"></i>
@@ -912,7 +931,12 @@
         </div>
         <div class="form-group" id="nuPasswordGroup">
           <label class="form-label">Contraseña</label>
-          <input type="password" id="nuPassword" class="form-input" minlength="8" placeholder="Mínimo 8 caracteres">
+          <div style="position: relative;">
+            <input type="password" id="nuPassword" class="form-input" minlength="8" placeholder="Mínimo 8 caracteres" style="padding-right: 40px;">
+            <button type="button" class="pass-toggle" data-target="nuPassword" aria-label="Mostrar contraseña">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
           <i data-lucide="save" style="width: 16px; height: 16px;"></i>
@@ -933,7 +957,12 @@
       <form onsubmit="guardarSetPassword(event)">
         <div class="form-group">
           <label class="form-label">Nueva Contraseña</label>
-          <input type="password" id="spPassword" class="form-input" required minlength="8" placeholder="Mínimo 8 caracteres">
+          <div style="position: relative;">
+            <input type="password" id="spPassword" class="form-input" required minlength="8" placeholder="Mínimo 8 caracteres" style="padding-right: 40px;">
+            <button type="button" class="pass-toggle" data-target="spPassword" aria-label="Mostrar contraseña">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn-action btn-primary" style="padding: 10px 20px;">
           <i data-lucide="save" style="width: 15px; height: 15px;"></i>
@@ -1031,6 +1060,34 @@
         console.error('Error cargando datos de la pestaña', tabId, err);
       }
     }
+
+    // Al reabrir un modal la contraseña vuelve a quedar oculta, para que no
+    // se quede visible de un uso anterior delante de otra persona.
+    function ocultarPasswords(modalId) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      modal.querySelectorAll('.pass-toggle').forEach(btn => {
+        const input = document.getElementById(btn.dataset.target);
+        if (input) input.type = 'password';
+        btn.querySelector('i').setAttribute('data-lucide', 'eye');
+        btn.setAttribute('aria-label', 'Mostrar contraseña');
+      });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Ojito para ver/ocultar contraseñas. Delegado en document para que
+    // funcione también en los modales, que se renderizan después de esto.
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.pass-toggle');
+      if (!btn) return;
+      const input = document.getElementById(btn.dataset.target);
+      if (!input) return;
+      const visible = input.type === 'text';
+      input.type = visible ? 'password' : 'text';
+      btn.querySelector('i').setAttribute('data-lucide', visible ? 'eye' : 'eye-off');
+      btn.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
 
     function toggleUserMenu() {
       const menu = document.getElementById('userMenu');
@@ -1512,6 +1569,7 @@
       }
       document.getElementById('mcPassActual').value = '';
       document.getElementById('mcPassNueva').value = '';
+      ocultarPasswords('miCuentaModal');
       document.getElementById('miCuentaModal').style.display = 'flex';
     }
 
@@ -1603,6 +1661,7 @@
         document.getElementById('usuarioModalSubmitLabel').textContent = 'Crear Usuario';
         document.getElementById('nuPasswordGroup').style.display = 'block';
       }
+      ocultarPasswords('usuarioModal');
       document.getElementById('usuarioModal').style.display = 'flex';
     }
 
@@ -1649,6 +1708,7 @@
       setPasswordUserId = id;
       document.getElementById('setPasswordUserLabel').textContent = `Usuario: ${nombre}`;
       document.getElementById('spPassword').value = '';
+      ocultarPasswords('setPasswordModal');
       document.getElementById('setPasswordModal').style.display = 'flex';
     }
 
