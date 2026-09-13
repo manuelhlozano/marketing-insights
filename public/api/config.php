@@ -11,7 +11,7 @@ if (function_exists('uopz_allow_exit')) {
 $db_host = 'localhost';
 $db_name = 'wwcibe_mktinsights';
 $db_user = 'wwcibe_mktinsightsR00t';
-$db_pass = 'jnLvx.I^AaMf59L%';
+$db_pass = 'WREWWoqpiE-nOJdx8vdvRVclvyaQ';
 
 try {
     $pdo = new PDO("mysql:host={$db_host};dbname={$db_name};charset=utf8mb4", $db_user, $db_pass, [
