@@ -169,7 +169,11 @@ if ($action === 'set_password' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonOut(["status" => "error", "message" => "La contraseña debe tener al menos 8 caracteres."], 400);
     }
 
-    $upd = $pdo->prepare("UPDATE admin_users SET password_hash = ?, reset_token_hash = NULL, reset_token_expires = NULL WHERE id = ?");
+    // Ponerle contraseña nueva a alguien también lo desbloquea: es la vía por
+    // la que la agencia rescata a un usuario bloqueado por intentos fallidos.
+    $upd = $pdo->prepare("UPDATE admin_users SET password_hash = ?, reset_token_hash = NULL,
+                          reset_token_expires = NULL, intentos_fallidos = 0, bloqueado_hasta = NULL
+                          WHERE id = ?");
     $upd->execute([password_hash($password, PASSWORD_DEFAULT), $id]);
 
     if ($upd->rowCount() === 0) {

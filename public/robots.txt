@@ -1,0 +1,10 @@
+# Marketing Insights no es un sitio público: todo lo que hay aquí (informes
+# mensuales, sorteos en vivo, ruletas de premio) se comparte por enlace privado
+# con clientes concretos. Ningún buscador debe rastrear ni indexar nada.
+#
+# Esto es solo la mitad del trabajo: robots.txt pide que no rastreen, pero una
+# URL que alguien comparta puede indexarse igual. La cabecera X-Robots-Tag del
+# .htaccess es la que de verdad mantiene estas páginas fuera del índice.
+
+User-agent: *
+Disallow: /

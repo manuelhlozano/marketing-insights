@@ -63,14 +63,58 @@ if (($recaptchaSettings['recaptcha_enabled'] ?? '0') === '1' && !empty($recaptch
 $emailInput = trim($_POST['user'] ?? '');
 $pass = (string) ($_POST['pass'] ?? '');
 
-$stmt = $pdo->prepare("SELECT id, nombre, email, password_hash FROM admin_users WHERE email = ? AND activo = 1 LIMIT 1");
+// Si el bloqueo sigue vigente y cuánto le falta lo decide MySQL, no PHP: el
+// servidor de base de datos y el de PHP no están en el mismo huso horario, así
+// que comparar aquí una fecha escrita allá daba el bloqueo por vencido nada
+// más ponerlo, y la cuenta nunca quedaba bloqueada de verdad.
+$stmt = $pdo->prepare("SELECT id, nombre, email, password_hash, intentos_fallidos,
+                              (bloqueado_hasta IS NOT NULL AND bloqueado_hasta > NOW()) AS esta_bloqueado,
+                              TIMESTAMPDIFF(MINUTE, NOW(), bloqueado_hasta) AS minutos_restantes,
+                              bloqueado_hasta
+                       FROM admin_users WHERE email = ? AND activo = 1 LIMIT 1");
 $stmt->execute([$emailInput]);
 $account = $stmt->fetch(PDO::FETCH_ASSOC);
 
+// Bloqueo por cuenta, además del límite por IP. El límite por IP solo frena a
+// quien ataca desde una dirección; probar una misma contraseña contra una
+// cuenta desde muchas direcciones lo esquivaba por completo. Aquí el contador
+// viaja con la cuenta, no con el atacante.
+const MKT_INTENTOS_MAX = 5;
+const MKT_BLOQUEO_MINUTOS = 15;
+
+if ($account && (int) $account['esta_bloqueado'] === 1) {
+    $restan = max(1, (int) $account['minutos_restantes']);
+    http_response_code(429);
+    echo json_encode(["status" => "error",
+                      "message" => "Cuenta bloqueada temporalmente por intentos fallidos. Vuelve a intentar en {$restan} minuto(s) o restablece tu contraseña."]);
+    exit();
+}
+
 if (!$account || !password_verify($pass, $account['password_hash'])) {
+    if ($account) {
+        $fallidos = ((int) $account['intentos_fallidos']) + 1;
+        if ($fallidos >= MKT_INTENTOS_MAX) {
+            $pdo->prepare("UPDATE admin_users SET intentos_fallidos = 0,
+                           bloqueado_hasta = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE id = ?")
+                ->execute([MKT_BLOQUEO_MINUTOS, $account['id']]);
+            http_response_code(429);
+            echo json_encode(["status" => "error",
+                              "message" => "Demasiados intentos fallidos. La cuenta queda bloqueada " . MKT_BLOQUEO_MINUTOS . " minutos."]);
+            exit();
+        }
+        $pdo->prepare("UPDATE admin_users SET intentos_fallidos = ? WHERE id = ?")
+            ->execute([$fallidos, $account['id']]);
+    }
     http_response_code(401);
     echo json_encode(["status" => "error", "message" => "Usuario o contraseña incorrectos."]);
     exit();
+}
+
+// Entrada correcta: el contador vuelve a cero para que los fallos sueltos de
+// un día normal no acaben bloqueando a nadie.
+if ((int) $account['intentos_fallidos'] !== 0 || $account['bloqueado_hasta'] !== null) {
+    $pdo->prepare("UPDATE admin_users SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id = ?")
+        ->execute([$account['id']]);
 }
 
 // Rehash transparente si el costo de bcrypt cambió (buena práctica estándar).

@@ -97,7 +97,12 @@ if ($action === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonOut(["status" => "error", "message" => "El enlace expiró o ya fue usado. Solicita uno nuevo."], 400);
     }
 
-    $upd = $pdo->prepare("UPDATE admin_users SET password_hash = ?, reset_token_hash = NULL, reset_token_expires = NULL WHERE id = ?");
+    // También se levanta el bloqueo por intentos fallidos: quien acaba de
+    // demostrar que controla el correo de la cuenta no tiene por qué esperar
+    // a que expire el castigo de quien estuvo probando contraseñas.
+    $upd = $pdo->prepare("UPDATE admin_users SET password_hash = ?, reset_token_hash = NULL,
+                          reset_token_expires = NULL, intentos_fallidos = 0, bloqueado_hasta = NULL
+                          WHERE id = ?");
     $upd->execute([password_hash($newPass, PASSWORD_DEFAULT), $user['id']]);
 
     jsonOut(["status" => "success", "message" => "Contraseña actualizada. Ya puedes iniciar sesión."]);

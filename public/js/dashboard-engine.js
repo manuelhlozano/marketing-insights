@@ -7,8 +7,19 @@
   'use strict';
 
   const params       = new URLSearchParams(window.location.search);
-  const empresaSlug  = params.get('empresa')   || 'cine-multiplex-villacentro';
-  const dashSlug     = params.get('dashboard') || 'julio-2026';
+
+  // El enlace que se le pasa al cliente es /{empresa}/{informe}?token=...
+  // El servidor reescribe esa ruta a index.html y le añade empresa y dashboard
+  // como parámetros, pero eso ocurre solo del lado del servidor: en el
+  // navegador la barra de direcciones sigue teniendo únicamente el token. Al
+  // leer solo la query, esta página pedía siempre el informe de julio, así que
+  // cualquier enlace bonito a otro mes respondía "token inválido" (el token de
+  // ese mes no es el de julio). Por eso la ruta manda cuando la hay.
+  const partesRuta = window.location.pathname.split('/').filter(Boolean);
+  const rutaLimpia = partesRuta.length === 2 && !partesRuta.some(p => p.includes('.'));
+
+  const empresaSlug  = params.get('empresa')   || (rutaLimpia ? partesRuta[0] : 'cine-multiplex-villacentro');
+  const dashSlug     = params.get('dashboard') || (rutaLimpia ? partesRuta[1] : 'julio-2026');
   const token        = params.get('token')     || '';
 
   const API_URL = `/api/data.php?action=dashboard&empresa=${encodeURIComponent(empresaSlug)}&dashboard=${encodeURIComponent(dashSlug)}&token=${encodeURIComponent(token)}`;
