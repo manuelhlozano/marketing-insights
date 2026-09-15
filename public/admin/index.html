@@ -1176,7 +1176,13 @@
       modal.querySelectorAll('.pass-toggle').forEach(btn => {
         const input = document.getElementById(btn.dataset.target);
         if (input) input.type = 'password';
-        btn.querySelector('i').setAttribute('data-lucide', 'eye');
+        // Se busca por [data-lucide] y no por <i>: lucide.createIcons() sustituye
+        // el <i> marcador por un <svg>, asi que tras el primer pintado ya no hay
+        // ningun <i> aqui dentro y querySelector('i') devolvia null. El error que
+        // lanzaba dejaba a medias a quien llamara: el modal de usuarios nunca
+        // llegaba a abrirse.
+        const icono = btn.querySelector('[data-lucide]');
+        if (icono) icono.setAttribute('data-lucide', 'eye');
         btn.setAttribute('aria-label', 'Mostrar contraseña');
       });
       if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -1191,7 +1197,10 @@
       if (!input) return;
       const visible = input.type === 'text';
       input.type = visible ? 'password' : 'text';
-      btn.querySelector('i').setAttribute('data-lucide', visible ? 'eye' : 'eye-off');
+      // Mismo motivo que en ocultarPasswords(): despues del primer pintado el
+      // marcador ya es un <svg>, no un <i>.
+      const icono = btn.querySelector('[data-lucide]');
+      if (icono) icono.setAttribute('data-lucide', visible ? 'eye' : 'eye-off');
       btn.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
       if (typeof lucide !== 'undefined') lucide.createIcons();
     });
